@@ -130,15 +130,21 @@ export function renderAdaptiveView() {
           <div id="atn-traffic-events" class="atn-traffic-events" hidden></div>
           <span id="atn-map-status" role="status">Loading map…</span>
           <aside class="atn-selection" id="atn-selection" aria-label="Map selection" hidden>
-            <button type="button" id="atn-clear-selection" aria-label="Close selection">×</button>
-            <div id="atn-selection-content" aria-live="off"></div>
+            <div class="atn-selection-head">
+              <span class="atn-selection-heading" id="atn-selection-heading">Details</span>
+              <div class="atn-selection-actions">
+                <button type="button" class="atn-selection-toggle" id="atn-toggle-selection" aria-expanded="true" aria-controls="atn-selection-content">Hide</button>
+                <button type="button" class="atn-selection-close" id="atn-clear-selection" aria-label="Close selection">×</button>
+              </div>
+            </div>
+            <div class="atn-selection-content" id="atn-selection-content" aria-live="off"></div>
           </aside>
           <div class="atn-confirm-popover" id="atn-confirm-popover" hidden></div>
 
 
 
-          <div class="atn-legend" aria-label="Traffic flow and disruption legend">
-            <div class="atn-legend-title">Traffic &amp; disruptions</div>
+          <details class="atn-legend" id="atn-legend" aria-label="Traffic flow and disruption legend" open>
+            <summary class="atn-legend-title">Traffic &amp; disruptions</summary>
             <div class="atn-legend-items">
               <span><i class="sw vehicle"></i> Simulated vehicle</span>
               <span><i class="sw free"></i> Free flow</span>
@@ -153,7 +159,7 @@ export function renderAdaptiveView() {
               <span><i class="sw turn"></i> Diverted turn</span>
               <span><i class="sw block"></i> Blocked turn</span>
             </div>
-          </div>
+          </details>
           <a class="atn-osm-credit" href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a>
         </div>
 

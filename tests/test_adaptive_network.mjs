@@ -71,6 +71,9 @@ assert.ok(TIME_PERIODS.length === 3 && CONTROLLERS.length === 3);
 
 const html = renderAdaptiveView();
 assert.ok(html.includes('Tanah Abang') && html.includes('Cilandak') && html.includes('Pluit'));
+assert.ok(html.includes('<details class="atn-legend" id="atn-legend"'));
+assert.ok(html.includes('<summary class="atn-legend-title">Traffic &amp; disruptions</summary>'));
+assert.ok(html.includes('id="atn-toggle-selection"') && html.includes('id="atn-clear-selection"'));
 
 const trainedWeights = JSON.parse(fs.readFileSync(new URL('../public/data/model_weights.json', import.meta.url), 'utf8'));
 const trainedSim = runClientFallbackSimulation(pluit, {

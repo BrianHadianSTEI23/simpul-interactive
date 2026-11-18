@@ -116,14 +116,45 @@ export function activateAdaptiveMapView() {
 
   const selection = document.getElementById('atn-selection');
   const selectionContent = document.getElementById('atn-selection-content');
+  const selectionHeading = document.getElementById('atn-selection-heading');
+  const selectionToggle = document.getElementById('atn-toggle-selection');
   const trafficEvents = document.getElementById('atn-traffic-events');
   const mapStatus = document.getElementById('atn-map-status');
+  let lastSelectionKey = '';
+
+  function setSelectionCollapsed(collapsed) {
+    selection.dataset.collapsed = String(collapsed);
+    selectionContent.hidden = collapsed;
+    if (selectionToggle) {
+      selectionToggle.setAttribute('aria-expanded', String(!collapsed));
+      selectionToggle.textContent = collapsed ? 'Show' : 'Hide';
+    }
+    if (selectionHeading) {
+      const title = selectionContent.querySelector('h2')?.textContent?.trim();
+      selectionHeading.textContent = collapsed && title ? title : 'Road & marker details';
+    }
+  }
 
   function showSelection(content) {
     const opening = selection.hidden;
     selection.hidden = !content;
+    if (!content) {
+      lastSelectionKey = '';
+      if (selectionContent.innerHTML !== '') selectionContent.innerHTML = '';
+      setSelectionCollapsed(false);
+      return;
+    }
     if (selectionContent.innerHTML !== content) selectionContent.innerHTML = content;
-    if (content && opening && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const title = selectionContent.querySelector('h2')?.textContent?.trim() || '';
+    const subtitle = selectionContent.querySelector('small')?.textContent?.trim() || '';
+    const selectionKey = `${subtitle}::${title}`;
+    if (opening || selectionKey !== lastSelectionKey) {
+      lastSelectionKey = selectionKey;
+      setSelectionCollapsed(false);
+    } else if (selectionHeading && selection.dataset.collapsed === 'true' && title) {
+      selectionHeading.textContent = title;
+    }
+    if (opening && selection.dataset.collapsed !== 'true' && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       window.gsap?.fromTo(selectionContent, { y: 6 }, { y: 0, duration: 0.18, ease: 'power2.out' });
     }
   }
@@ -680,6 +711,10 @@ export function activateAdaptiveMapView() {
     renderer.resetView();
     updateCameraButtons(renderer.getCamera?.());
   });
+  document.getElementById('atn-toggle-selection')?.addEventListener('click', () => {
+    const collapsed = selection.dataset.collapsed !== 'true';
+    setSelectionCollapsed(collapsed);
+  });
   document.getElementById('atn-clear-selection').addEventListener('click', () => {
     renderer.clearSelection?.();
     showSelection('');
@@ -691,6 +726,8 @@ export function activateAdaptiveMapView() {
   if (window.matchMedia('(max-width: 850px)').matches) {
     root.querySelector('.atn-left').open = false;
     root.querySelector('.atn-right').open = false;
+    const legend = root.querySelector('.atn-legend');
+    if (legend) legend.open = false;
   }
   document.getElementById('atn-immersive-toggle')?.addEventListener('click', () => {
     simState.immersive = !simState.immersive;

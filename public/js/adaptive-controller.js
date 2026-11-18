@@ -509,7 +509,7 @@ export function activateAdaptiveMapView() {
       let result = null;
       if (location.protocol !== 'file:') {
         try {
-          const resp = await apiRequest('/api/simulation/run', { method: 'POST', body: payload, timeout: 12000 });
+          const resp = await apiRequest('/api/simulation/run', { method: 'POST', body: payload, timeout: 25000 });
           result = resp.result || resp;
           simState.backendMode = 'connected';
         } catch {

@@ -286,7 +286,8 @@ def _simulate_single_controller(
                 node_id=i['node_id'],
                 signalized=True,
                 current_phase=inter_phase[i['node_id']],
-                phase_elapsed_s=inter_elapsed[i['node_id']],
+                # Inactive approaches can retain their phase for an entire run.
+                phase_elapsed_s=min(600.0, inter_elapsed[i['node_id']]),
                 incoming_edge_ids=i['incoming_edges'],
                 outgoing_edge_ids=i['outgoing_edges'],
             )

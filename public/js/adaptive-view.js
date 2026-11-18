@@ -8,20 +8,16 @@ export function renderAdaptiveView() {
   <div class="atn-shell" id="atn-workspace">
     <header class="atn-topbar">
       <div class="atn-brand-block">
-        <span class="atn-eyebrow">JAKARTA ADAPTIVE TRAFFIC NETWORK · RESEARCH SIMULATOR</span>
-        <h1>Adaptive Network Flow &amp; Disruption Observatory</h1>
-        <small id="atn-region-subtitle">Pluit (Jakarta Utara) · Jl. Muara Baru · Pluit Sea View · Waduk Pluit · Penjaringan</small>
+        <span class="atn-brand-mark" aria-hidden="true">S</span>
+        <div><h1>SIMPUL</h1><small>Jakarta Traffic Simulator</small></div>
       </div>
-      <div class="atn-region-tabs" role="group" aria-label="Study area selection">
-        ${regions.map(r => `
-          <button type="button" class="atn-tab" data-atn-region="${safe(r.id)}" aria-pressed="${r.id === 'pluit'}">
-            <strong>${safe(r.name)}</strong>
-            <span>${safe(r.district)}</span>
-          </button>
-        `).join('')}
-      </div>
+      <form id="atn-search" class="atn-search" role="search">
+        <input type="search" aria-label="Search study areas, roads, and stops" placeholder="Search roads, stops, landmarks…" autocomplete="off" />
+        <button type="submit">Search</button>
+        <div class="atn-search-results" hidden></div>
+      </form>
       <div class="atn-top-badges">
-        <span class="atn-pill synth">OSM Real Geometry · Synthetic Flow &amp; Gaussian</span>
+        <span class="atn-pill synth">Synthetic traffic simulation</span>
         <span class="atn-pill" id="atn-backend-pill" data-mode="checking">Checking Backend...</span>
       </div>
     </header>
@@ -29,16 +25,17 @@ export function renderAdaptiveView() {
     <div class="atn-status-banner" id="atn-status-banner" role="status" aria-live="polite" hidden></div>
 
     <div class="atn-main-grid">
-      <aside class="atn-panel atn-left" aria-label="Scenario controls">
+      <details class="atn-panel atn-left" open><summary>Scenario &amp; layers</summary>
         <section class="atn-section">
-          <div class="atn-section-head"><span>A · STUDY AREA</span><small>OSM Filtered</small></div>
+          <div class="atn-section-head"><span>Study area</span></div>
           <div class="atn-btn-grid three">
             ${regions.map(r => `<button type="button" class="atn-chip" data-atn-region="${safe(r.id)}" aria-pressed="${r.id === 'pluit'}">${safe(r.name)}</button>`).join('')}
           </div>
+          <small id="atn-region-subtitle"></small>
         </section>
 
         <section class="atn-section">
-          <div class="atn-section-head"><span>B · TIME PERIOD</span><small>WIB Demand</small></div>
+          <div class="atn-section-head"><span>Time period</span><small>WIB Demand</small></div>
           <div class="atn-btn-grid three">
             ${TIME_PERIODS.map(p => `
               <button type="button" class="atn-chip" data-atn-period="${p.id}" aria-pressed="${p.id === 'pagi'}">
@@ -50,7 +47,7 @@ export function renderAdaptiveView() {
         </section>
 
         <section class="atn-section">
-          <div class="atn-section-head"><span>C · DISRUPTIONS</span><small>Gaussian Mask</small></div>
+          <div class="atn-section-head"><span>Disruptions</span><small>Gaussian Mask</small></div>
           <div class="atn-btn-grid two">
             <button type="button" class="atn-chip" data-atn-disruption="normal" aria-pressed="false">Normal</button>
             <button type="button" class="atn-chip" data-atn-disruption="flood" aria-pressed="true">Flooding</button>
@@ -74,7 +71,7 @@ export function renderAdaptiveView() {
         </section>
 
         <section class="atn-section">
-          <div class="atn-section-head"><span>D · CONTROLLER</span><small>B1 / B2 / B3</small></div>
+          <div class="atn-section-head"><span>Controller</span><small>B1 / B2 / B3</small></div>
           <div class="atn-ctrl-list">
             ${CONTROLLERS.map(c => `
               <button type="button" class="atn-ctrl-btn" data-atn-controller="${c.id}" aria-pressed="${c.id === 'gnn_mappo'}">
@@ -90,7 +87,7 @@ export function renderAdaptiveView() {
         </section>
 
         <section class="atn-section">
-          <div class="atn-section-head"><span>E · SIMULATION</span><small>Playback</small></div>
+          <div class="atn-section-head"><span>Playback</span><small>Playback</small></div>
           <div class="atn-sim-actions">
             <button type="button" class="atn-btn primary" id="atn-sim-run">${icon('play', 14)} Run</button>
             <button type="button" class="atn-btn ghost" id="atn-sim-toggle">Pause</button>
@@ -102,32 +99,45 @@ export function renderAdaptiveView() {
             ${[0.5, 1, 2, 4].map(sp => `<button type="button" class="atn-speed-btn" data-atn-speed="${sp}" aria-pressed="${sp === 1}">${sp}x</button>`).join('')}
           </div>
         </section>
-      </aside>
-
-      <main class="atn-map-stage">
-        <div class="atn-map-toolbar">
-          <div class="atn-hover-readout" id="atn-hover-readout">Hover road edge for live speed, queue, and eligibility telemetry.</div>
-          <div class="atn-map-tools">
-            <button type="button" class="atn-icon-btn" id="atn-zoom-in" aria-label="Zoom in">+</button>
-            <button type="button" class="atn-icon-btn" id="atn-zoom-out" aria-label="Zoom out">-</button>
-            <button type="button" class="atn-btn ghost sm" id="atn-zoom-reset">Reset View</button>
-          </div>
-        </div>
-
-        <div class="atn-canvas-wrap">
-          <div id="atn-map-canvas-host" class="atn-canvas-host" role="region" aria-label="Interactive Jakarta adaptive traffic network map"></div>
-          <div class="atn-confirm-popover" id="atn-confirm-popover" hidden></div>
-
+        <section class="atn-section">
+          <div class="atn-section-head">Map layers</div>
           <div class="atn-layer-bar">
+            <label><input type="checkbox" data-atn-layer="buildings" checked /> Buildings</label>
             <label><input type="checkbox" data-atn-layer="gaussian" checked /> Gaussian field</label>
             <label><input type="checkbox" data-atn-layer="signals" checked /> Signals</label>
             <label><input type="checkbox" data-atn-layer="transit" checked /> Transit</label>
             <label><input type="checkbox" data-atn-layer="coverage" checked /> Coverage mask</label>
             <label><input type="checkbox" data-atn-layer="labels" checked /> Landmarks</label>
           </div>
+        </section>
+      </details>
+
+      <main class="atn-map-stage">
+        <div class="atn-map-toolbar">
+          <div class="atn-hover-readout" id="atn-hover-readout">Select a road or marker for details.</div>
+          <div class="atn-map-tools" role="group" aria-label="Map camera">
+            <button type="button" class="atn-btn sm" data-atn-camera="2d" aria-pressed="false">2D</button>
+            <button type="button" class="atn-btn sm" data-atn-camera="3d" aria-pressed="true">3D</button>
+            <button type="button" class="atn-btn sm" data-atn-camera="overview" aria-pressed="false">Overview</button>
+            <button type="button" class="atn-icon-btn" id="atn-zoom-in" aria-label="Zoom in">+</button>
+            <button type="button" class="atn-icon-btn" id="atn-zoom-out" aria-label="Zoom out">-</button>
+            <button type="button" class="atn-btn ghost sm" id="atn-zoom-reset">Reset view</button>
+          </div>
+        </div>
+
+        <div class="atn-canvas-wrap">
+          <div id="atn-map-canvas-host" class="atn-canvas-host" role="region" aria-label="Interactive Jakarta adaptive traffic network map"></div>
+          <span id="atn-map-status" role="status">Loading map…</span>
+          <aside class="atn-selection" id="atn-selection" aria-label="Map selection" hidden>
+            <button type="button" id="atn-clear-selection" aria-label="Close selection">×</button>
+            <div id="atn-selection-content" aria-live="off"></div>
+          </aside>
+          <div class="atn-confirm-popover" id="atn-confirm-popover" hidden></div>
+
+
 
           <div class="atn-legend" aria-label="Traffic flow and disruption legend">
-            <div class="atn-legend-title">FLOW &amp; DISRUPTION ENCODING</div>
+            <div class="atn-legend-title">Traffic &amp; disruptions</div>
             <div class="atn-legend-items">
               <span><i class="sw free"></i> Free-flow stream</span>
               <span><i class="sw mod"></i> Moderate load</span>
@@ -135,9 +145,10 @@ export function renderAdaptiveView() {
               <span><i class="sw closed"></i> Closed segment</span>
               <span><i class="sw flood"></i> Flood Gaussian (I_e)</span>
               <span><i class="sw demo"></i> Demo Gaussian (I_e)</span>
-              <span><i class="sw mrt"></i> MRT / Rail / Bus</span>
+              <span><i class="sw mrt"></i> Transit stops</span>
             </div>
           </div>
+          <a class="atn-osm-credit" href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a>
         </div>
 
         <div class="atn-timeline-bar">
@@ -147,27 +158,27 @@ export function renderAdaptiveView() {
         </div>
       </main>
 
-      <aside class="atn-panel atn-right" aria-label="Simulation statistics and comparison">
+      <details class="atn-panel atn-right" open><summary>Simulation report</summary>
         <section class="atn-section">
-          <div class="atn-section-head"><span>SIMULATION METRICS</span><small>Active Run</small></div>
+          <div class="atn-section-head"><span>Simulation metrics</span><small>Active Run</small></div>
           <div class="atn-kpi-grid" id="atn-metrics-grid"></div>
         </section>
 
         <section class="atn-section">
-          <div class="atn-section-head"><span>CONTROLLER COMPARISON</span><small>Avg Delay (s)</small></div>
+          <div class="atn-section-head"><span>Controller comparison</span><small>Avg Delay (s)</small></div>
           <div class="atn-compare-list" id="atn-comparison-box"></div>
         </section>
 
         <section class="atn-section">
-          <div class="atn-section-head"><span>MODEL ADAPTER &amp; SUPERVISOR</span><small>Contract</small></div>
+          <div class="atn-section-head"><span>Model adapter &amp; supervisor</span><small>Contract</small></div>
           <div class="atn-kv-box" id="atn-adapter-box"></div>
         </section>
 
         <section class="atn-section">
-          <div class="atn-section-head"><span>DATA PROVENANCE</span><small>Manifest</small></div>
+          <div class="atn-section-head"><span>Data provenance</span><small>Manifest</small></div>
           <div class="atn-kv-box" id="atn-provenance-summary"></div>
         </section>
-      </aside>
+      </details>
     </div>
   </div>
   `;

@@ -59,11 +59,11 @@ def test_scenario_and_simulation_lifecycle():
             'enabled': True,
             'lat': anchor['lat'],
             'lon': anchor['lon'],
-            'intensity': 0.86,
-            'sigma_m': 450,
+            'intensity': 0.78,
+            'sigma_m': 460,
         },
         'demonstration': {'enabled': False},
-        'duration_s': 360,
+        'duration_s': 600,
         'seed': 42,
     }
     assert client.post('/api/scenarios', json=payload).status_code == 200

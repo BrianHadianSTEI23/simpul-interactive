@@ -8,6 +8,7 @@
  * Uses a synchronized WebGL particle shader layer over a HiDPI Canvas2D vector map,
  * with automatic Canvas2D particle fallback when WebGL is unavailable.
  */
+import { colors } from './map-style.js';
 import { snapDisruptionLocation } from './adaptive-model.js';
 
 const DEG_TO_RAD = Math.PI / 180;
@@ -80,7 +81,7 @@ function initWebGLParticles(canvas) {
   }
 }
 
-function buildEdgeGeometryCache(region) {
+export function buildEdgeGeometryCache(region) {
   const edges = region?.edges || [];
   const cosLat = Math.cos((region?.center?.lat || -6.2) * DEG_TO_RAD);
   return edges.map(edge => {
@@ -97,7 +98,7 @@ function buildEdgeGeometryCache(region) {
   });
 }
 
-function samplePolylineAt(geom, frac) {
+export function samplePolylineAt(geom, frac) {
   const { coords, cumDist, totalDeg } = geom;
   if (!coords.length) return { lon: 0, lat: 0, nx: 0, ny: 0, tx: 1, ty: 0 };
   if (coords.length === 1) return { lon: coords[0][0], lat: coords[0][1], nx: 0, ny: 0, tx: 1, ty: 0 };
@@ -118,19 +119,15 @@ function samplePolylineAt(geom, frac) {
   return { lon, lat, tx: dx / len, ty: dy / len, nx: dy / len, ny: -dx / len };
 }
 
+const paintRGB = Object.fromEntries(Object.entries(colors).map(([name, hex]) => [
+  name, hex.slice(1).match(/../g).map(channel => parseInt(channel, 16) / 255),
+]));
+
 function trafficColorRGB(congestion, closed, restricted) {
-  if (closed) return [0.96, 0.25, 0.37];
-  if (restricted && congestion > 0.55) return [0.98, 0.55, 0.16];
-  if (congestion < 0.32) {
-    const k = congestion / 0.32;
-    return [0.13 + k * 0.08, 0.83 - k * 0.05, 0.93 - k * 0.25]; // cyan -> teal
-  }
-  if (congestion < 0.65) {
-    const k = (congestion - 0.32) / 0.33;
-    return [0.22 + k * 0.74, 0.78 - k * 0.18, 0.68 - k * 0.57]; // teal -> amber
-  }
-  const k = Math.min(1, (congestion - 0.65) / 0.35);
-  return [0.96, 0.60 - k * 0.35, 0.11 + k * 0.15]; // amber -> coral red
+  if (closed) return paintRGB.navy;
+  if (restricted || congestion >= 0.68) return paintRGB.orange;
+  if (congestion >= 0.32) return paintRGB.copper;
+  return paintRGB.blue;
 }
 
 export function createAdaptiveMapRenderer(container, callbacks = {}) {
@@ -164,6 +161,7 @@ export function createAdaptiveMapRenderer(container, callbacks = {}) {
   let pendingSnap = null;
   let rejectedPing = null;
   let hoverEdge = null;
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   let isPlaying = true;
   let playbackSpeed = 1;
 
@@ -252,8 +250,8 @@ export function createAdaptiveMapRenderer(container, callbacks = {}) {
     if (!layers.gaussian || !simResult?.disruptions) return;
     const { flood, demonstration } = simResult.disruptions;
     const fields = [
-      { cfg: flood, rgb: '56, 189, 248', label: 'FLOOD FIELD' },
-      { cfg: demonstration, rgb: '249, 115, 22', label: 'DEMO FIELD' },
+      { cfg: flood, rgb: '9, 97, 173', label: 'FLOOD FIELD' },
+      { cfg: demonstration, rgb: '248, 104, 9', label: 'DEMO FIELD' },
     ];
     for (const { cfg, rgb } of fields) {
       if (!cfg?.enabled || !Number.isFinite(cfg.lat) || !Number.isFinite(cfg.lon)) continue;
@@ -289,11 +287,11 @@ export function createAdaptiveMapRenderer(container, callbacks = {}) {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     // 1. Deep urban dark slate canvas
-    ctx.fillStyle = '#070d18';
+    ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(0, 0, width, height);
 
     // Subtle spatial reference grid
-    ctx.strokeStyle = 'rgba(148, 163, 184, 0.055)';
+    ctx.strokeStyle = 'rgba(27, 43, 78, 0.055)';
     ctx.lineWidth = 1;
     const gridStep = 48;
     for (let gx = (width * 0.5) % gridStep; gx < width; gx += gridStep) {
@@ -321,13 +319,13 @@ export function createAdaptiveMapRenderer(container, callbacks = {}) {
         });
         if (wb.geometry_type === 'Polygon') {
           ctx.closePath();
-          ctx.fillStyle = 'rgba(14, 48, 82, 0.72)';
+          ctx.fillStyle = 'rgba(9, 97, 173, 0.15)';
           ctx.fill();
-          ctx.strokeStyle = 'rgba(56, 189, 248, 0.25)';
+          ctx.strokeStyle = 'rgba(9, 97, 173, 0.25)';
           ctx.lineWidth = 1.2;
           ctx.stroke();
         } else {
-          ctx.strokeStyle = 'rgba(30, 88, 138, 0.55)';
+          ctx.strokeStyle = 'rgba(9, 97, 173, 0.55)';
           ctx.lineWidth = 3;
           ctx.stroke();
         }
@@ -344,7 +342,7 @@ export function createAdaptiveMapRenderer(container, callbacks = {}) {
         else ctx.lineTo(p.x, p.y);
       });
       ctx.closePath();
-      ctx.strokeStyle = 'rgba(56, 189, 248, 0.34)';
+      ctx.strokeStyle = 'rgba(9, 97, 173, 0.34)';
       ctx.lineWidth = 1.5;
       ctx.setLineDash([8, 6]);
       ctx.stroke();
@@ -360,9 +358,9 @@ export function createAdaptiveMapRenderer(container, callbacks = {}) {
         else ctx.lineTo(p.x, p.y);
       });
       ctx.closePath();
-      ctx.fillStyle = 'rgba(15, 29, 51, 0.42)';
+      ctx.fillStyle = 'rgba(4, 37, 115, 0.06)';
       ctx.fill();
-      ctx.strokeStyle = 'rgba(34, 211, 238, 0.28)';
+      ctx.strokeStyle = 'rgba(9, 97, 173, 0.28)';
       ctx.lineWidth = 1.2;
       ctx.stroke();
       ctx.restore();
@@ -408,7 +406,7 @@ export function createAdaptiveMapRenderer(container, callbacks = {}) {
       if (eligActive) {
         ctx.save();
         tracePath();
-        ctx.strokeStyle = disruptionMode === 'flood' ? 'rgba(56, 189, 248, 0.25)' : 'rgba(249, 115, 22, 0.25)';
+        ctx.strokeStyle = disruptionMode === 'flood' ? 'rgba(9, 97, 173, 0.25)' : 'rgba(248, 104, 9, 0.25)';
         ctx.lineWidth = baseW + 5;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
@@ -418,7 +416,7 @@ export function createAdaptiveMapRenderer(container, callbacks = {}) {
 
       // Road casing
       tracePath();
-      ctx.strokeStyle = hoverEdge?.edge_id === e.edge_id ? 'rgba(255, 255, 255, 0.65)' : 'rgba(15, 23, 42, 0.92)';
+      ctx.strokeStyle = hoverEdge?.edge_id === e.edge_id ? 'rgba(255, 255, 255, 0.65)' : 'rgba(27, 43, 78, 0.14)';
       ctx.lineWidth = baseW + 2.2;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
@@ -434,11 +432,11 @@ export function createAdaptiveMapRenderer(container, callbacks = {}) {
       ctx.save();
       tracePath();
       if (closed) {
-        ctx.strokeStyle = 'rgba(239, 68, 68, 0.88)';
+        ctx.strokeStyle = 'rgba(4, 37, 115, 0.88)';
         ctx.lineWidth = baseW + 0.6;
         ctx.setLineDash([6, 5]);
       } else if (restricted) {
-        ctx.strokeStyle = 'rgba(249, 115, 22, 0.85)';
+        ctx.strokeStyle = 'rgba(248, 104, 9, 0.85)';
         ctx.lineWidth = baseW;
         ctx.setLineDash([9, 4]);
       } else {
@@ -461,7 +459,7 @@ export function createAdaptiveMapRenderer(container, callbacks = {}) {
           if (i === tailIdx) ctx.moveTo(shifted[i].x, shifted[i].y);
           else ctx.lineTo(shifted[i].x, shifted[i].y);
         }
-        ctx.strokeStyle = st.occupancy >= 0.8 ? 'rgba(244, 63, 94, 0.92)' : 'rgba(251, 146, 60, 0.78)';
+        ctx.strokeStyle = st.occupancy >= 0.8 ? 'rgba(248, 104, 9, 0.92)' : 'rgba(208, 116, 56, 0.78)';
         ctx.lineWidth = Math.max(2.5, baseW * 0.82);
         ctx.lineCap = 'round';
         ctx.stroke();
@@ -481,11 +479,11 @@ export function createAdaptiveMapRenderer(container, callbacks = {}) {
         ctx.beginPath();
         ctx.arc(p.x, p.y, inter.signalized ? 4.4 : 2.8, 0, Math.PI * 2);
         ctx.fillStyle = ist
-          ? (ist.phase === 0 ? '#34d399' : '#38bdf8')
-          : (inter.signalized ? '#94a3b8' : '#475569');
+          ? (ist.phase === 0 ? '#D07438' : '#0961AD')
+          : (inter.signalized ? '#042573' : '#1B2B4E');
         ctx.fill();
         if (inter.signalized) {
-          ctx.strokeStyle = 'rgba(15, 23, 42, 0.95)';
+          ctx.strokeStyle = 'rgba(27, 43, 78, 0.95)';
           ctx.lineWidth = 1.5;
           ctx.stroke();
         }
@@ -501,15 +499,15 @@ export function createAdaptiveMapRenderer(container, callbacks = {}) {
         const isRail = st.mode === 'mrt_station' || st.mode === 'rail_station';
         ctx.save();
         if (isRail) {
-          ctx.fillStyle = '#38bdf8';
-          ctx.strokeStyle = '#0f172a';
+          ctx.fillStyle = '#0961AD';
+          ctx.strokeStyle = '#1B2B4E';
           ctx.lineWidth = 1.8;
           ctx.beginPath();
           ctx.rect(p.x - 4.5, p.y - 4.5, 9, 9);
           ctx.fill();
           ctx.stroke();
         } else {
-          ctx.fillStyle = '#a78bfa';
+          ctx.fillStyle = '#0961AD';
           ctx.beginPath();
           ctx.arc(p.x, p.y, 2.7, 0, Math.PI * 2);
           ctx.fill();
@@ -525,17 +523,17 @@ export function createAdaptiveMapRenderer(container, callbacks = {}) {
       for (const lm of region.landmarks || []) {
         const p = latLonToScreen(lm.lat, lm.lon);
         if (p.x < 10 || p.y < 10 || p.x > width - 10 || p.y > height - 10) continue;
-        ctx.fillStyle = lm.kind.includes('station') ? '#38bdf8' : '#e2e8f0';
+        ctx.fillStyle = lm.kind.includes('station') ? '#0961AD' : '#1B2B4E';
         ctx.beginPath();
         ctx.arc(p.x, p.y, 3.6, 0, Math.PI * 2);
         ctx.fill();
         const tw = ctx.measureText(lm.name).width;
-        ctx.fillStyle = 'rgba(7, 13, 24, 0.82)';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.82)';
         ctx.fillRect(p.x + 7, p.y - 10, tw + 10, 17);
-        ctx.strokeStyle = 'rgba(148, 163, 184, 0.28)';
+        ctx.strokeStyle = 'rgba(27, 43, 78, 0.28)';
         ctx.lineWidth = 0.8;
         ctx.strokeRect(p.x + 7, p.y - 10, tw + 10, 17);
-        ctx.fillStyle = '#e2e8f0';
+        ctx.fillStyle = '#1B2B4E';
         ctx.fillText(lm.name, p.x + 12, p.y + 2);
       }
       ctx.restore();
@@ -552,7 +550,7 @@ export function createAdaptiveMapRenderer(container, callbacks = {}) {
     for (const m of activeMarkers) {
       if (!Number.isFinite(m.lat) || !Number.isFinite(m.lon)) continue;
       const p = latLonToScreen(m.lat, m.lon);
-      const col = m.kind === 'flood' ? '#38bdf8' : '#fb923c';
+      const col = m.kind === 'flood' ? '#0961AD' : '#F86809';
       ctx.save();
       ctx.beginPath();
       ctx.arc(p.x, p.y, 13, 0, Math.PI * 2);
@@ -568,7 +566,7 @@ export function createAdaptiveMapRenderer(container, callbacks = {}) {
 
     if (pendingSnap?.accepted) {
       const p = latLonToScreen(pendingSnap.snapped_lat, pendingSnap.snapped_lon);
-      const col = pendingSnap.disruption_kind === 'flood' ? '#38bdf8' : '#fb923c';
+      const col = pendingSnap.disruption_kind === 'flood' ? '#0961AD' : '#F86809';
       ctx.save();
       ctx.beginPath();
       ctx.arc(p.x, p.y, 16, 0, Math.PI * 2);
@@ -586,7 +584,7 @@ export function createAdaptiveMapRenderer(container, callbacks = {}) {
     if (rejectedPing && performance.now() - rejectedPing.at < 1800) {
       const p = latLonToScreen(rejectedPing.lat, rejectedPing.lon);
       ctx.save();
-      ctx.strokeStyle = '#ef4444';
+      ctx.strokeStyle = '#042573';
       ctx.lineWidth = 2.2;
       ctx.beginPath();
       ctx.moveTo(p.x - 8, p.y - 8); ctx.lineTo(p.x + 8, p.y + 8);
@@ -622,7 +620,7 @@ export function createAdaptiveMapRenderer(container, callbacks = {}) {
       const cong = st ? st.congestion_index : 0.18;
       // Flow velocity strictly driven by simulated edge speed & edge length.
       const speedMps = Math.max(1.2, speedKmh / 3.6);
-      const fracPerSec = (speedMps * (isPlaying ? playbackSpeed : 0) * 1.6) / Math.max(25, e.length_m || 120);
+      const fracPerSec = (speedMps * (isPlaying && !reducedMotion.matches ? playbackSpeed : 0) * 1.6) / Math.max(25, e.length_m || 120);
       p.offset = (p.offset + fracPerSec * dt) % 1;
 
       const pt = samplePolylineAt(geom, p.offset);
@@ -783,7 +781,7 @@ export function createAdaptiveMapRenderer(container, callbacks = {}) {
         drawBaseLayer();
         callbacks.onSnapRejected?.(res);
       }
-    } else if (hoverEdge) {
+    } else if ((hoverEdge = findHoveredEdge(lat, lon))) {
       const frame = activeFrame();
       callbacks.onEdgeClick?.(hoverEdge, frame?.edge_states?.[hoverEdge.edge_id] || null);
     } else {
@@ -861,6 +859,16 @@ export function createAdaptiveMapRenderer(container, callbacks = {}) {
     },
     resetView() {
       fitRegion();
+      drawBaseLayer();
+    },
+    focusLocation(location) {
+      viewCenter = { lon: location.lon, lat: location.lat };
+      if (location.edge) {
+        hoverEdge = location.edge;
+        callbacks.onEdgeClick?.(hoverEdge, activeFrame()?.edge_states?.[hoverEdge.edge_id]);
+      } else {
+        callbacks.onFeatureClick?.(location);
+      }
       drawBaseLayer();
     },
     getRenderEngine() {

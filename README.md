@@ -1,14 +1,19 @@
 # Jakarta Adaptive Traffic Network Visualization (`simpul-interactive`)
 
-Interactive dark-urban traffic-flow and disruption observatory for three Jakarta study areas extracted from **OpenStreetMap**:
+Interactive 3D traffic-flow and disruption simulator for three Jakarta study areas extracted from **OpenStreetMap**:
 
 1. **Tanah Abang** — Stasiun Tanah Abang, Pasar Tanah Abang, Jl. Jatibaru, Jl. Fachrudin, Jl. KH Mas Mansyur
 2. **Cilandak** — MRT Fatmawati, Jl. TB Simatupang, Jl. RS Fatmawati, Cilandak Town Square surroundings
 3. **Pluit** — Jl. Muara Baru, Pluit Sea View, Waduk Pluit, Penjaringan (primary flood scenario)
 
+Search covers the study areas, roads, stops, and landmarks in the bundled data. The
+basemap streams OpenStreetMap-derived tiles from [OpenFreeMap](https://openfreemap.org/)
+and shows building heights where the vector data provides them. The traffic and
+disruption overlays use the simulator's synthetic data.
+
 ## Structure
 
-- `public/` — Zero-dependency ES-module frontend with WebGL directional flow streamlines + HiDPI Canvas2D abstract vector map
+- `public/` — Static ES-module frontend with MapLibre GL JS, an OpenFreeMap vector basemap, and a local 2D renderer fallback
 - `backend/` — FastAPI domain logic, Gaussian spatial disruption model, mesoscopic network simulator, and GNN-MAPPO model adapter
 - `api/index.py` — Vercel serverless Python ASGI entrypoint
 - `data/regions/` & `data/provenance_manifest.json` — Filtered OSM GeoJSON/graph files and provenance manifest

@@ -1,7 +1,7 @@
 /**
  * Interactive orchestration for the Jakarta Adaptive Traffic Network Simulator (#mapview).
  *
- * Connects the WebGL/Canvas2D map renderer, scenario controls, spatial click-to-disrupt
+ * Connects the geospatial map renderer, scenario controls, spatial click-to-disrupt
  * snapping, backend FastAPI simulation API (with explicit client fallback when offline),
  * replay timeline, and 3-controller benchmark comparison.
  */
@@ -13,7 +13,8 @@ import {
   runClientFallbackSimulation,
   formatMetricValue,
 } from './adaptive-model.js';
-import { createAdaptiveMapRenderer } from './adaptive-map-renderer.js';
+import { createGeospatialRenderer } from './geospatial-renderer.js';
+import { bindMapSearch } from './map-search.js';
 import { apiRequest } from './api.js';
 import { safe } from './util.js';
 
@@ -108,8 +109,46 @@ export function activateAdaptiveMapView() {
 
   let replayTimer = null;
   let runningRequest = false;
+  let queuedRequest = false;
+  let disposed = false;
 
-  const renderer = createAdaptiveMapRenderer(mapHost, {
+  const selection = document.getElementById('atn-selection');
+  const selectionContent = document.getElementById('atn-selection-content');
+  const mapStatus = document.getElementById('atn-map-status');
+
+  function showSelection(content) {
+    const opening = selection.hidden;
+    selection.hidden = !content;
+    if (selectionContent.innerHTML !== content) selectionContent.innerHTML = content;
+    if (content && opening && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      window.gsap?.fromTo(selectionContent, { y: 6 }, { y: 0, duration: 0.18, ease: 'power2.out' });
+    }
+  }
+
+  const renderer = createGeospatialRenderer(mapHost, {
+    onMapStatus(message) {
+      mapStatus.textContent = message;
+      mapStatus.hidden = !message;
+    },
+    onMapReady() {
+      if (mapStatus.textContent === 'Loading map…') mapStatus.hidden = true;
+    },
+    onEdgeClick(edge, state) {
+      if (!edge) return;
+      const status = state?.closed ? 'Closed' : state?.access_restricted ? 'Restricted' : 'Open';
+      showSelection(`<small>Road segment · ${safe(edge.highway)}</small>
+        <h2>${safe(edge.name)}</h2>
+        <dl>
+          <dt>Direction</dt><dd>${edge.oneway ? 'One-way' : 'Bidirectional'}</dd>
+          <dt>Speed</dt><dd>${safe(state?.speed_kmh ?? edge.speed_limit_kmh)} km/h${state ? '' : ' limit'}</dd>
+          <dt>Queue</dt><dd>${state ? safe(state.queue_veh) + ' vehicles' : '—'}</dd>
+          <dt>Access</dt><dd>${status}</dd>
+          <dt>Eligible for</dt><dd>${[edge.flood_eligible && 'Flood', edge.demonstration_eligible && 'Demo'].filter(Boolean).join(', ') || '—'}</dd>
+        </dl>`);
+    },
+    onFeatureClick(properties) {
+      showSelection(properties ? `<small>${safe(properties.kind)}</small><h2>${safe(properties.name)}</h2>` : '');
+    },
     onHover(info) {
       const box = document.getElementById('atn-hover-readout');
       if (!box) return;
@@ -401,7 +440,11 @@ export function activateAdaptiveMapView() {
   }
 
   async function runSimulation() {
-    if (runningRequest) return;
+    if (disposed) return;
+    if (runningRequest) {
+      queuedRequest = true;
+      return;
+    }
     runningRequest = true;
     const region = getRegion(simState.regionId);
     const payload = {
@@ -442,6 +485,7 @@ export function activateAdaptiveMapView() {
         result = runClientFallbackSimulation(region, payload);
       }
 
+      if (disposed || queuedRequest) return;
       simState.simResult = result;
       simState.frameIndex = 0;
       renderer.setSimulation(result, 0);
@@ -450,12 +494,18 @@ export function activateAdaptiveMapView() {
       renderMetricsAndComparison();
     } finally {
       runningRequest = false;
+      if (queuedRequest && !disposed) {
+        queuedRequest = false;
+        void runSimulation();
+      }
     }
   }
 
   function switchRegion(regionId) {
     if (!ADAPTIVE_REGIONS_DATA[regionId]) return;
     simState.regionId = regionId;
+    simState.simResult = null;
+    simState.frameIndex = 0;
     const region = getRegion(regionId);
     syncDisruptionAnchorsForRegion(region);
     // Default disruption preset per region: Pluit highlights flooding; Tanah Abang & Cilandak highlight demonstration.
@@ -473,6 +523,8 @@ export function activateAdaptiveMapView() {
     simState.statusNotice = { kind: 'info', text: `Loaded ${region.name} (${region.stats.directed_edges} directed OSM road edges).` };
     renderer.setDisruptionPlacementMode(null);
     renderer.setRegion(region);
+    updateCameraButtons(renderer.getCamera?.());
+    showSelection('');
     renderPendingConfirm();
     renderStatusBanner();
     renderControls();
@@ -602,7 +654,33 @@ export function activateAdaptiveMapView() {
 
   document.getElementById('atn-zoom-in')?.addEventListener('click', () => renderer.zoomIn());
   document.getElementById('atn-zoom-out')?.addEventListener('click', () => renderer.zoomOut());
-  document.getElementById('atn-zoom-reset')?.addEventListener('click', () => renderer.resetView());
+  const cameras = [...root.querySelectorAll('[data-atn-camera]')];
+  function updateCameraButtons(mode) {
+    cameras.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.atnCamera === mode)));
+  }
+  cameras.forEach(button => {
+    button.disabled = !renderer.setCamera;
+    button.addEventListener('click', () => {
+      renderer.setCamera(button.dataset.atnCamera);
+      updateCameraButtons(button.dataset.atnCamera);
+    });
+  });
+  document.getElementById('atn-zoom-reset')?.addEventListener('click', () => {
+    renderer.resetView();
+    updateCameraButtons(renderer.getCamera?.());
+  });
+  document.getElementById('atn-clear-selection').addEventListener('click', () => {
+    renderer.clearSelection?.();
+    showSelection('');
+    mapHost.querySelector('canvas[tabindex]')?.focus();
+  });
+  bindMapSearch(root, ADAPTIVE_REGIONS_DATA, id => {
+    if (id !== simState.regionId) switchRegion(id);
+  }, location => renderer.focusLocation(location));
+  if (window.matchMedia('(max-width: 850px)').matches) {
+    root.querySelector('.atn-left').open = false;
+    root.querySelector('.atn-right').open = false;
+  }
   document.getElementById('atn-immersive-toggle')?.addEventListener('click', () => {
     simState.immersive = !simState.immersive;
     document.body.classList.toggle('atn-immersive', simState.immersive);
@@ -612,6 +690,7 @@ export function activateAdaptiveMapView() {
   });
 
   root.querySelectorAll('[data-atn-layer]').forEach(chk => {
+    if (chk.dataset.atnLayer === 'buildings' && !renderer.setCamera) chk.disabled = true;
     chk.addEventListener('change', () => {
       simState.layers[chk.dataset.atnLayer] = chk.checked;
       renderer.setLayers(simState.layers);
@@ -631,6 +710,7 @@ export function activateAdaptiveMapView() {
 
   // Initial load
   renderer.setRegion(getRegion(simState.regionId));
+  updateCameraButtons(renderer.getCamera?.());
   renderControls();
   renderStatusBanner();
   runSimulation();
@@ -638,6 +718,7 @@ export function activateAdaptiveMapView() {
 
   activeInstance = {
     destroy() {
+      disposed = true;
       clearInterval(replayTimer);
       renderer.destroy();
     },

@@ -8,7 +8,7 @@ export function renderAdaptiveView() {
   <div class="atn-shell" id="atn-workspace">
     <header class="atn-topbar">
       <div class="atn-brand-block">
-        <span class="atn-brand-mark" aria-hidden="true">S</span>
+        <img class="atn-brand-mark" src="./assets/simpul-logo.png" alt="" width="38" height="38" />
         <div><h1>SIMPUL</h1><small>Jakarta Traffic Simulator</small></div>
       </div>
       <form id="atn-search" class="atn-search" role="search">
@@ -179,6 +179,21 @@ export function renderAdaptiveView() {
         <section class="atn-section">
           <div class="atn-section-head"><span>Controller comparison</span><small>Avg Delay (s)</small></div>
           <div class="atn-compare-list" id="atn-comparison-box"></div>
+        </section>
+
+        <section class="atn-section atn-partners" aria-label="Supported by">
+          <div class="atn-section-head"><span>Supported by</span><small>Partners</small></div>
+          <div class="atn-partner-strip">
+            <div class="atn-partner-item">
+              <img src="./assets/partner-us-mission.png" alt="U.S. Mission Indonesia" width="188" height="129" decoding="async" />
+            </div>
+            <div class="atn-partner-item">
+              <img src="./assets/partner-itb.png" alt="Institut Teknologi Bandung" width="132" height="132" decoding="async" />
+            </div>
+            <div class="atn-partner-item">
+              <img src="./assets/partner-aiera.png" alt="AIERA Foundation" width="123" height="131" decoding="async" />
+            </div>
+          </div>
         </section>
 
       </details>

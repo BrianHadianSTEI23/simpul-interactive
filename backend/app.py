@@ -45,6 +45,8 @@ if (PUBLIC_DIR / 'js').is_dir():
     app.mount('/js', StaticFiles(directory=PUBLIC_DIR / 'js'), name='js')
 if (PUBLIC_DIR / 'data').is_dir():
     app.mount('/data', StaticFiles(directory=PUBLIC_DIR / 'data'), name='data')
+if (PUBLIC_DIR / 'assets').is_dir():
+    app.mount('/assets', StaticFiles(directory=PUBLIC_DIR / 'assets'), name='assets')
 
 
 @app.get('/')

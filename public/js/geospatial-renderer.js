@@ -223,11 +223,11 @@ export function createGeospatialRenderer(container, callbacks) {
   function setCamera(mode, duration = 500) {
     camera = mode;
     if (!region) return;
-    const pitch = mode === '3d' ? 48 : 0;
+    const pitch = mode === '3d' ? 53 : 0;
     const bearing = mode === '3d' ? -18 : 0;
     const motion = reducedMotion.matches ? 0 : duration;
     if (mode === 'overview') {
-      map.fitBounds([[106.77, -6.31], [106.84, -6.095]], { padding: 32, duration: motion, pitch, bearing });
+      map.fitBounds([[106.69, -6.36], [106.97, -6.075]], { padding: 32, duration: motion, pitch, bearing });
       return;
     }
     const { west, south, east, north } = region.bbox;
@@ -235,7 +235,7 @@ export function createGeospatialRenderer(container, callbacks) {
     if (mode === '3d') {
       const flat = map.cameraForBounds([[west, south], [east, north]], { padding });
       if (!flat) return;
-      map.easeTo({ center: flat.center, zoom: Math.max(14.15, flat.zoom + 0.6), pitch, bearing, duration: motion });
+      map.easeTo({ center: flat.center, zoom: Math.max(14.55, flat.zoom + 0.7), pitch, bearing, duration: motion });
     } else {
       map.fitBounds([[west, south], [east, north]], { padding, duration: motion, pitch, bearing });
     }

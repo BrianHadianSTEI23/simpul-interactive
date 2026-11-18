@@ -26,16 +26,16 @@ export const CONTROLLERS = Object.freeze([
     code: 'B2',
     name: 'ITCS Max-Pressure',
     shortName: 'Max-Pressure',
-    description: 'Decentralized phase selection maximizing local upstream-downstream queue pressure.',
+    description: 'Adjusts signal timing from upstream and downstream queues.',
     isMock: false,
   }),
   Object.freeze({
     id: 'gnn_mappo',
     code: 'B3',
-    name: 'Proposed GNN-MAPPO',
-    shortName: 'GNN-MAPPO',
-    description: 'Graph-coordinated multi-agent policy (Mock development adapter; safety supervisor enforced).',
-    isMock: true,
+    name: 'MeshGraphNet Routing',
+    shortName: 'MeshGraphNet',
+    description: 'Diverts traffic at junctions and can block individual turns.',
+    isMock: false,
   }),
 ]);
 
@@ -365,12 +365,18 @@ function simulateSingleClientController(region, config, controllerId, floodCfg, 
         });
         phase = evenQ >= oddQ ? 0 : 1;
       }
+      const incoming = inter.incoming_edges || [];
+      const previous = interPhase[inter.node_id];
+      const changed = previous !== undefined && previous !== phase;
       if (interPhase[inter.node_id] !== phase) {
         phaseSwitches++;
         interPhase[inter.node_id] = phase;
       }
       frameIntersections[inter.node_id] = {
         phase,
+        green_edges: incoming.filter((_, index) => index % 2 === phase),
+        phase_changed: changed,
+        yellow_edges: changed ? incoming.filter((_, index) => index % 2 === previous) : [],
         green_duration_s: controllerId === 'fixed_time' ? (phase === 0 ? 48 : 44) : 34,
         safety_clamped: false,
       };

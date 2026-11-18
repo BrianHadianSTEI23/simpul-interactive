@@ -1,6 +1,6 @@
 import { isCongested, snapDisruptionLocation } from './adaptive-model.js';
 import { buildEdgeGeometryCache, createAdaptiveMapRenderer, samplePolylineAt } from './adaptive-map-renderer.js';
-import { buildingLayers, colors, mapStyle } from './map-style.js';
+import { colors, mapStyle } from './map-style.js';
 
 const { navy, blue, orange, copper, slate, white } = colors;
 const collection = (features = []) => ({ type: 'FeatureCollection', features });
@@ -9,11 +9,11 @@ const feature = (type, coordinates, properties = {}) => ({
 });
 const point = (location, properties) => feature('Point', [location.lon, location.lat], properties);
 const paintState = (key, fallback) => ['coalesce', ['feature-state', key], fallback];
-const trafficColor = ['interpolate', ['linear'], paintState('load', 0), 0, blue, 0.5, copper, 0.85, orange];
+const trafficColor = ['interpolate', ['linear'], paintState('load', 0), 0, blue, 0.4, copper, 0.65, orange, 0.85, '#B92732'];
 const visibleLayers = {
   vehicles: ['vehicles', 'queued-vehicles'],
-  gaussian: ['gaussian'], signals: ['signals'], transit: ['transit'],
-  coverage: ['coverage'], labels: ['landmarks', 'landmark-labels'], buildings: buildingLayers,
+  gaussian: ['gaussian'], signals: ['signals'], transit: ['transit', 'station-labels'],
+  coverage: ['coverage'], labels: ['landmarks', 'landmark-labels'],
 };
 
 function addVehicleIcon(map, id, color) {
@@ -64,7 +64,7 @@ function overlayLayers(map) {
     'line-offset': offset,
   }, rounded);
   add('road-surface', 'line', 'roads', {
-    'line-color': ['case', paintState('congested', false), orange, trafficColor], 'line-opacity': ['case', paintState('blocked', false), 0.22, 0.86],
+    'line-color': ['case', ['>=', paintState('load', 0), 0.8], '#B92732', paintState('congested', false), orange, trafficColor], 'line-opacity': ['case', paintState('blocked', false), 0.22, 0.86],
     'line-offset': offset, 'line-width': ['interpolate', ['linear'], ['zoom'],
       11, ['case', paintState('congested', false), 3, 1.3],
       17, ['case', paintState('congested', false), 6, 3.4]],
@@ -76,14 +76,15 @@ function overlayLayers(map) {
   });
   add('eligible', 'line', 'eligible', { 'line-color': orange, 'line-width': 6, 'line-opacity': 0.35 }, rounded);
   add('queues', 'line', 'queues', { 'line-color': orange, 'line-width': 4, 'line-offset': offset }, rounded);
-  add('signals', 'circle', 'signals', {
-    'circle-color': ['case', paintState('phase', false), copper, navy],
-    'circle-radius': ['case', ['get', 'signalized'], 3.3, 2],
-    'circle-stroke-width': 1, 'circle-stroke-color': white,
-  });
   add('transit', 'circle', 'transit', {
-    'circle-color': blue, 'circle-radius': ['case', ['==', ['get', 'mode'], 'bus_stop'], 3, 5],
+    'circle-color': blue, 'circle-radius': ['case', ['==', ['get', 'mode'], 'bus_stop'], 3, 7],
     'circle-stroke-color': white, 'circle-stroke-width': 1.5,
+  });
+  add('station-labels', 'symbol', 'transit', {
+    'text-color': navy, 'text-halo-color': white, 'text-halo-width': 1.8,
+  }, {
+    'text-field': ['case', ['==', ['get', 'mode'], 'bus_stop'], '', ['get', 'name']],
+    'text-font': ['Noto Sans Regular'], 'text-size': 11, 'text-anchor': 'top', 'text-offset': [0, 0.8],
   });
   add('landmarks', 'circle', 'landmarks', {
     'circle-color': navy, 'circle-radius': 4, 'circle-stroke-color': white, 'circle-stroke-width': 1.5,
@@ -116,6 +117,22 @@ function overlayLayers(map) {
     'icon-pitch-alignment': 'viewport',
   });
   map.setLayerZoomRange('queued-vehicles', 13, 24);
+  add('turn-routes', 'line', 'turn-routes', {
+    'line-color': ['case', ['==', ['get', 'action'], 'blocked'], '#B92732', blue],
+    'line-width': 4, 'line-dasharray': [2, 1],
+  }, rounded);
+  add('turn-events', 'symbol', 'turn-events', {
+    'text-color': ['case', ['==', ['get', 'action'], 'blocked'], '#B92732', blue],
+    'text-halo-color': white, 'text-halo-width': 2,
+  }, {
+    'text-field': ['case', ['==', ['get', 'action'], 'blocked'], '×', '↱'],
+    'text-font': ['Noto Sans Regular'], 'text-size': 20, 'text-allow-overlap': true,
+  });
+  add('signals', 'circle', 'signals', {
+    'circle-color': ['match', ['get', 'light'], 'green', '#06733E', 'yellow', '#F2BA00', 'red', '#B92732', slate],
+    'circle-radius': ['interpolate', ['linear'], ['zoom'], 12, 3, 16, 6],
+    'circle-stroke-width': 2, 'circle-stroke-color': white,
+  });
   add('hotspots', 'symbol', 'hotspots', {
     'text-color': navy, 'text-halo-color': white, 'text-halo-width': 2,
   }, {
@@ -184,10 +201,12 @@ export function createGeospatialRenderer(container, callbacks) {
   let pending;
   let hover;
   let selected;
-  let camera = '3d';
+  let camera = '2d';
   let layerState = {};
   let edges = new Map();
   let geometries = [];
+  let geometryById = new Map();
+  let clearanceTimer;
   const flowProgress = new Map();
   let lastTick = performance.now();
 
@@ -247,7 +266,7 @@ export function createGeospatialRenderer(container, callbacks) {
       if (closed) counts.closed++;
       if (restricted && !closed) counts.restricted++;
       if (congested) counts.congestion++;
-      if ((closed || restricted || congested) && !labelledWays.has(edge.osm_way_id)) {
+      if ((closed || restricted || (congested && state.congestion_index >= 0.8)) && !labelledWays.has(edge.osm_way_id)) {
         labelledWays.add(edge.osm_way_id);
         hotspots.push(point(samplePolylineAt(geom, 0.55), {
           kind: closed ? 'Closed' : congested ? 'Congestion' : 'Restricted',
@@ -272,12 +291,52 @@ export function createGeospatialRenderer(container, callbacks) {
     callbacks.onTrafficEvents?.(frame ? counts : null);
     drawQueues();
     if (!playing || reducedMotion.matches) drawVehicles(0);
-    for (const signal of region.intersections) {
-      map.setFeatureState({ source: 'signals', id: signal.node_id }, {
-        phase: Boolean(frame?.intersection_states?.[signal.node_id]?.phase),
-      });
+    clearTimeout(clearanceTimer);
+    drawSignals(playing);
+    if (playing && Object.values(frame?.intersection_states ?? {}).some(signal => signal.phase_changed)) {
+      clearanceTimer = setTimeout(() => drawSignals(false), Math.max(80, 160 / speed));
     }
+    const paths = [];
+    const markers = [];
+    for (const turn of Object.values(frame?.turn_actions ?? {})) {
+      const from = geometryById.get(turn.from_edge);
+      const to = geometryById.get(turn.to_edge);
+      if (!from || !to) continue;
+      const start = samplePolylineAt(from, Math.max(0.25, 1 - 25 / from.edge.length_m));
+      const end = samplePolylineAt(to, Math.min(0.75, 25 / to.edge.length_m));
+      const center = from.coords.at(-1);
+      const name = turn.action === 'blocked' ? 'Blocked turn' : 'Diverted turn';
+      const properties = {
+        action: turn.action, name, kind: 'Junction control',
+        detail: from.edge.name + ' → ' + to.edge.name,
+      };
+      paths.push(feature('LineString', [[start.lon, start.lat], center, [end.lon, end.lat]], properties));
+      markers.push(point(end, properties));
+    }
+    data('turn-routes', paths);
+    data('turn-events', markers);
     if (selected) callbacks.onEdgeClick?.(edges.get(selected), frame?.edge_states?.[selected]);
+  }
+
+  function drawSignals(clearance) {
+    if (!ready || !region) return;
+    const signals = activeFrame()?.intersection_states ?? {};
+    data('signals', region.intersections.filter(inter => inter.signalized).flatMap(inter => {
+      const decision = signals[inter.node_id];
+      return inter.incoming_edges.flatMap(id => {
+        const geom = geometryById.get(id);
+        if (!geom) return [];
+        const location = samplePolylineAt(geom, Math.max(0.15, 1 - 16 / geom.edge.length_m));
+        const green = decision?.green_edges?.includes(id);
+        const light = !decision?.green_edges ? 'unknown'
+          : clearance && decision.phase_changed && decision.yellow_edges?.includes(id) ? 'yellow'
+          : clearance && decision.phase_changed ? 'red'
+          : green ? 'green' : 'red';
+        return [point(location, {
+          light, name: geom.edge.name, kind: 'Traffic signal', detail: light === 'unknown' ? 'Signal phase unavailable' : light,
+        })];
+      });
+    }));
   }
 
   function updateRegion() {
@@ -287,12 +346,7 @@ export function createGeospatialRenderer(container, callbacks) {
       feature('LineString', coords, { oneway: edge.oneway, featureId: edge.edge_id })));
     data('boundary', [feature('LineString', region.study_boundary, { name: region.name, kind: 'Study area' })]);
     data('coverage', [feature('Polygon', [region.coverage_mask], { name: region.name, kind: 'Study coverage' })]);
-    data('signals', region.intersections.filter(inter => inter.signalized || inter.degree >= 4)
-      .map(inter => point(inter, {
-        name: inter.name || inter.node_id, kind: inter.signalized ? 'Traffic signal' : 'Intersection',
-        signalized: inter.signalized, featureId: inter.node_id,
-      })));
-    data('transit', region.transit_stops.map(stop => point(stop, { name: stop.name, kind: 'Transit stop', mode: stop.mode })));
+    data('transit', region.transit_stops.map(stop => point(stop, { name: stop.name, kind: stop.mode === 'bus_stop' ? 'Transit stop' : 'Activity hotspot · station', mode: stop.mode })));
     data('landmarks', region.landmarks.map(landmark => point(landmark, { name: landmark.name, kind: 'Landmark' })));
     data('vehicles', []);
     if (selected) selectEdge(selected);
@@ -304,7 +358,7 @@ export function createGeospatialRenderer(container, callbacks) {
   function setCamera(mode, duration = 500) {
     camera = mode;
     if (!region) return;
-    const pitch = mode === '3d' ? 53 : 0;
+    const pitch = mode === '3d' ? 32 : 0;
     const bearing = mode === '3d' ? -18 : 0;
     const motion = reducedMotion.matches ? 0 : duration;
     if (mode === 'overview') {
@@ -348,7 +402,7 @@ export function createGeospatialRenderer(container, callbacks) {
       roadState(hover, { hover: true });
     }
     const { lat, lng: lon } = event.lngLat;
-    const nearby = hit || rendered(event.point, ['transit', 'landmarks', 'signals', 'disruptions', 'disruption-labels', 'hotspots']);
+    const nearby = hit || rendered(event.point, ['transit', 'landmarks', 'signals', 'disruptions', 'disruption-labels', 'hotspots', 'turn-events', 'turn-routes']);
     map.getCanvas().style.cursor = placement ? 'crosshair' : nearby ? 'pointer' : 'grab';
     callbacks.onHover?.({ edge: edges.get(id), edgeState: activeFrame()?.edge_states?.[id], lat, lon });
   });
@@ -368,7 +422,7 @@ export function createGeospatialRenderer(container, callbacks) {
       else callbacks.onSnapRejected?.(snap);
       return;
     }
-    const incident = rendered(event.point, ['disruptions', 'disruption-labels', 'hotspots'], 4);
+    const incident = rendered(event.point, ['disruptions', 'disruption-labels', 'hotspots', 'turn-events', 'turn-routes'], 4);
     if (incident?.properties.featureId) {
       selectEdge(incident.properties.featureId);
       return;
@@ -477,9 +531,10 @@ export function createGeospatialRenderer(container, callbacks) {
       selected = null;
       flowProgress.clear();
       geometries = buildEdgeGeometryCache(region).filter(geom => geom.coords.length > 1);
+      geometryById = new Map(geometries.map(geom => [geom.edge.edge_id, geom]));
       edges = new Map(geometries.map(({ edge }) => [edge.edge_id, edge]));
       updateRegion();
-      setCamera(camera === 'overview' ? '3d' : camera);
+      setCamera(camera === 'overview' ? '2d' : camera);
     },
     setSimulation(result, index) {
       simulation = result;
@@ -503,7 +558,7 @@ export function createGeospatialRenderer(container, callbacks) {
     clearPendingSnap() { pending = null; updateDisruptions(); },
     zoomIn() { map.zoomIn({ duration: reducedMotion.matches ? 0 : 250 }); },
     zoomOut() { map.zoomOut({ duration: reducedMotion.matches ? 0 : 250 }); },
-    resetView() { setCamera('3d'); },
+    resetView() { setCamera('2d'); },
     setCamera,
     getCamera() { return camera; },
     focusLocation(location) {
@@ -518,6 +573,7 @@ export function createGeospatialRenderer(container, callbacks) {
     getRenderEngine() { return 'MapLibre GL JS'; },
     destroy() {
       clearInterval(ticker);
+      clearTimeout(clearanceTimer);
       reducedMotion.removeEventListener('change', syncMotion);
       resizeObserver.disconnect();
       map.remove();

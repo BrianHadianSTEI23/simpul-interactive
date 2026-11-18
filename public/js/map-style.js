@@ -9,42 +9,22 @@ function baseLayer(id, type, sourceLayer, paint, options = {}) {
   return { id, type, source: 'openmaptiles', 'source-layer': sourceLayer, paint, ...options };
 }
 
-export const buildingLayers = ['building-footprints', 'buildings-3d'];
-
 export function mapStyle() {
   return {
     version: 8,
-    light: { anchor: 'map', color: white, intensity: 0.55, position: [1.5, 210, 38] },
     glyphs: 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf',
     sources: {
       openmaptiles: { type: 'vector', url: 'https://tiles.openfreemap.org/planet' },
     },
     layers: [
       { id: 'background', type: 'background', paint: { 'background-color': white } },
-      baseLayer('land', 'fill', 'landcover', { 'fill-color': navy, 'fill-opacity': 0.045 }),
-      baseLayer('urban-blocks', 'fill', 'landuse', {
-        'fill-color': slate, 'fill-opacity': 0.055,
-      }, {
-        filter: ['in', ['get', 'class'], ['literal', ['residential', 'commercial', 'industrial', 'retail']]],
-      }),
-      baseLayer('parks', 'fill', 'park', { 'fill-color': blue, 'fill-opacity': 0.11 }),
-      baseLayer('water', 'fill', 'water', { 'fill-color': blue, 'fill-opacity': 0.21 }),
-      baseLayer('waterways', 'line', 'waterway', { 'line-color': blue, 'line-opacity': 0.24 }),
-      baseLayer('building-footprints', 'fill', 'building', {
-        'fill-color': 'rgba(4, 37, 115, 0.13)', 'fill-outline-color': 'rgba(4, 37, 115, 0.23)',
-      }, { minzoom: 13 }),
-      baseLayer('buildings-3d', 'fill-extrusion', 'building', {
-        'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0],
-        'fill-extrusion-color': navy,
-        'fill-extrusion-height': ['get', 'render_height'],
-        'fill-extrusion-opacity': 0.36,
-      }, { minzoom: 14, filter: ['all', ['has', 'render_height'], ['!', ['has', 'hide_3d']]] }),
+      baseLayer('water', 'fill', 'water', { 'fill-color': blue, 'fill-opacity': 0.07 }),
       baseLayer('streets', 'line', 'transportation', {
-        'line-color': slate, 'line-opacity': 0.23,
+        'line-color': slate, 'line-opacity': 0.11,
         'line-width': ['interpolate', ['linear'], ['zoom'], 10, 0.4, 18, 2.5],
       }, { minzoom: 10, filter: ['!', ['in', ['get', 'class'], ['literal', ['path', 'ferry']]]] }),
       baseLayer('main-streets', 'line', 'transportation', {
-        'line-color': navy, 'line-opacity': 0.35,
+        'line-color': navy, 'line-opacity': 0.19,
         'line-width': ['interpolate', ['linear'], ['zoom'], 9, 0.7, 15, 1.8, 18, 3.8],
       }, {
         minzoom: 9,

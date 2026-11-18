@@ -5,7 +5,7 @@
  * snapping, backend FastAPI simulation API (with explicit client fallback when offline),
  * replay timeline, and 3-controller benchmark comparison.
  */
-import { ADAPTIVE_REGIONS_DATA, ADAPTIVE_PROVENANCE_MANIFEST } from './adaptive-regions-data.js';
+import { ADAPTIVE_REGIONS_DATA } from './adaptive-regions-data.js';
 import {
   TIME_PERIODS,
   CONTROLLERS,
@@ -159,7 +159,8 @@ export function activateAdaptiveMapView() {
         </dl>`);
     },
     onFeatureClick(properties) {
-      showSelection(properties ? `<small>${safe(properties.kind)}</small><h2>${safe(properties.name)}</h2>` : '');
+      showSelection(properties ? `<small>${safe(properties.kind)}</small><h2>${safe(properties.name)}</h2>
+        ${properties.detail ? `<p class="atn-muted">${safe(properties.detail)}</p>` : ''}` : '');
     },
     onHover(info) {
       const box = document.getElementById('atn-hover-readout');
@@ -354,7 +355,6 @@ export function activateAdaptiveMapView() {
     const res = simState.simResult;
     const metricsGrid = document.getElementById('atn-metrics-grid');
     const compareBox = document.getElementById('atn-comparison-box');
-    const adapterBox = document.getElementById('atn-adapter-box');
     const timeline = document.getElementById('atn-timeline-slider');
     const timeReadout = document.getElementById('atn-time-readout');
     const frameSummary = document.getElementById('atn-frame-summary');
@@ -411,18 +411,6 @@ export function activateAdaptiveMapView() {
       }).join('');
     }
 
-    if (adapterBox) {
-      const ad = res.controller_adapter || {};
-      const sup = ad.safety_supervisor || {};
-      adapterBox.innerHTML = `
-        <div><span>Adapter mode</span><b>${safe(ad.adapter_mode || 'Not available')}</b></div>
-        <div><span>Mock inference</span><b>${ad.is_mock ? 'YES (Synthetic surrogate)' : 'Deterministic baseline'}</b></div>
-        <div><span>Safety supervisor</span><b>${sup.enforced ? `Enforced (${sup.min_green_s}–${sup.max_green_s}s green)` : 'Not available'}</b></div>
-        <div><span>Simulation engine</span><b>${safe(res.provenance?.engine || 'Not available')}</b></div>
-        <p class="atn-muted">${safe(ad.diagnostics?.notice || res.provenance?.disclaimer || '')}</p>
-      `;
-    }
-
     const totalFrames = (res.frames || []).length;
     if (timeline && totalFrames > 0) {
       timeline.max = String(totalFrames - 1);
@@ -437,7 +425,10 @@ export function activateAdaptiveMapView() {
       const closedCount = states.filter(s => s.closed).length;
       const restrictedCount = states.filter(s => s.access_restricted).length;
       const avgSpd = states.length ? (states.reduce((acc, s) => acc + s.speed_kmh, 0) / states.length).toFixed(1) : '0';
-      frameSummary.textContent = `Mean speed ${avgSpd} km/h · Closed segments: ${closedCount} · Restricted: ${restrictedCount}`;
+      const routing = frame.movement_policy === 'meshgraphnet' ? 'MeshGraphNet'
+        : frame.movement_policy === 'graph_heuristic' ? 'Graph routing demo'
+        : simState.controller === 'gnn_mappo' ? 'Offline preview · routing unavailable' : 'Signal control';
+      frameSummary.textContent = `${routing} · ${avgSpd} km/h · ${closedCount} closed · ${restrictedCount} restricted`;
     }
   }
 
@@ -703,23 +694,11 @@ export function activateAdaptiveMapView() {
   });
 
   root.querySelectorAll('[data-atn-layer]').forEach(chk => {
-    if (chk.dataset.atnLayer === 'buildings' && !renderer.setCamera) chk.disabled = true;
     chk.addEventListener('change', () => {
       simState.layers[chk.dataset.atnLayer] = chk.checked;
       renderer.setLayers(simState.layers);
     });
   });
-
-  const provEl = document.getElementById('atn-provenance-summary');
-  if (provEl) {
-    const ds = ADAPTIVE_PROVENANCE_MANIFEST.datasets || {};
-    provEl.innerHTML = `
-      <div><span>Road geometry</span><b>${safe(ds.osm_road_network?.source || 'OpenStreetMap')} (${safe(ds.osm_road_network?.license || 'ODbL 1.0')})</b></div>
-      <div><span>GTFS transit</span><b>${safe(ds.transjakarta_gtfs?.classification || 'Missing local archive; OSM stops used')}</b></div>
-      <div><span>Grab-Posisi / DKI</span><b>${safe(ds.grab_posisi_and_dkijakarta_sensors?.status || 'not_integrated')}</b></div>
-      <div><span>Render engine</span><b>${safe(renderer.getRenderEngine())}</b></div>
-    `;
-  }
 
   // Initial load
   renderer.setRegion(getRegion(simState.regionId));

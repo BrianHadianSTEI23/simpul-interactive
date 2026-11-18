@@ -119,3 +119,27 @@ def test_controller_adapter_safety_supervisor():
     assert resp.status_code == 200
     assert resp.json()['is_mock'] is True
     assert resp.json()['safety_supervisor']['enforced'] is True
+
+def test_turn_routing_redistributes_traffic_only_for_graph_controller():
+    from backend.movement_policy import choose_turns
+
+    turns = {'in': [
+        {'movement_id': 'straight', 'intersection_id': 'junction', 'to_edge': 'busy'},
+        {'movement_id': 'left', 'intersection_id': 'junction', 'to_edge': 'clear'},
+        {'movement_id': 'right', 'intersection_id': 'junction', 'to_edge': 'closed'},
+    ]}
+    edges = {
+        'busy': {'closed': False, 'occupancy': 0.95, 'disruption_intensity': 0},
+        'clear': {'closed': False, 'occupancy': 0.1, 'disruption_intensity': 0},
+        'closed': {'closed': True},
+    }
+    routes, actions, mode = choose_turns('pluit', turns, edges, False)
+    assert mode == 'signals_only'
+    assert routes['in'] == [('busy', 0.5), ('clear', 0.5)]
+    assert actions == {}
+
+    routes, actions, mode = choose_turns('pluit', turns, edges, True)
+    assert mode == 'graph_heuristic'
+    assert routes['in'] == [('clear', 1)]
+    assert actions['straight']['action'] == 'blocked'
+    assert actions['left']['action'] == 'redirected'

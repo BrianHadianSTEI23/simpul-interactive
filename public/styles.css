@@ -271,3 +271,9 @@ input[type="checkbox"] { accent-color: var(--blue); }
 @media (max-width: 850px) {
   .atn-traffic-events { max-width: calc(100% - 18px); }
 }
+
+.atn-legend-items .sw.signal { width: 16px; background: linear-gradient(90deg, #06733E 33%, #F2BA00 33% 66%, #B92732 66%); }
+.atn-legend-items .sw.turn { border-top: 2px dashed var(--blue); }
+.atn-legend-items .sw.block { border-top: 2px dashed #B92732; }
+
+.atn-legend-items .sw.severe { height: 6px; background: #B92732; }

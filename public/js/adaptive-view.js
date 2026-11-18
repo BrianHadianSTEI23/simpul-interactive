@@ -103,9 +103,8 @@ export function renderAdaptiveView() {
           <div class="atn-section-head">Map layers</div>
           <div class="atn-layer-bar">
             <label><input type="checkbox" data-atn-layer="vehicles" checked /> Vehicles</label>
-            <label><input type="checkbox" data-atn-layer="buildings" checked /> Buildings</label>
             <label><input type="checkbox" data-atn-layer="gaussian" checked /> Gaussian field</label>
-            <label><input type="checkbox" data-atn-layer="signals" checked /> Signals</label>
+            <label><input type="checkbox" data-atn-layer="signals" checked /> Traffic lights</label>
             <label><input type="checkbox" data-atn-layer="transit" checked /> Transit</label>
             <label><input type="checkbox" data-atn-layer="coverage" checked /> Coverage mask</label>
             <label><input type="checkbox" data-atn-layer="labels" checked /> Landmarks</label>
@@ -117,8 +116,8 @@ export function renderAdaptiveView() {
         <div class="atn-map-toolbar">
           <div class="atn-hover-readout" id="atn-hover-readout">Select a road or marker for details.</div>
           <div class="atn-map-tools" role="group" aria-label="Map camera">
-            <button type="button" class="atn-btn sm" data-atn-camera="2d" aria-pressed="false">2D</button>
-            <button type="button" class="atn-btn sm" data-atn-camera="3d" aria-pressed="true">3D</button>
+            <button type="button" class="atn-btn sm" data-atn-camera="2d" aria-pressed="true">2D</button>
+            <button type="button" class="atn-btn sm" data-atn-camera="3d" aria-pressed="false">Tilt</button>
             <button type="button" class="atn-btn sm" data-atn-camera="overview" aria-pressed="false">Overview</button>
             <button type="button" class="atn-icon-btn" id="atn-zoom-in" aria-label="Zoom in">+</button>
             <button type="button" class="atn-icon-btn" id="atn-zoom-out" aria-label="Zoom out">-</button>
@@ -144,11 +143,15 @@ export function renderAdaptiveView() {
               <span><i class="sw vehicle"></i> Simulated vehicle</span>
               <span><i class="sw free"></i> Free flow</span>
               <span><i class="sw mod"></i> Moderate load</span>
-              <span><i class="sw cong"></i> Congested / queue</span>
+              <span><i class="sw cong"></i> Congested</span>
+              <span><i class="sw severe"></i> Severe</span>
               <span><i class="sw closed"></i> Closed segment</span>
               <span><i class="sw flood"></i> Flood Gaussian (I_e)</span>
               <span><i class="sw demo"></i> Demo Gaussian (I_e)</span>
-              <span><i class="sw mrt"></i> Transit stops</span>
+              <span><i class="sw mrt"></i> Stations / activity hotspots</span>
+              <span><i class="sw signal"></i> Green / yellow / red signal</span>
+              <span><i class="sw turn"></i> Diverted turn</span>
+              <span><i class="sw block"></i> Blocked turn</span>
             </div>
           </div>
           <a class="atn-osm-credit" href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a>
@@ -172,15 +175,6 @@ export function renderAdaptiveView() {
           <div class="atn-compare-list" id="atn-comparison-box"></div>
         </section>
 
-        <section class="atn-section">
-          <div class="atn-section-head"><span>Model adapter &amp; supervisor</span><small>Contract</small></div>
-          <div class="atn-kv-box" id="atn-adapter-box"></div>
-        </section>
-
-        <section class="atn-section">
-          <div class="atn-section-head"><span>Data provenance</span><small>Manifest</small></div>
-          <div class="atn-kv-box" id="atn-provenance-summary"></div>
-        </section>
       </details>
     </div>
   </div>

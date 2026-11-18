@@ -1,14 +1,6 @@
-"""Modular controller & GNN-MAPPO model inference adapter with safety supervisor.
-
-This interface intentionally decouples the website and backend API from PyTorch
-checkpoint internals so a trained GNN-MAPPO checkpoint or inference microservice
-can be plugged in later via environment configuration. Until an external trained
-model endpoint is configured, all B3 GNN-MAPPO outputs are explicitly flagged
-`is_mock=True` and `adapter_mode="mock_development_adapter"`.
-"""
+"""Signal timing policies and phase constraints for the traffic simulator."""
 from __future__ import annotations
 
-import os
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field
@@ -186,20 +178,18 @@ def decide_controller_actions(state: GraphStateInput) -> ControllerDecisionOutpu
             safety_clamped=clamped,
         ))
 
-    external_url = os.getenv('SIMPUL_GNN_MAPPO_URL', '').strip()
-    is_mock = state.controller != 'gnn_mappo' or not external_url
     code_map = {'fixed_time': 'B1', 'max_pressure': 'B2', 'gnn_mappo': 'B3'}
     adapter_mode = (
         'deterministic_fixed_plan' if state.controller == 'fixed_time'
         else 'itcs_max_pressure_heuristic' if state.controller == 'max_pressure'
-        else ('external_policy_endpoint' if external_url else 'mock_development_adapter')
+        else 'mock_development_adapter'
     )
 
     return ControllerDecisionOutput(
         controller_id=state.controller,
         benchmark_code=code_map[state.controller],  # type: ignore[arg-type]
         adapter_mode=adapter_mode,
-        is_mock=is_mock if state.controller == 'gnn_mappo' else False,
+        is_mock=state.controller == 'gnn_mappo',
         proposed_actions=proposed_actions,
         selected_movement_configurations=selected_configs,
         signal_decisions=decisions,
@@ -214,11 +204,10 @@ def decide_controller_actions(state: GraphStateInput) -> ControllerDecisionOutpu
         diagnostics={
             'policy_confidence': 0.87 if state.controller == 'gnn_mappo' else None,
             'graph_message_passing_hops': 2 if state.controller == 'gnn_mappo' else 0,
-            'checkpoint_loaded': bool(external_url) if state.controller == 'gnn_mappo' else False,
+            'checkpoint_loaded': False,
             'notice': (
-                'MOCK GNN-MAPPO ADAPTER: heuristic graph coordination surrogate for development; '
-                'connect trained PyTorch checkpoint via SIMPUL_GNN_MAPPO_URL for live policy inference.'
-                if state.controller == 'gnn_mappo' and not external_url
+                'Graph heuristic for signal timing. MeshGraphNet handles turn routing when configured.'
+                if state.controller == 'gnn_mappo'
                 else 'Deterministic benchmark signal controller.'
             ),
         },

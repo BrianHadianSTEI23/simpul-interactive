@@ -2,17 +2,18 @@
 
 Runs over the real OpenStreetMap directed graph for Tanah Abang, Cilandak, or Pluit,
 integrates the Gaussian spatial disruption model and the benchmark controller adapter
-(B1 Fixed-Time, B2 ITCS Max-Pressure, B3 GNN-MAPPO Mock Adapter), and produces
+(B1 Fixed-Time, B2 ITCS Max-Pressure, B3 MeshGraphNet-compatible routing), and produces
 time-series replay frames plus side-by-side controller comparison metrics.
 
 All outputs without a matched precomputed SUMO run are explicitly marked as
 `synthetic_mesoscopic_network_fixture` and never presented as calibrated Jakarta
-measurements or live SUMO/PyTorch inference.
+measurements or live SUMO output.
 """
 from __future__ import annotations
 
 import json
 import math
+import os
 import random
 import time
 import uuid
@@ -27,6 +28,7 @@ from .adaptive_network import (
     load_region,
     validate_and_snap_disruption,
 )
+from .movement_policy import choose_turns
 from .controller_adapter import (
     ControllerId,
     GraphStateInput,
@@ -40,9 +42,9 @@ ROOT = Path(__file__).resolve().parent.parent
 PRECOMPUTED_SUMO_DIR = ROOT / 'data' / 'precomputed_sumo'
 
 TIME_PERIOD_PROFILES: dict[str, dict[str, Any]] = {
-    'pagi': {'label': 'Pagi (06:00–10:00)', 'demand_factor': 1.08, 'peak_wave': 1.15},
-    'siang': {'label': 'Siang (10:00–15:00)', 'demand_factor': 0.78, 'peak_wave': 1.00},
-    'sore': {'label': 'Sore (16:00–21:00)', 'demand_factor': 1.16, 'peak_wave': 1.20},
+    'pagi': {'label': 'Pagi (06:00â€“10:00)', 'demand_factor': 1.08, 'peak_wave': 1.15},
+    'siang': {'label': 'Siang (10:00â€“15:00)', 'demand_factor': 0.78, 'peak_wave': 1.00},
+    'sore': {'label': 'Sore (16:00â€“21:00)', 'demand_factor': 1.16, 'peak_wave': 1.20},
 }
 
 
@@ -108,7 +110,7 @@ def _simulate_single_controller(
     demo_cfg: dict[str, Any],
     impacts: dict[str, dict[str, Any]],
 ) -> dict[str, Any]:
-    rng = random.Random(req.seed + {'fixed_time': 1, 'max_pressure': 2, 'gnn_mappo': 3}[controller])
+    rng = random.Random(req.seed)
     period_cfg = TIME_PERIOD_PROFILES[req.time_period]
     edges = region['edges']
     intersections = region['intersections']
@@ -124,23 +126,6 @@ def _simulate_single_controller(
     dt_s = 30.0
     steps = max(4, int(round(req.duration_s / dt_s)))
     has_disruption = bool(flood_cfg.get('enabled') or demo_cfg.get('enabled'))
-
-    # Controller structural parameters (applied deterministically on the graph).
-    ctrl_service_efficiency = {
-        'fixed_time': 0.84,
-        'max_pressure': 0.96,
-        'gnn_mappo': 1.07,
-    }[controller]
-    ctrl_spillback_damping = {
-        'fixed_time': 0.0,
-        'max_pressure': 0.24,
-        'gnn_mappo': 0.52,
-    }[controller]
-    ctrl_reroute_relief = {
-        'fixed_time': 0.0,
-        'max_pressure': 0.14,
-        'gnn_mappo': 0.34,
-    }[controller]
 
     # Per-edge state initialization.
     edge_queue: dict[str, float] = {}
@@ -173,12 +158,19 @@ def _simulate_single_controller(
     recovery_time_s: float | None = None
     recovered_started = False
 
-    # Sample top signalized intersections for controller adapter per step.
-    signal_nodes = [i for i in intersections if i.get('signalized')][:40]
+    signal_nodes = [i for i in intersections if i.get('signalized')]
     signal_node_ids = {i['node_id'] for i in signal_nodes}
-    active_movements = [m for m in movements if m['intersection_id'] in signal_node_ids][:200]
+    active_movements = [m for m in movements if m['intersection_id'] in signal_node_ids]
 
+    signal_lookup = {i['node_id']: i for i in signal_nodes}
     last_adapter_output = None
+    routing = {}
+    signal_service = {}
+    previous_greens = {}
+    routed_arrivals = {}
+    continuation_share = 0.25
+    model_endpoint = os.environ.get('SIMPUL_MESHGRAPHNET_URL')
+    incoming_routes = {m['to_edge'] for m in movements}
 
     for step_idx in range(steps + 1):
         t_s = step_idx * dt_s
@@ -194,6 +186,7 @@ def _simulate_single_controller(
         road_features: list[RoadFeature] = []
         frame_edges: dict[str, dict[str, Any]] = {}
         step_queues = []
+        next_arrivals: dict[str, float] = defaultdict(float)
 
         for e in edges:
             eid = e['edge_id']
@@ -204,30 +197,28 @@ def _simulate_single_controller(
             cap_factor = 0.0 if closed else max(0.08, 1.0 - (1.0 - imp['capacity_factor']) * disruption_pulse)
             spd_factor = 0.0 if closed else max(0.08, 1.0 - (1.0 - imp['speed_factor']) * disruption_pulse)
 
-            # Relief: adaptive controllers meter upstream inflows and divert around localized bottlenecks.
-            if eff_disruption > 0.15 and not closed:
-                inflow_factor = max(0.45, 1.0 - ctrl_reroute_relief * eff_disruption)
-            else:
-                inflow_factor = 1.0
-
-            demand_rate_vps = (edge_base_demand[eid] * inflow_factor) / 3600.0
-            eff_cap_vps = ((e['capacity_vph'] * cap_factor * ctrl_service_efficiency) / 3600.0)
-            if closed:
+            destination_links = routing.get(eid)
+            available_green = signal_service.get(eid, 1.0)
+            eff_cap_vps = e['capacity_vph'] * cap_factor * available_green / 3600.0
+            if destination_links == []:
                 eff_cap_vps = 0.0
+            demand_rate_vps = edge_base_demand[eid] * (1 - continuation_share if eid in incoming_routes else 1) / 3600.0
 
             q = edge_queue[eid]
             max_storage_veh = max(4.0, (e['length_m'] / 6.5) * e['lanes'])
 
             # Update queue over dt_s.
             if step_idx > 0:
-                arrivals = demand_rate_vps * dt_s
+                arrivals = demand_rate_vps * dt_s + routed_arrivals.get(eid, 0)
                 # Upstream spillback penalty if queue exceeds 70% of link storage.
                 spill_ratio = max(0.0, q / max_storage_veh - 0.65)
-                service_throttle = max(0.32, 1.0 - spill_ratio * (1.0 - ctrl_spillback_damping))
+                service_throttle = max(0.32, 1.0 - spill_ratio)
                 served = min(q + arrivals, eff_cap_vps * service_throttle * dt_s)
                 q_next = max(0.0, min(max_storage_veh * 1.15, q + arrivals - served))
                 edge_queue[eid] = q_next
-                total_served_veh += served
+                for destination, weight in destination_links or []:
+                    next_arrivals[destination] += served * continuation_share * weight
+                total_served_veh += served * (1 - continuation_share) if destination_links else served
                 q = q_next
 
             occ = min(1.0, q / max_storage_veh)
@@ -242,7 +233,7 @@ def _simulate_single_controller(
             else:
                 congestion_drag = max(0.12, (1.0 - 0.82 * (occ ** 1.35)))
                 speed_kmh = round(max(3.5, free_spd * spd_factor * congestion_drag), 1)
-                flow_vph = round(min(e['capacity_vph'] * cap_factor, edge_base_demand[eid] * inflow_factor * (1.0 - 0.45 * occ)), 0)
+                flow_vph = round(min(e['capacity_vph'] * cap_factor, (demand_rate_vps * 3600 + routed_arrivals.get(eid, 0) * 3600 / dt_s) * (1.0 - 0.45 * occ)), 0)
 
             queue_m = round(min(e['length_m'], q * 6.2 / max(1, e['lanes'])), 1)
             congestion_idx = round(min(1.0, max(0.0, 1.0 - (speed_kmh / max(1.0, free_spd)))), 3)
@@ -280,7 +271,16 @@ def _simulate_single_controller(
                 'access_restricted': bool(imp['access_restricted'] and disruption_pulse > 0.4),
             }
 
-        # Run controller adapter decision for sampled signalized nodes.
+        routed_arrivals = next_arrivals
+        routing, turn_actions, movement_policy = choose_turns(
+            req.region_id, mov_by_from, frame_edges, controller == 'gnn_mappo', model_endpoint,
+        )
+
+        if movement_policy == 'graph_heuristic':
+            model_endpoint = None
+        allowed_destinations = {eid: {target for target, _ in options} for eid, options in routing.items()}
+
+        # Signal baselines share the same network demand and legal movements.
         inter_feats = [
             IntersectionFeature(
                 node_id=i['node_id'],
@@ -293,7 +293,6 @@ def _simulate_single_controller(
             )
             for i in signal_nodes
         ]
-        road_lookup = {rf.edge_id: rf for rf in road_features}
         mov_feats = [
             MovementFeature(
                 movement_id=m['movement_id'],
@@ -303,7 +302,7 @@ def _simulate_single_controller(
                 demand_vph=edge_base_demand.get(m['from_edge'], 600.0),
                 queue_veh=edge_queue.get(m['from_edge'], 0.0),
                 downstream_occupancy=min(1.0, edge_queue.get(m['to_edge'], 0.0) / 25.0),
-                green_eligible=not (road_lookup[m['to_edge']].closed if m['to_edge'] in road_lookup else False),
+                green_eligible=m['to_edge'] in allowed_destinations.get(m['from_edge'], ()),
             )
             for m in active_movements
         ]
@@ -320,20 +319,31 @@ def _simulate_single_controller(
         last_adapter_output = adapter_out
 
         frame_intersections: dict[str, dict[str, Any]] = {}
+        by_movement_id = {m['movement_id']: m for m in active_movements}
+        signal_service = {}
         for dec in adapter_out.signal_decisions:
             nid = dec.intersection_id
-            if inter_phase[nid] != dec.selected_phase:
+            changed = inter_phase[nid] != dec.selected_phase
+            if changed:
                 phase_switches += 1
                 inter_phase[nid] = dec.selected_phase
                 inter_elapsed[nid] = dt_s
             else:
                 inter_elapsed[nid] += dt_s
+            green_edges = {by_movement_id[mid]['from_edge'] for mid in dec.selected_movement_ids}
+            intersection = signal_lookup[nid]
+            for incoming in intersection['incoming_edges']:
+                signal_service[incoming] = min(1.0, dec.green_duration_s / dt_s) if incoming in green_edges else 0.2
             frame_intersections[nid] = {
+                'green_edges': sorted(green_edges),
+                'phase_changed': changed,
+                'yellow_edges': sorted(previous_greens.get(nid, set()) - green_edges) if changed else [],
                 'phase': dec.selected_phase,
                 'green_duration_s': dec.green_duration_s,
                 'open_movements': len(dec.selected_movement_ids),
                 'safety_clamped': dec.safety_clamped,
             }
+            previous_greens[nid] = green_edges
 
         total_step_q = sum(step_queues)
         if has_disruption:
@@ -347,6 +357,8 @@ def _simulate_single_controller(
             't_sec': int(t_s),
             'edge_states': frame_edges,
             'intersection_states': frame_intersections,
+            'turn_actions': turn_actions,
+            'movement_policy': movement_policy,
         })
 
     sorted_delays = sorted(delay_samples)
@@ -432,7 +444,7 @@ def run_adaptive_simulation(req: AdaptiveScenarioRequest) -> dict[str, Any]:
             'is_mock_controller': bool(primary_result['controller_adapter'] and primary_result['controller_adapter'].get('is_mock')),
             'disclaimer': (
                 'Synthetic mesoscopic demonstration over real OpenStreetMap geometry. '
-                'Not live SUMO output, calibrated Jakarta demand, or trained PyTorch checkpoint inference.'
+                'Traffic metrics are synthetic and are not calibrated Jakarta measurements.'
             ),
             'runtime_ms': round((time.monotonic() - started) * 1000.0, 1),
         },

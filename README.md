@@ -8,13 +8,13 @@ Interactive 3D traffic-flow and disruption simulator for three Jakarta study are
 
 Search covers the study areas, roads, stops, and landmarks in the bundled data. The
 basemap streams OpenStreetMap-derived tiles from [OpenFreeMap](https://openfreemap.org/)
-and shows building heights where the vector data provides them. The traffic and
+and uses a light street and water backdrop for the simulated network. The traffic and
 disruption overlays use the simulator's synthetic data.
 
 ## Structure
 
 - `public/` — Static ES-module frontend with MapLibre GL JS, an OpenFreeMap vector basemap, and a local 2D renderer fallback
-- `backend/` — FastAPI domain logic, Gaussian spatial disruption model, mesoscopic network simulator, and GNN-MAPPO model adapter
+- `backend/` — FastAPI domain logic, Gaussian spatial disruption model, mesoscopic network simulator, signal control, and MeshGraphNet turn routing
 - `api/index.py` — Vercel serverless Python ASGI entrypoint
 - `data/regions/` & `data/provenance_manifest.json` — Filtered OSM GeoJSON/graph files and provenance manifest
 - `tools/extract_osm_networks.py` — Reproducible OSM Overpass + optional TransJakarta GTFS extraction script
@@ -62,4 +62,18 @@ npm test
 ## Provenance & Limitations
 
 - Road geometry, intersections, waterbodies, and transit stops are extracted from **OpenStreetMap** (`ODbL 1.0`).
-- Gaussian disruption fields (`w_e = exp(-d_e^2 / (2 * sigma^2))`), traffic flows, and `B3 GNN-MAPPO` outputs (`mock_development_adapter`) are **synthetic research fixtures** unless connected to calibrated SUMO runs (`data/precomputed_sumo/`) or an external trained policy service (`SIMPUL_GNN_MAPPO_URL`).
+- Gaussian disruption fields, traffic volumes, and delay metrics are synthetic simulation outputs. A configured MeshGraphNet endpoint supplies scores for turn routing.
+
+### MeshGraphNet turn control
+
+B3 uses the same demand seed as the signal baselines. It redistributes simulated
+traffic among legal outgoing links and records blocked or diverted turns per frame.
+The graph heuristic runs by default and the replay labels it as a graph routing demo.
+
+To connect trained MeshGraphNet inference, set `SIMPUL_MESHGRAPHNET_URL` on the
+FastAPI server. The endpoint receives a JSON POST with `region_id`, `edges` (edge
+telemetry keyed by edge ID), and `movements` (legal graph turns with their IDs and
+from/to edges). Return `{"movement_scores":{"movement-id":0.8}}` with a score in
+0–1 for every submitted turn. Closed downstream links stay excluded. If possible,
+the routing policy retains at least one legal exit per incoming road. Invalid or
+unavailable inference falls back to the graph heuristic.

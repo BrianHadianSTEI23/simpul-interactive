@@ -11,7 +11,7 @@ const point = (location, properties) => feature('Point', [location.lon, location
 const paintState = (key, fallback) => ['coalesce', ['feature-state', key], fallback];
 const trafficColor = ['interpolate', ['linear'], paintState('load', 0), 0, blue, 0.5, copper, 0.85, orange];
 const visibleLayers = {
-  vehicles: ['vehicles'],
+  vehicles: ['vehicles', 'queued-vehicles'],
   gaussian: ['gaussian'], signals: ['signals'], transit: ['transit'],
   coverage: ['coverage'], labels: ['landmarks', 'landmark-labels'], buildings: buildingLayers,
 };
@@ -97,7 +97,7 @@ function overlayLayers(map) {
   addVehicleIcon(map, 'vehicle-moving', navy);
   addVehicleIcon(map, 'vehicle-queued', orange);
   add('vehicles', 'symbol', 'vehicles', {}, {
-    'icon-image': ['case', ['get', 'queued'], 'vehicle-queued', 'vehicle-moving'],
+    'icon-image': 'vehicle-moving',
     'icon-size': ['interpolate', ['linear'], ['zoom'], 11, 0.36, 15, 0.74, 17, 0.95],
     'icon-padding': 0,
     'icon-allow-overlap': ['step', ['zoom'], false, 15.5, true],
@@ -106,6 +106,16 @@ function overlayLayers(map) {
     'icon-rotation-alignment': 'map',
     'icon-pitch-alignment': 'viewport',
   });
+  add('queued-vehicles', 'symbol', 'queued-vehicles', {}, {
+    'icon-image': 'vehicle-queued',
+    'icon-size': ['interpolate', ['linear'], ['zoom'], 13, 0.5, 16, 0.64, 19, 0.84],
+    'icon-allow-overlap': true,
+    'icon-ignore-placement': true,
+    'icon-rotate': ['get', 'bearing'],
+    'icon-rotation-alignment': 'map',
+    'icon-pitch-alignment': 'viewport',
+  });
+  map.setLayerZoomRange('queued-vehicles', 13, 24);
   add('hotspots', 'symbol', 'hotspots', {
     'text-color': navy, 'text-halo-color': white, 'text-halo-width': 2,
   }, {
@@ -260,6 +270,7 @@ export function createGeospatialRenderer(container, callbacks) {
     data('queues', queues);
     data('hotspots', hotspots);
     callbacks.onTrafficEvents?.(frame ? counts : null);
+    drawQueues();
     if (!playing || reducedMotion.matches) drawVehicles(0);
     for (const signal of region.intersections) {
       map.setFeatureState({ source: 'signals', id: signal.node_id }, {
@@ -383,6 +394,47 @@ export function createGeospatialRenderer(container, callbacks) {
     callbacks.onMapReady?.();
   });
 
+  function vehicleAt(geom, fraction, laneOffset = 0) {
+    const location = samplePolylineAt(geom, fraction);
+    const bearing = Math.atan2(location.tx, location.ty) * 180 / Math.PI;
+    if (!geom.edge.oneway) {
+      location.lon -= location.nx * laneOffset;
+      location.lat -= location.ny * laneOffset;
+    }
+    return point(location, { bearing });
+  }
+
+  function queueExtent(edge, state) {
+    const length = Math.max(1, edge.length_m);
+    const measured = (state?.queue_length_m ?? 0) / length;
+    if (!isCongested(state)) return 0;
+    return Math.min(0.94, Math.max(measured, 0.55));
+  }
+
+  function drawQueues() {
+    if (!ready || layerState.vehicles === false) return;
+    const states = activeFrame()?.edge_states;
+    const zoom = map.getZoom();
+    const bounds = map.getBounds();
+    const cars = [];
+    if (zoom >= 13) for (const geom of geometries) {
+      const extent = queueExtent(geom.edge, states?.[geom.edge.edge_id]);
+      if (!extent) continue;
+      const head = samplePolylineAt(geom, 0.97);
+      const tail = samplePolylineAt(geom, 1 - extent);
+      if (!bounds.contains([head.lon, head.lat]) && !bounds.contains([tail.lon, tail.lat])) continue;
+      const a = map.project([head.lon, head.lat]);
+      const b = map.project([tail.lon, tail.lat]);
+      const size = zoom < 16 ? 14 : 17;
+      const count = Math.max(1, Math.min(28, Math.floor(Math.hypot(a.x - b.x, a.y - b.y) / size)));
+      for (let index = 0; index < count; index++) {
+        const fraction = 0.97 - (extent - 0.03) * (index + 0.5) / count;
+        cars.push(vehicleAt(geom, fraction, 0.000025));
+      }
+    }
+    data('queued-vehicles', cars);
+  }
+
   function drawVehicles(delta) {
     if (!ready || layerState.vehicles === false || document.hidden) return;
     const states = activeFrame()?.edge_states;
@@ -397,20 +449,10 @@ export function createGeospatialRenderer(container, callbacks) {
       const progress = flowProgress.get(edge.edge_id) ?? (index * 0.17) % 1;
       const fraction = (progress + delta * speed * metersPerSecond / Math.max(25, edge.length_m)) % 1;
       flowProgress.set(edge.edge_id, fraction);
-      function addVehicle(at, queued) {
-        const location = samplePolylineAt(geom, at);
-        if (!bounds.contains([location.lon, location.lat])) return;
-        const bearing = Math.atan2(location.tx, location.ty) * 180 / Math.PI;
-        vehicles.push(point(location, { bearing, queued }));
-      }
-      addVehicle(fraction, false);
-      if (state?.occupancy >= 0.65 && state.queue_veh > 0) {
-        const length = Math.max(20, edge.length_m);
-        const queueFraction = Math.min(0.62, state.queue_length_m / length);
-        for (let offset = 8 / length; offset <= queueFraction; offset += 12 / length) {
-          addVehicle(1 - offset, true);
-        }
-      }
+      const approach = 1 - queueExtent(edge, state);
+      if (approach < 0.2) continue;
+      const vehicle = vehicleAt(geom, fraction * approach, 0.000025);
+      if (bounds.contains(vehicle.geometry.coordinates)) vehicles.push(vehicle);
     }
     data('vehicles', vehicles);
   }
@@ -422,7 +464,7 @@ export function createGeospatialRenderer(container, callbacks) {
     if (playing && !reducedMotion.matches) drawVehicles(delta);
   }, 50);
 
-  function syncMotion() { drawVehicles(0); }
+  function syncMotion() { drawVehicles(0); drawQueues(); }
   map.on('moveend', syncMotion);
   reducedMotion.addEventListener('change', syncMotion);
 
@@ -450,7 +492,7 @@ export function createGeospatialRenderer(container, callbacks) {
     setLayers(next) {
       layerState = { ...layerState, ...next };
       updateLayers();
-      drawVehicles(0);
+      syncMotion();
     },
     setDisruptionPlacementMode(mode) {
       placement = mode;

@@ -1,0 +1,12 @@
+{
+  "name": "simpul-interactive",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Jakarta Adaptive Traffic Network Visualization Website (Tanah Abang, Cilandak, Pluit)",
+  "scripts": {
+    "dev": "node tools/dev_server.mjs",
+    "build": "node -e \"console.log('Static assets ready in public/')\"",
+    "test": "node tests/test_adaptive_network.mjs"
+  }
+}

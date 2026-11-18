@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "project": "SIMPUL Jakarta Adaptive Traffic Network",
+  "generatedAt": "2026-11-18T16:56:43Z",
+  "crs": "EPSG:4326 (WGS84)",
+  "datasets": {
+    "osm_road_network": {
+      "source": "OpenStreetMap Overpass API",
+      "license": "ODbL 1.0 (© OpenStreetMap contributors)",
+      "download_date": "2026-11-18T16:56:43Z",
+      "coverage": [
+        "Tanah Abang",
+        "Cilandak",
+        "Pluit"
+      ],
+      "transformations": [
+        "Filtered to highway classes: motorway, motorway_link, trunk, trunk_link, primary, primary_link, secondary, secondary_link, tertiary, tertiary_link",
+        "Excluded alleys, residential access roads, footpaths, and building labels",
+        "Split ways at topological intersections preserving original node coordinates and oneway tags"
+      ],
+      "classification": "observed_geometry_derived_topology"
+    },
+    "transjakarta_gtfs": {
+      "source": "Official TransJakarta GTFS (optional local ingest via --gtfs-path)",
+      "license": "TransJakarta Open Data terms (when supplied locally)",
+      "download_date": null,
+      "status": "missing_local_gtfs_archive",
+      "classification": "missing_local_archive_fallback_to_osm_stops"
+    },
+    "grab_posisi_and_dkijakarta_sensors": {
+      "source": "Not integrated (files not present in workspace)",
+      "status": "not_integrated",
+      "classification": "unavailable"
+    },
+    "gaussian_disruption_and_traffic_flows": {
+      "source": "SIMPUL synthetic Gaussian spatial disruption model & mesoscopic/controller fixture",
+      "license": "Project internal research prototype",
+      "classification": "synthetic_scenario_modeling",
+      "disclaimer": "Gaussian impact and traffic-flow visualizations are synthetic research scenarios, not measured flood depth, observed protest intensity, or calibrated Jakarta demand."
+    }
+  },
+  "regions": {
+    "tanah_abang": {
+      "name": "Tanah Abang",
+      "bbox": {
+        "south": -6.1975,
+        "west": 106.805,
+        "north": -6.178,
+        "east": 106.824
+      },
+      "stats": {
+        "directed_edges": 409,
+        "intersections": 113,
+        "signalized_intersections": 43,
+        "movements": 257,
+        "transit_stops": 80,
+        "flood_eligible_edges": 114,
+        "demonstration_eligible_edges": 114
+      },
+      "geojson_file": "data/regions/tanah_abang.geojson",
+      "graph_file": "data/regions/tanah_abang.json"
+    },
+    "cilandak": {
+      "name": "Cilandak",
+      "bbox": {
+        "south": -6.3005,
+        "west": 106.7845,
+        "north": -6.2835,
+        "east": 106.8085
+      },
+      "stats": {
+        "directed_edges": 318,
+        "intersections": 95,
+        "signalized_intersections": 39,
+        "movements": 275,
+        "transit_stops": 44,
+        "flood_eligible_edges": 144,
+        "demonstration_eligible_edges": 144
+      },
+      "geojson_file": "data/regions/cilandak.geojson",
+      "graph_file": "data/regions/cilandak.json"
+    },
+    "pluit": {
+      "name": "Pluit",
+      "bbox": {
+        "south": -6.129,
+        "west": 106.7805,
+        "north": -6.106,
+        "east": 106.811
+      },
+      "stats": {
+        "directed_edges": 348,
+        "intersections": 101,
+        "signalized_intersections": 62,
+        "movements": 387,
+        "transit_stops": 57,
+        "flood_eligible_edges": 322,
+        "demonstration_eligible_edges": 271
+      },
+      "geojson_file": "data/regions/pluit.geojson",
+      "graph_file": "data/regions/pluit.json"
+    }
+  }
+}

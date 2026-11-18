@@ -470,3 +470,7 @@ export function formatMetricValue(value, unit = '', unavailableText = 'Not avail
   if (!Number.isFinite(numVal)) return unavailableText;
   return unit ? `${numVal}${unit}` : String(numVal);
 }
+
+export function isCongested(state) {
+  return Boolean(state && !state.closed && (state.congestion_index >= 0.65 || state.occupancy >= 0.65));
+}

@@ -9,6 +9,7 @@ import { ADAPTIVE_REGIONS_DATA, ADAPTIVE_PROVENANCE_MANIFEST } from './adaptive-
 import {
   TIME_PERIODS,
   CONTROLLERS,
+  isCongested,
   snapDisruptionLocation,
   runClientFallbackSimulation,
   formatMetricValue,
@@ -114,6 +115,7 @@ export function activateAdaptiveMapView() {
 
   const selection = document.getElementById('atn-selection');
   const selectionContent = document.getElementById('atn-selection-content');
+  const trafficEvents = document.getElementById('atn-traffic-events');
   const mapStatus = document.getElementById('atn-map-status');
 
   function showSelection(content) {
@@ -126,6 +128,15 @@ export function activateAdaptiveMapView() {
   }
 
   const renderer = createGeospatialRenderer(mapHost, {
+    onTrafficEvents(counts) {
+      trafficEvents.hidden = !counts;
+      if (!counts) return;
+      const total = counts.congestion + counts.closed + counts.restricted;
+      trafficEvents.dataset.active = String(total > 0);
+      trafficEvents.textContent = total
+        ? `${counts.congestion} congested / ${counts.closed} closed / ${counts.restricted} restricted`
+        : 'No major congestion or closures';
+    },
     onMapStatus(message) {
       mapStatus.textContent = message;
       mapStatus.hidden = !message;
@@ -135,7 +146,8 @@ export function activateAdaptiveMapView() {
     },
     onEdgeClick(edge, state) {
       if (!edge) return;
-      const status = state?.closed ? 'Closed' : state?.access_restricted ? 'Restricted' : 'Open';
+      const status = state?.closed ? 'Closed' : state?.access_restricted ? 'Restricted'
+        : isCongested(state) ? 'Congested' : 'Open';
       showSelection(`<small>Road segment · ${safe(edge.highway)}</small>
         <h2>${safe(edge.name)}</h2>
         <dl>
@@ -163,7 +175,8 @@ export function activateAdaptiveMapView() {
         ? '<span class="atn-badge danger">CLOSED</span>'
         : st?.access_restricted
           ? '<span class="atn-badge warn">RESTRICTED</span>'
-          : '<span class="atn-badge ok">OPEN</span>';
+          : isCongested(st) ? '<span class="atn-badge warn">CONGESTION</span>'
+            : '<span class="atn-badge ok">OPEN</span>';
       box.innerHTML = `<strong>${safe(info.edge.name)}</strong> ${statusPill} · ${safe(info.edge.highway)} (${info.edge.oneway ? 'One-way' : 'Bidirectional'}) · Speed: <b>${safe(spd)}</b> · Queue: <b>${safe(qStr)}</b>`;
     },
     onSnapAccepted(snap) {

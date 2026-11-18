@@ -9,7 +9,7 @@
  * with automatic Canvas2D particle fallback when WebGL is unavailable.
  */
 import { colors } from './map-style.js';
-import { snapDisruptionLocation } from './adaptive-model.js';
+import { isCongested, snapDisruptionLocation } from './adaptive-model.js';
 
 const DEG_TO_RAD = Math.PI / 180;
 
@@ -151,6 +151,7 @@ export function createAdaptiveMapRenderer(container, callbacks = {}) {
   let simResult = null;
   let frameIndex = 0;
   let layers = {
+    vehicles: true,
     transit: true,
     signals: true,
     gaussian: true,
@@ -424,6 +425,13 @@ export function createAdaptiveMapRenderer(container, callbacks = {}) {
 
       // Road core colored by simulation state / disruption
       const closed = Boolean(st?.closed);
+      const congested = isCongested(st);
+      if (congested) {
+        tracePath();
+        ctx.strokeStyle = colors.navy;
+        ctx.lineWidth = baseW + 4;
+        ctx.stroke();
+      }
       const restricted = Boolean(st?.access_restricted);
       const cong = st ? st.congestion_index : 0.18;
       const disI = st ? st.disruption_intensity : 0;
@@ -435,6 +443,9 @@ export function createAdaptiveMapRenderer(container, callbacks = {}) {
         ctx.strokeStyle = 'rgba(4, 37, 115, 0.88)';
         ctx.lineWidth = baseW + 0.6;
         ctx.setLineDash([6, 5]);
+      } else if (congested) {
+        ctx.strokeStyle = colors.orange;
+        ctx.lineWidth = baseW + 1;
       } else if (restricted) {
         ctx.strokeStyle = 'rgba(248, 104, 9, 0.85)';
         ctx.lineWidth = baseW;
@@ -542,10 +553,10 @@ export function createAdaptiveMapRenderer(container, callbacks = {}) {
     // 9. Active Disruption Markers + Pending Snap Marker
     const activeMarkers = [];
     if (simResult?.disruptions?.flood?.enabled) {
-      activeMarkers.push({ ...simResult.disruptions.flood, kind: 'flood', label: 'Flood centre (synthetic)' });
+      activeMarkers.push({ ...simResult.disruptions.flood, kind: 'flood', label: 'Flood event' });
     }
     if (simResult?.disruptions?.demonstration?.enabled) {
-      activeMarkers.push({ ...simResult.disruptions.demonstration, kind: 'demonstration', label: 'Demo centre (synthetic)' });
+      activeMarkers.push({ ...simResult.disruptions.demonstration, kind: 'demonstration', label: 'Demonstration event' });
     }
     for (const m of activeMarkers) {
       if (!Number.isFinite(m.lat) || !Number.isFinite(m.lon)) continue;
@@ -561,6 +572,12 @@ export function createAdaptiveMapRenderer(container, callbacks = {}) {
       ctx.arc(p.x, p.y, 5.5, 0, Math.PI * 2);
       ctx.fillStyle = col;
       ctx.fill();
+      ctx.font = '700 13px sans-serif';
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = colors.white;
+      ctx.strokeText(m.label, p.x + 16, p.y + 4);
+      ctx.fillStyle = colors.navy;
+      ctx.fillText(m.label, p.x + 16, p.y + 4);
       ctx.restore();
     }
 
@@ -609,7 +626,7 @@ export function createAdaptiveMapRenderer(container, callbacks = {}) {
     const sizeArr = [];
     const arrowHeads = [];
 
-    for (const p of particles) {
+    for (const p of layers.vehicles ? particles : []) {
       const geom = geomCache[p.edgeIdx];
       if (!geom) continue;
       const e = geom.edge;
@@ -638,7 +655,7 @@ export function createAdaptiveMapRenderer(container, callbacks = {}) {
       const sx = baseX - nxScreen * (laneOffsetPx + p.laneJitter * 0.45);
       const sy = baseY - nyScreen * (laneOffsetPx + p.laneJitter * 0.45);
       const [r, g, b] = trafficColorRGB(cong, false, Boolean(st?.access_restricted));
-      const size = (2.8 + (1 - cong * 0.3) * 1.4) * Math.min(1.5, scaleZoom) * dpr;
+      const size = (5 + (1 - cong * 0.3) * 1.4) * Math.min(1.5, scaleZoom) * dpr;
 
       posArr.push(sx * dpr, sy * dpr);
       colArr.push(r, g, b, st ? 0.92 : 0.72);

@@ -102,6 +102,7 @@ export function renderAdaptiveView() {
         <section class="atn-section">
           <div class="atn-section-head">Map layers</div>
           <div class="atn-layer-bar">
+            <label><input type="checkbox" data-atn-layer="vehicles" checked /> Vehicles</label>
             <label><input type="checkbox" data-atn-layer="buildings" checked /> Buildings</label>
             <label><input type="checkbox" data-atn-layer="gaussian" checked /> Gaussian field</label>
             <label><input type="checkbox" data-atn-layer="signals" checked /> Signals</label>
@@ -127,6 +128,7 @@ export function renderAdaptiveView() {
 
         <div class="atn-canvas-wrap">
           <div id="atn-map-canvas-host" class="atn-canvas-host" role="region" aria-label="Interactive Jakarta adaptive traffic network map"></div>
+          <div id="atn-traffic-events" class="atn-traffic-events" hidden></div>
           <span id="atn-map-status" role="status">Loading map…</span>
           <aside class="atn-selection" id="atn-selection" aria-label="Map selection" hidden>
             <button type="button" id="atn-clear-selection" aria-label="Close selection">×</button>
@@ -139,7 +141,8 @@ export function renderAdaptiveView() {
           <div class="atn-legend" aria-label="Traffic flow and disruption legend">
             <div class="atn-legend-title">Traffic &amp; disruptions</div>
             <div class="atn-legend-items">
-              <span><i class="sw free"></i> Free-flow stream</span>
+              <span><i class="sw vehicle"></i> Simulated vehicle</span>
+              <span><i class="sw free"></i> Free flow</span>
               <span><i class="sw mod"></i> Moderate load</span>
               <span><i class="sw cong"></i> Congested / queue</span>
               <span><i class="sw closed"></i> Closed segment</span>

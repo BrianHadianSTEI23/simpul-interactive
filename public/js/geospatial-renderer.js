@@ -1,4 +1,4 @@
-import { snapDisruptionLocation } from './adaptive-model.js';
+import { isCongested, snapDisruptionLocation } from './adaptive-model.js';
 import { buildEdgeGeometryCache, createAdaptiveMapRenderer, samplePolylineAt } from './adaptive-map-renderer.js';
 import { buildingLayers, colors, mapStyle } from './map-style.js';
 
@@ -11,9 +11,28 @@ const point = (location, properties) => feature('Point', [location.lon, location
 const paintState = (key, fallback) => ['coalesce', ['feature-state', key], fallback];
 const trafficColor = ['interpolate', ['linear'], paintState('load', 0), 0, blue, 0.5, copper, 0.85, orange];
 const visibleLayers = {
+  vehicles: ['vehicles'],
   gaussian: ['gaussian'], signals: ['signals'], transit: ['transit'],
   coverage: ['coverage'], labels: ['landmarks', 'landmark-labels'], buildings: buildingLayers,
 };
+
+function addVehicleIcon(map, id, color) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 32;
+  canvas.height = 48;
+  const ctx = canvas.getContext('2d');
+  ctx.beginPath();
+  ctx.roundRect(5, 3, 22, 42, 7);
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.strokeStyle = white;
+  ctx.lineWidth = 4;
+  ctx.stroke();
+  ctx.fillStyle = white;
+  ctx.fillRect(10, 12, 12, 5);
+  ctx.fillRect(11, 31, 10, 3);
+  map.addImage(id, ctx.getImageData(0, 0, 32, 48), { pixelRatio: 2 });
+}
 
 function overlayLayers(map) {
   function add(id, type, source, paint, layout = {}) {
@@ -38,9 +57,17 @@ function overlayLayers(map) {
     'line-opacity': ['case', paintState('selected', false), 0.75, paintState('hover', false), 0.65, 0],
     'line-offset': offset, 'line-width': 8,
   }, rounded);
+  add('congestion-casing', 'line', 'roads', {
+    'line-color': navy,
+    'line-opacity': ['case', paintState('congested', false), 0.85, 0],
+    'line-width': ['interpolate', ['linear'], ['zoom'], 11, 5, 17, 10],
+    'line-offset': offset,
+  }, rounded);
   add('road-surface', 'line', 'roads', {
-    'line-color': trafficColor, 'line-opacity': ['case', paintState('blocked', false), 0.22, 0.86],
-    'line-offset': offset, 'line-width': ['interpolate', ['linear'], ['zoom'], 11, 1.3, 17, 3.4],
+    'line-color': ['case', paintState('congested', false), orange, trafficColor], 'line-opacity': ['case', paintState('blocked', false), 0.22, 0.86],
+    'line-offset': offset, 'line-width': ['interpolate', ['linear'], ['zoom'],
+      11, ['case', paintState('congested', false), 3, 1.3],
+      17, ['case', paintState('congested', false), 6, 3.4]],
   }, rounded);
   add('road-blocked', 'line', 'roads', {
     'line-color': ['case', paintState('closed', false), navy, orange],
@@ -49,9 +76,6 @@ function overlayLayers(map) {
   });
   add('eligible', 'line', 'eligible', { 'line-color': orange, 'line-width': 6, 'line-opacity': 0.35 }, rounded);
   add('queues', 'line', 'queues', { 'line-color': orange, 'line-width': 4, 'line-offset': offset }, rounded);
-  add('vehicles', 'circle', 'vehicles', {
-    'circle-color': white, 'circle-radius': 1.7, 'circle-stroke-color': blue, 'circle-stroke-width': 0.65,
-  });
   add('signals', 'circle', 'signals', {
     'circle-color': ['case', paintState('phase', false), copper, navy],
     'circle-radius': ['case', ['get', 'signalized'], 3.3, 2],
@@ -70,9 +94,35 @@ function overlayLayers(map) {
     'text-field': ['get', 'name'], 'text-font': ['Noto Sans Regular'], 'text-size': 11,
     'text-offset': [0, 0.7], 'text-anchor': 'top',
   });
+  addVehicleIcon(map, 'vehicle-moving', navy);
+  addVehicleIcon(map, 'vehicle-queued', orange);
+  add('vehicles', 'symbol', 'vehicles', {}, {
+    'icon-image': ['case', ['get', 'queued'], 'vehicle-queued', 'vehicle-moving'],
+    'icon-size': ['interpolate', ['linear'], ['zoom'], 11, 0.36, 15, 0.74, 17, 0.95],
+    'icon-padding': 0,
+    'icon-allow-overlap': ['step', ['zoom'], false, 15.5, true],
+    'icon-ignore-placement': true,
+    'icon-rotate': ['get', 'bearing'],
+    'icon-rotation-alignment': 'map',
+    'icon-pitch-alignment': 'viewport',
+  });
+  add('hotspots', 'symbol', 'hotspots', {
+    'text-color': navy, 'text-halo-color': white, 'text-halo-width': 2,
+  }, {
+    'text-field': ['get', 'kind'], 'text-font': ['Noto Sans Regular'],
+    'text-size': 12, 'text-offset': [0, -0.75], 'text-anchor': 'bottom',
+    'symbol-sort-key': ['get', 'priority'],
+  });
   add('disruptions', 'circle', 'disruptions', {
-    'circle-color': ['get', 'color'], 'circle-radius': ['case', ['get', 'pending'], 8, 6],
+    'circle-color': ['get', 'color'], 'circle-radius': ['case', ['get', 'pending'], 10, 8],
     'circle-stroke-color': white, 'circle-stroke-width': 2,
+  });
+  add('disruption-labels', 'symbol', 'disruptions', {
+    'text-color': navy, 'text-halo-color': white, 'text-halo-width': 2.5,
+  }, {
+    'text-field': ['get', 'name'], 'text-font': ['Noto Sans Regular'],
+    'text-size': 13, 'text-offset': [0, -0.85], 'text-anchor': 'bottom',
+    'text-allow-overlap': true,
   });
 }
 
@@ -107,7 +157,7 @@ export function createGeospatialRenderer(container, callbacks) {
   } catch {
     container.replaceChildren();
     container.classList.remove('maplibregl-map');
-    callbacks.onMapStatus?.('2D fallback Ãƒâ€šÃ‚Â· 3D map unavailable');
+    callbacks.onMapStatus?.('2D fallback: 3D map unavailable');
     return createAdaptiveMapRenderer(container, callbacks);
   }
 
@@ -155,7 +205,7 @@ export function createGeospatialRenderer(container, callbacks) {
     const rings = [];
     const markers = [];
     for (const [key, name, color] of [
-      ['flood', 'Flood centre', blue], ['demonstration', 'Demonstration centre', orange],
+      ['flood', 'Flood event', blue], ['demonstration', 'Demonstration event', orange],
     ]) {
       const zone = simulation?.disruptions?.[key];
       if (!zone?.enabled || !Number.isFinite(zone.lat) || !Number.isFinite(zone.lon)) continue;
@@ -175,10 +225,27 @@ export function createGeospatialRenderer(container, callbacks) {
     if (!ready || !region) return;
     const frame = activeFrame();
     const queues = [];
+    const hotspots = [];
+    const counts = { congestion: 0, closed: 0, restricted: 0 };
+    const labelledWays = new Set();
     for (const geom of geometries) {
       const { edge, coords, cumDist, totalDeg } = geom;
       const state = frame?.edge_states?.[edge.edge_id];
+      const closed = Boolean(state?.closed);
+      const restricted = Boolean(state?.access_restricted);
+      const congested = isCongested(state);
+      if (closed) counts.closed++;
+      if (restricted && !closed) counts.restricted++;
+      if (congested) counts.congestion++;
+      if ((closed || restricted || congested) && !labelledWays.has(edge.osm_way_id)) {
+        labelledWays.add(edge.osm_way_id);
+        hotspots.push(point(samplePolylineAt(geom, 0.55), {
+          kind: closed ? 'Closed' : congested ? 'Congestion' : 'Restricted',
+          priority: closed ? 0 : congested ? 1 : 2, featureId: edge.edge_id,
+        }));
+      }
       roadState(edge.edge_id, {
+        congested,
         load: state?.congestion_index ?? 0,
         closed: Boolean(state?.closed),
         blocked: Boolean(state?.closed || state?.access_restricted),
@@ -191,6 +258,9 @@ export function createGeospatialRenderer(container, callbacks) {
       }
     }
     data('queues', queues);
+    data('hotspots', hotspots);
+    callbacks.onTrafficEvents?.(frame ? counts : null);
+    if (!playing || reducedMotion.matches) drawVehicles(0);
     for (const signal of region.intersections) {
       map.setFeatureState({ source: 'signals', id: signal.node_id }, {
         phase: Boolean(frame?.intersection_states?.[signal.node_id]?.phase),
@@ -267,7 +337,7 @@ export function createGeospatialRenderer(container, callbacks) {
       roadState(hover, { hover: true });
     }
     const { lat, lng: lon } = event.lngLat;
-    const nearby = hit || rendered(event.point, ['transit', 'landmarks', 'signals', 'disruptions']);
+    const nearby = hit || rendered(event.point, ['transit', 'landmarks', 'signals', 'disruptions', 'disruption-labels', 'hotspots']);
     map.getCanvas().style.cursor = placement ? 'crosshair' : nearby ? 'pointer' : 'grab';
     callbacks.onHover?.({ edge: edges.get(id), edgeState: activeFrame()?.edge_states?.[id], lat, lon });
   });
@@ -287,7 +357,12 @@ export function createGeospatialRenderer(container, callbacks) {
       else callbacks.onSnapRejected?.(snap);
       return;
     }
-    const marker = rendered(event.point, ['disruptions', 'landmarks', 'transit', 'signals'], 4);
+    const incident = rendered(event.point, ['disruptions', 'disruption-labels', 'hotspots'], 4);
+    if (incident?.properties.featureId) {
+      selectEdge(incident.properties.featureId);
+      return;
+    }
+    const marker = incident || rendered(event.point, ['landmarks', 'transit', 'signals'], 4);
     const road = rendered(event.point, ['road-surface']);
     if (!marker && road) {
       selectEdge(road.properties.featureId);
@@ -304,14 +379,12 @@ export function createGeospatialRenderer(container, callbacks) {
     ready = true;
     updateRegion();
     updateLayers();
+    drawVehicles(0);
     callbacks.onMapReady?.();
   });
 
-  const ticker = setInterval(() => {
-    const now = performance.now();
-    const delta = Math.min(0.15, (now - lastTick) / 1000);
-    lastTick = now;
-    if (!ready || !playing || reducedMotion.matches || document.hidden) return;
+  function drawVehicles(delta) {
+    if (!ready || layerState.vehicles === false || document.hidden) return;
     const states = activeFrame()?.edge_states;
     const bounds = map.getBounds();
     const vehicles = [];
@@ -324,15 +397,33 @@ export function createGeospatialRenderer(container, callbacks) {
       const progress = flowProgress.get(edge.edge_id) ?? (index * 0.17) % 1;
       const fraction = (progress + delta * speed * metersPerSecond / Math.max(25, edge.length_m)) % 1;
       flowProgress.set(edge.edge_id, fraction);
-      const location = samplePolylineAt(geom, fraction);
-      if (bounds.contains([location.lon, location.lat])) vehicles.push(point(location, {}));
+      function addVehicle(at, queued) {
+        const location = samplePolylineAt(geom, at);
+        if (!bounds.contains([location.lon, location.lat])) return;
+        const bearing = Math.atan2(location.tx, location.ty) * 180 / Math.PI;
+        vehicles.push(point(location, { bearing, queued }));
+      }
+      addVehicle(fraction, false);
+      if (state?.occupancy >= 0.65 && state.queue_veh > 0) {
+        const length = Math.max(20, edge.length_m);
+        const queueFraction = Math.min(0.62, state.queue_length_m / length);
+        for (let offset = 8 / length; offset <= queueFraction; offset += 12 / length) {
+          addVehicle(1 - offset, true);
+        }
+      }
     }
     data('vehicles', vehicles);
+  }
+
+  const ticker = setInterval(() => {
+    const now = performance.now();
+    const delta = Math.min(0.15, (now - lastTick) / 1000);
+    lastTick = now;
+    if (playing && !reducedMotion.matches) drawVehicles(delta);
   }, 50);
 
-  function syncMotion() {
-    if (reducedMotion.matches) data('vehicles', []);
-  }
+  function syncMotion() { drawVehicles(0); }
+  map.on('moveend', syncMotion);
   reducedMotion.addEventListener('change', syncMotion);
 
   return {
@@ -356,7 +447,11 @@ export function createGeospatialRenderer(container, callbacks) {
     },
     setFrameIndex(index = 0) { frameIndex = index; updateFrame(); },
     setPlayback(isPlaying, playbackSpeed) { playing = isPlaying; speed = playbackSpeed; },
-    setLayers(next) { layerState = { ...layerState, ...next }; updateLayers(); },
+    setLayers(next) {
+      layerState = { ...layerState, ...next };
+      updateLayers();
+      drawVehicles(0);
+    },
     setDisruptionPlacementMode(mode) {
       placement = mode;
       if (!mode) pending = null;

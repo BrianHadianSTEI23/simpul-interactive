@@ -400,6 +400,7 @@ export function activateAdaptiveMapView() {
     const metricRows = [
       ['Avg travel time', formatMetricValue(m.avg_travel_time_s, ' s')],
       ['Avg delay', formatMetricValue(m.avg_delay_s, ' s')],
+      ['Corridor delay', formatMetricValue(m.corridor_avg_delay_s, ' s')],
       ['95th-pct delay', formatMetricValue(m.p95_delay_s, ' s')],
       ['Throughput', formatMetricValue(m.throughput_vph, ' veh/h')],
       ['Avg queue', formatMetricValue(m.avg_queue_length_veh, ' veh')],

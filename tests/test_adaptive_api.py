@@ -170,6 +170,7 @@ def test_trained_meshgraphnet_integration_pluit_flood():
     b2 = body['comparison']['max_pressure']['metrics']
     b3 = body['comparison']['gnn_mappo']['metrics']
     assert b3['avg_delay_s'] <= b1['avg_delay_s']
+    assert b3['corridor_avg_delay_s'] <= b1['corridor_avg_delay_s']
     assert b3['throughput_vph'] > b1['throughput_vph']
     assert b3['spillback_events'] < b1['spillback_events']
     assert b3['throughput_vph'] > b2['throughput_vph']

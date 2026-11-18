@@ -149,6 +149,7 @@ def _simulate_single_controller(
 
     frames: list[dict[str, Any]] = []
     delay_samples: list[float] = []
+    corridor_delay_samples: list[float] = []
     travel_time_samples: list[float] = []
     queue_samples: list[float] = []
     max_queue_seen = 0.0
@@ -164,12 +165,19 @@ def _simulate_single_controller(
     active_movements = [m for m in movements if m['intersection_id'] in signal_node_ids]
 
     signal_lookup = {i['node_id']: i for i in signal_nodes}
+    signal_controlled_edges = {eid for i in signal_nodes for eid in i.get('incoming_edges', ())}
+    corridor_edge_ids = {
+        e['edge_id'] for e in edges
+        if e['edge_id'] in signal_controlled_edges
+        or e.get('corridor_focus')
+        or impacts[e['edge_id']]['combined_intensity'] >= 0.1
+    }
     last_adapter_output = None
     routing = {}
     signal_service = {}
     previous_greens = {}
     routed_arrivals = {}
-    continuation_share = 0.25
+    continuation_share = 0.40
     model_endpoint = os.environ.get('SIMPUL_MESHGRAPHNET_URL')
     incoming_routes = {m['to_edge'] for m in movements}
     edge_storage = {
@@ -256,6 +264,8 @@ def _simulate_single_controller(
             tt_s = round(e['length_m'] / max(1.0, (speed_kmh if speed_kmh > 0 else 2.5) / 3.6), 1)
 
             delay_samples.append(delay_s)
+            if eid in corridor_edge_ids:
+                corridor_delay_samples.append(delay_s)
             travel_time_samples.append(tt_s)
             queue_samples.append(q)
             step_queues.append(q)
@@ -398,6 +408,7 @@ def _simulate_single_controller(
     sorted_delays = sorted(delay_samples)
     p95_idx = min(len(sorted_delays) - 1, int(0.95 * len(sorted_delays)))
     avg_delay = sum(delay_samples) / max(1, len(delay_samples))
+    corridor_avg_delay = sum(corridor_delay_samples) / max(1, len(corridor_delay_samples))
     avg_tt = sum(travel_time_samples) / max(1, len(travel_time_samples))
     avg_q = sum(queue_samples) / max(1, len(queue_samples))
     throughput_vph = (total_served_veh / max(1.0, req.duration_s)) * 3600.0
@@ -406,6 +417,7 @@ def _simulate_single_controller(
     metrics = {
         'avg_travel_time_s': round(avg_tt, 1),
         'avg_delay_s': round(avg_delay, 1),
+        'corridor_avg_delay_s': round(corridor_avg_delay, 1),
         'p95_delay_s': round(sorted_delays[p95_idx], 1) if sorted_delays else None,
         'throughput_vph': round(throughput_vph, 0),
         'avg_queue_length_veh': round(avg_q, 2),

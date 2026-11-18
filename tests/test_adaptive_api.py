@@ -143,3 +143,33 @@ def test_turn_routing_redistributes_traffic_only_for_graph_controller():
     assert routes['in'] == [('clear', 1)]
     assert actions['straight']['action'] == 'blocked'
     assert actions['left']['action'] == 'redirected'
+
+
+def test_trained_meshgraphnet_integration_pluit_flood():
+    """Verify embedded trained MeshGraphNet weights run end-to-end and outperform baselines."""
+    regions = {r['id']: r for r in client.get('/api/regions').json()['regions']}
+    anchor = regions['pluit']['disruption_anchors']['flood']
+    resp = client.post('/api/simulation/run', json={
+        'region_id': 'pluit',
+        'time_period': 'pagi',
+        'controller': 'gnn_mappo',
+        'flood': {'enabled': True, 'lat': anchor['lat'], 'lon': anchor['lon'], 'intensity': 0.85, 'sigma_m': 450},
+        'demonstration': {'enabled': False},
+        'duration_s': 600,
+        'seed': 42,
+    })
+    assert resp.status_code == 200
+    body = resp.json()
+    res = body['result']
+    assert body['provenance']['is_mock_controller'] is False
+    assert res['controller_adapter']['diagnostics']['checkpoint_loaded'] is True
+    assert any(f['movement_policy'] == 'meshgraphnet' for f in res['frames'])
+    assert any(len(f['turn_actions']) > 0 for f in res['frames'])
+
+    b1 = body['comparison']['fixed_time']['metrics']
+    b2 = body['comparison']['max_pressure']['metrics']
+    b3 = body['comparison']['gnn_mappo']['metrics']
+    assert b3['avg_delay_s'] <= b1['avg_delay_s']
+    assert b3['throughput_vph'] > b1['throughput_vph']
+    assert b3['spillback_events'] < b1['spillback_events']
+    assert b3['throughput_vph'] > b2['throughput_vph']

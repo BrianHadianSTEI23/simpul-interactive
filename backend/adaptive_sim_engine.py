@@ -28,6 +28,7 @@ from .adaptive_network import (
     load_region,
     validate_and_snap_disruption,
 )
+from .meshgraphnet_inference import infer_trained_actor_probs
 from .movement_policy import choose_turns
 from .controller_adapter import (
     ControllerId,
@@ -171,6 +172,14 @@ def _simulate_single_controller(
     continuation_share = 0.25
     model_endpoint = os.environ.get('SIMPUL_MESHGRAPHNET_URL')
     incoming_routes = {m['to_edge'] for m in movements}
+    edge_storage = {
+        e['edge_id']: max(4.0, (e['length_m'] / 6.5) * e['lanes'])
+        for e in edges
+    }
+    edge_occ_prev = {
+        eid: min(1.0, edge_queue[eid] / edge_storage[eid])
+        for eid in edge_queue
+    }
 
     for step_idx in range(steps + 1):
         t_s = step_idx * dt_s
@@ -205,14 +214,19 @@ def _simulate_single_controller(
             demand_rate_vps = edge_base_demand[eid] * (1 - continuation_share if eid in incoming_routes else 1) / 3600.0
 
             q = edge_queue[eid]
-            max_storage_veh = max(4.0, (e['length_m'] / 6.5) * e['lanes'])
+            max_storage_veh = edge_storage[eid]
 
-            # Update queue over dt_s.
+            # Update queue over dt_s with realistic downstream spillback backpressure.
             if step_idx > 0:
                 arrivals = demand_rate_vps * dt_s + routed_arrivals.get(eid, 0)
-                # Upstream spillback penalty if queue exceeds 70% of link storage.
                 spill_ratio = max(0.0, q / max_storage_veh - 0.65)
-                service_throttle = max(0.32, 1.0 - spill_ratio)
+                dest_spill = 0.0
+                if destination_links:
+                    dest_spill = sum(
+                        w * max(0.0, edge_occ_prev.get(dest, 0.0) - 0.58)
+                        for dest, w in destination_links
+                    )
+                service_throttle = max(0.22, (1.0 - spill_ratio) * (1.0 - 0.90 * dest_spill))
                 served = min(q + arrivals, eff_cap_vps * service_throttle * dt_s)
                 q_next = max(0.0, min(max_storage_veh * 1.15, q + arrivals - served))
                 edge_queue[eid] = q_next
@@ -222,6 +236,7 @@ def _simulate_single_controller(
                 q = q_next
 
             occ = min(1.0, q / max_storage_veh)
+            edge_occ_prev[eid] = occ
             if occ >= 0.82 and step_idx > 0:
                 spillback_events += 1
 
@@ -272,8 +287,21 @@ def _simulate_single_controller(
             }
 
         routed_arrivals = next_arrivals
+        trained_inf = None
+        if controller == 'gnn_mappo' and not model_endpoint:
+            inter_ctx = {
+                nid: {'current_phase': inter_phase[nid], 'phase_elapsed_s': min(600.0, inter_elapsed[nid])}
+                for nid in signal_node_ids
+            }
+            trained_inf = infer_trained_actor_probs(req.region_id, frame_edges, inter_ctx)
+
         routing, turn_actions, movement_policy = choose_turns(
-            req.region_id, mov_by_from, frame_edges, controller == 'gnn_mappo', model_endpoint,
+            req.region_id,
+            mov_by_from,
+            frame_edges,
+            controller == 'gnn_mappo',
+            model_endpoint,
+            precomputed_scores=(trained_inf['movement_scores'] if trained_inf else None),
         )
 
         if movement_policy == 'graph_heuristic':
@@ -301,21 +329,24 @@ def _simulate_single_controller(
                 to_edge=m['to_edge'],
                 demand_vph=edge_base_demand.get(m['from_edge'], 600.0),
                 queue_veh=edge_queue.get(m['from_edge'], 0.0),
-                downstream_occupancy=min(1.0, edge_queue.get(m['to_edge'], 0.0) / 25.0),
+                downstream_occupancy=min(1.0, edge_occ_prev.get(m['to_edge'], 0.0)),
                 green_eligible=m['to_edge'] in allowed_destinations.get(m['from_edge'], ()),
             )
             for m in active_movements
         ]
-        adapter_out = decide_controller_actions(GraphStateInput(
-            region_id=req.region_id,
-            time_period=req.time_period,
-            controller=controller,
-            timestep_s=t_s,
-            road_features=road_features,
-            intersection_features=inter_feats,
-            movement_features=mov_feats,
-            scenario_info={'flood_enabled': bool(flood_cfg.get('enabled')), 'demonstration_enabled': bool(demo_cfg.get('enabled'))},
-        ))
+        adapter_out = decide_controller_actions(
+            GraphStateInput(
+                region_id=req.region_id,
+                time_period=req.time_period,
+                controller=controller,
+                timestep_s=t_s,
+                road_features=road_features,
+                intersection_features=inter_feats,
+                movement_features=mov_feats,
+                scenario_info={'flood_enabled': bool(flood_cfg.get('enabled')), 'demonstration_enabled': bool(demo_cfg.get('enabled'))},
+            ),
+            precomputed_inference=trained_inf,
+        )
         last_adapter_output = adapter_out
 
         frame_intersections: dict[str, dict[str, Any]] = {}
@@ -332,8 +363,11 @@ def _simulate_single_controller(
                 inter_elapsed[nid] += dt_s
             green_edges = {by_movement_id[mid]['from_edge'] for mid in dec.selected_movement_ids}
             intersection = signal_lookup[nid]
+            # Fair step-level green capacity: active phase approaches receive full saturation
+            # minus intergreen clearance loss ONLY when switching phase.
+            green_cap = 0.90 if changed else 1.0
             for incoming in intersection['incoming_edges']:
-                signal_service[incoming] = min(1.0, dec.green_duration_s / dt_s) if incoming in green_edges else 0.2
+                signal_service[incoming] = green_cap if incoming in green_edges else 0.18
             frame_intersections[nid] = {
                 'green_edges': sorted(green_edges),
                 'phase_changed': changed,

@@ -53,6 +53,7 @@ const defaultState = () => ({
   backendMode: 'checking', // 'checking' | 'connected' | 'offline_fallback'
   immersive: false,
   layers: { transit: true, signals: true, gaussian: true, coverage: true, labels: true },
+  trainedWeights: null,
   simResult: null,
 });
 
@@ -482,11 +483,17 @@ export function activateAdaptiveMapView() {
           simState.backendMode = 'connected';
         } catch {
           simState.backendMode = 'offline_fallback';
-          result = runClientFallbackSimulation(region, payload);
+          if (!simState.trainedWeights && typeof fetch === 'function') {
+            try {
+              const wResp = await fetch('/data/model_weights.json');
+              if (wResp.ok) simState.trainedWeights = await wResp.json();
+            } catch { /* fallback to synthetic surrogate */ }
+          }
+          result = runClientFallbackSimulation(region, payload, simState.trainedWeights);
         }
       } else {
         simState.backendMode = 'offline_fallback';
-        result = runClientFallbackSimulation(region, payload);
+        result = runClientFallbackSimulation(region, payload, simState.trainedWeights);
       }
 
       if (disposed || queuedRequest) return;

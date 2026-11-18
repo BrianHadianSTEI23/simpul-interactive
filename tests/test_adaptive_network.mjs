@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import { ADAPTIVE_REGIONS_DATA, ADAPTIVE_PROVENANCE_MANIFEST } from '../public/js/adaptive-regions-data.js';
 import {
   TIME_PERIODS,
@@ -70,4 +71,19 @@ assert.ok(TIME_PERIODS.length === 3 && CONTROLLERS.length === 3);
 
 const html = renderAdaptiveView();
 assert.ok(html.includes('Tanah Abang') && html.includes('Cilandak') && html.includes('Pluit'));
+
+const trainedWeights = JSON.parse(fs.readFileSync(new URL('../public/data/model_weights.json', import.meta.url), 'utf8'));
+const trainedSim = runClientFallbackSimulation(pluit, {
+  region_id: 'pluit',
+  time_period: 'pagi',
+  controller: 'gnn_mappo',
+  flood: { enabled: true, lat: validSnap.snapped_lat, lon: validSnap.snapped_lon, intensity: 0.85, sigma_m: 440 },
+  demonstration: { enabled: false },
+  duration_s: 360,
+  seed: 42,
+}, trainedWeights);
+assert.equal(trainedSim.provenance.is_mock_controller, false);
+assert.equal(trainedSim.frames[0].movement_policy, 'meshgraphnet');
+assert.ok(Object.keys(trainedSim.frames[0].turn_actions).length > 0);
+
 console.log('PASS simpul-interactive JS suite');

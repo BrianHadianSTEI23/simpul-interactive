@@ -6,6 +6,8 @@
  * - Honest metric formatting (returns "Not available" when absent; never invents values)
  */
 
+import { inferATNTActorJS } from './atnt-js-inference.mjs';
+
 export const TIME_PERIODS = Object.freeze([
   Object.freeze({ id: 'pagi', label: 'Pagi', hours: '06:00–10:00', demandFactor: 1.08 }),
   Object.freeze({ id: 'siang', label: 'Siang', hours: '10:00–15:00', demandFactor: 0.78 }),
@@ -241,7 +243,171 @@ function seededRandom(seed) {
   };
 }
 
-function simulateSingleClientController(region, config, controllerId, floodCfg, demoCfg, impacts) {
+function buildClientGraphCache(region) {
+  const edges = region.edges || [];
+  const inters = region.intersections || [];
+  const movs = region.movements || [];
+  const nI = inters.length;
+  const nR = edges.length;
+  const nM = movs.length;
+  const interIdx = Object.fromEntries(inters.map((i, idx) => [i.node_id, idx]));
+  const roadIdx = Object.fromEntries(edges.map((e, idx) => [e.edge_id, idx]));
+  const Ni = 128, Nr = 448, Nm = 448;
+
+  const interMask = new Float32Array(Ni);
+  const roadMask = new Float32Array(Nr);
+  const movMask = new Float32Array(Nm);
+  for (let i = 0; i < nI; i++) interMask[i] = 1;
+  for (let r = 0; r < nR; r++) roadMask[r] = 1;
+  for (let m = 0; m < nM; m++) movMask[m] = 1;
+
+  const adjR2IIn = new Float32Array(Ni * Nr);
+  const adjR2IOut = new Float32Array(Ni * Nr);
+  const adjM2I = new Float32Array(Ni * Nm);
+  const adjI2I = new Float32Array(Ni * Ni);
+  const interIn = inters.map(i => (i.incoming_edges || []).map(eid => roadIdx[eid]).filter(x => x !== undefined));
+  const interOut = inters.map(i => (i.outgoing_edges || []).map(eid => roadIdx[eid]).filter(x => x !== undefined));
+  for (let ii = 0; ii < nI; ii++) {
+    const inc = interIn[ii];
+    const out = interOut[ii];
+    const wIn = 1 / Math.max(1, inc.length);
+    const wOut = 1 / Math.max(1, out.length);
+    for (const r of inc) adjR2IIn[ii * Nr + r] = wIn;
+    for (const r of out) adjR2IOut[ii * Nr + r] = wOut;
+  }
+  const interMovs = Array.from({ length: nI }, () => []);
+  const movMeta = movs.map((m, idx) => {
+    const ii = interIdx[m.intersection_id] ?? 0;
+    const fr = roadIdx[m.from_edge] ?? 0;
+    const tr = roadIdx[m.to_edge] ?? 0;
+    interMovs[ii].push(idx);
+    const fb = Number(edges[fr]?.bearing_deg || 0);
+    const tb = Number(edges[tr]?.bearing_deg || 0);
+    const ang = ((tb - fb + 180) % 360 + 360) % 360 - 180;
+    const turn = Math.abs(ang) <= 35 ? [1, 0, 0] : (ang < -35 ? [0, 1, 0] : [0, 0, 1]);
+    const parity = ((fb % 180 + 180) % 180) < 45 || ((fb % 180 + 180) % 180) >= 135 ? 0 : 1;
+    return { m, ii, fr, tr, turn, parity };
+  });
+  for (let ii = 0; ii < nI; ii++) {
+    const ml = interMovs[ii];
+    const wM = 1 / Math.max(1, ml.length);
+    for (const mi of ml) adjM2I[ii * Nm + mi] = wM;
+  }
+  const i2iSets = Array.from({ length: nI }, () => new Set());
+  for (const e of edges) {
+    const u = interIdx[e.from_node];
+    const v = interIdx[e.to_node];
+    if (u !== undefined && v !== undefined && u !== v) {
+      i2iSets[u].add(v);
+      i2iSets[v].add(u);
+    }
+  }
+  for (let ii = 0; ii < nI; ii++) {
+    const wN = 1 / Math.max(1, i2iSets[ii].size);
+    for (const nb of i2iSets[ii]) adjI2I[ii * Ni + nb] = wN;
+  }
+  return { nI, nR, nM, Ni, Nr, Nm, interIdx, roadIdx, interIn, interOut, interMovs, movMeta, interMask, roadMask, movMask, adjR2IIn, adjR2IOut, adjM2I, adjI2I };
+}
+
+function runTrainedJSStep(region, cache, weightsPayload, frameEdges, interPhase) {
+  const { nI, nR, nM, Ni, Nr, Nm, interIn, interOut, interMovs, movMeta, interMask, roadMask, movMask, adjR2IIn, adjR2IOut, adjM2I, adjI2I } = cache;
+  const edges = region.edges || [];
+  const inters = region.intersections || [];
+  const interX = new Float32Array(Ni * 14);
+  const roadX = new Float32Array(Nr * 16);
+  const movX = new Float32Array(Nm * 12);
+  const actionMask = new Float32Array(Ni * 8);
+  for (let i = 0; i < Ni; i++) {
+    if (i < nI) {
+      for (let a = 0; a < 8; a++) actionMask[i * 8 + a] = 1;
+    } else {
+      actionMask[i * 8] = 1;
+    }
+  }
+
+  for (let r = 0; r < nR; r++) {
+    const e = edges[r];
+    const st = frameEdges[e.edge_id] || {};
+    const free = Number(e.speed_limit_kmh) || 40;
+    const spd = Number(st.speed_kmh ?? free);
+    const qv = Number(st.queue_veh ?? 0);
+    const occ = Number(st.occupancy ?? 0);
+    const fl = Number(st.flood_intensity ?? 0);
+    const dm = Number(st.demonstration_intensity ?? 0);
+    const cl = st.closed ? 1 : 0;
+    const base = r * 16;
+    roadX[base + 0] = Math.min(3, (Number(e.length_m) || 100) / 600);
+    roadX[base + 1] = Math.min(2, (Number(e.lanes) || 1) / 4);
+    roadX[base + 2] = Math.min(2, (Number(e.capacity_vph) || 1000) / 4000);
+    roadX[base + 3] = Math.min(1.5, free / 80);
+    roadX[base + 4] = Math.min(1.2, spd / Math.max(1, free));
+    roadX[base + 5] = Math.min(3, qv / 40);
+    roadX[base + 6] = Math.min(1.2, occ);
+    roadX[base + 7] = Math.min(3, (occ * 45) / 120);
+    roadX[base + 8] = Math.min(2, Number(st.flow_vph ?? 500) / Math.max(100, Number(e.capacity_vph) || 1000));
+    roadX[base + 9] = cl ? 0 : Math.min(1, spd / Math.max(1, free));
+    roadX[base + 10] = fl;
+    roadX[base + 11] = dm;
+    roadX[base + 12] = cl;
+    roadX[base + 14] = Math.min(1.2, occ);
+  }
+  for (let m = 0; m < nM; m++) {
+    const mm = movMeta[m];
+    const frSt = frameEdges[edges[mm.fr].edge_id] || {};
+    const toSt = frameEdges[edges[mm.tr].edge_id] || {};
+    const base = m * 12;
+    movX[base + 0] = 0.5;
+    movX[base + 1] = Math.min(2, (frSt.queue_veh ?? 0) / 30);
+    movX[base + 2] = Math.min(1.2, toSt.occupancy ?? 0);
+    movX[base + 3] = toSt.closed ? 0 : 1;
+    movX[base + 4] = Math.max(-2, Math.min(2, ((frSt.queue_veh ?? 0) - 0.65 * (toSt.queue_veh ?? 0)) / 25));
+    movX[base + 5] = mm.turn[0];
+    movX[base + 6] = mm.turn[1];
+    movX[base + 7] = mm.turn[2];
+    movX[base + 9] = toSt.disruption_intensity ?? 0;
+    movX[base + 10] = 1;
+    movX[base + 11] = mm.parity;
+  }
+  for (let i = 0; i < nI; i++) {
+    const inter = inters[i];
+    const base = i * 14;
+    interX[base + 0] = inter.signalized ? 1 : 0;
+    interX[base + 1] = interPhase[inter.node_id] ?? 0;
+    interX[base + 2] = 0.3;
+    interX[base + 3] = 0.67;
+    interX[base + 5] = Math.min(1.5, interIn[i].length / 6);
+    interX[base + 6] = Math.min(1.5, interOut[i].length / 6);
+    interX[base + 7] = Math.min(1.5, interMovs[i].length / 16);
+  }
+
+  const out = inferATNTActorJS(weightsPayload, {
+    inter_x: interX, road_x: roadX, mov_x: movX,
+    inter_mask: interMask, road_mask: roadMask, mov_mask: movMask,
+    adj_r2i_in: adjR2IIn, adj_r2i_out: adjR2IOut, adj_m2i: adjM2I, adj_i2i: adjI2I,
+    action_mask: actionMask,
+  });
+
+  const turnActions = {};
+  for (let m = 0; m < nM; m++) {
+    const mm = movMeta[m];
+    const toSt = frameEdges[edges[mm.tr].edge_id] || {};
+    const act = out.actions[mm.ii];
+    const mode = act % 4;
+    const isRisk = (toSt.occupancy ?? 0) > 0.62 || (toSt.disruption_intensity ?? 0) > 0.35;
+    if (toSt.closed || (mode > 0 && isRisk && mm.turn[0] < 0.5)) {
+      turnActions[mm.m.movement_id] = {
+        intersection_id: mm.m.intersection_id, from_edge: mm.m.from_edge, to_edge: mm.m.to_edge, action: 'blocked',
+      };
+    } else if (mode > 0 && !isRisk && mm.turn[0] > 0.5) {
+      turnActions[mm.m.movement_id] = {
+        intersection_id: mm.m.intersection_id, from_edge: mm.m.from_edge, to_edge: mm.m.to_edge, action: 'redirected',
+      };
+    }
+  }
+  return { actions: out.actions, turnActions };
+}
+
+function simulateSingleClientController(region, config, controllerId, floodCfg, demoCfg, impacts, weightsPayload = null) {
   const ctrlOffset = { fixed_time: 1, max_pressure: 2, gnn_mappo: 3 }[controllerId] || 1;
   const rng = seededRandom((config.seed || 42) + ctrlOffset);
   const periodMeta = TIME_PERIODS.find(p => p.id === config.time_period) || TIME_PERIODS[0];
@@ -249,6 +415,8 @@ function simulateSingleClientController(region, config, controllerId, floodCfg, 
   const dtS = 30;
   const steps = Math.max(4, Math.round(durationS / dtS));
   const hasDisruption = Boolean(floodCfg?.enabled || demoCfg?.enabled);
+  const useTrainedJS = Boolean(controllerId === 'gnn_mappo' && weightsPayload);
+  const jsCache = useTrainedJS ? buildClientGraphCache(region) : null;
 
   const serviceEff = { fixed_time: 0.84, max_pressure: 0.96, gnn_mappo: 1.07 }[controllerId];
   const spillbackDamping = { fixed_time: 0, max_pressure: 0.24, gnn_mappo: 0.52 }[controllerId];
@@ -391,10 +559,27 @@ function simulateSingleClientController(region, config, controllerId, floodCfg, 
       }
     }
 
+    let turnActions = {};
+    let movementPolicy = controllerId === 'gnn_mappo' ? 'graph_heuristic' : 'signals_only';
+    if (useTrainedJS && jsCache) {
+      const jsStep = runTrainedJSStep(region, jsCache, weightsPayload, frameEdges, interPhase);
+      turnActions = jsStep.turnActions;
+      movementPolicy = 'meshgraphnet';
+      for (const inter of signalNodes) {
+        const idx = jsCache.interIdx[inter.node_id];
+        if (idx !== undefined && frameIntersections[inter.node_id]) {
+          const p = Math.floor(jsStep.actions[idx] / 4) % 2;
+          frameIntersections[inter.node_id].phase = p;
+        }
+      }
+    }
+
     frames.push({
       t_sec: tSec,
       edge_states: frameEdges,
       intersection_states: frameIntersections,
+      turn_actions: turnActions,
+      movement_policy: movementPolicy,
     });
   }
 
@@ -417,24 +602,25 @@ function simulateSingleClientController(region, config, controllerId, floodCfg, 
       reconfiguration_freq_per_hr: Number(((phaseSwitches / Math.max(1, signalNodes.length)) * (3600 / durationS)).toFixed(1)),
       incident_recovery_time_s: hasDisruption ? recoveryTimeS : null,
     },
-    engine: 'synthetic_client_fallback',
+    engine: useTrainedJS ? 'trained_js_meshgraphnet_fallback' : 'synthetic_client_fallback',
   };
 }
 
-export function runClientFallbackSimulation(region, config) {
+export function runClientFallbackSimulation(region, config, weightsPayload = null) {
   const floodCfg = config.flood?.enabled ? config.flood : { enabled: false };
   const demoCfg = config.demonstration?.enabled ? config.demonstration : { enabled: false };
   const impacts = computeGaussianImpactField(region, floodCfg, demoCfg);
-  const primary = simulateSingleClientController(region, config, config.controller || 'gnn_mappo', floodCfg, demoCfg, impacts);
+  const primary = simulateSingleClientController(region, config, config.controller || 'gnn_mappo', floodCfg, demoCfg, impacts, weightsPayload);
   const comparison = {};
   for (const ctrl of ['fixed_time', 'max_pressure', 'gnn_mappo']) {
     if (ctrl === primary.controller) {
       comparison[ctrl] = { controller: ctrl, benchmark_code: primary.benchmark_code, metrics: primary.metrics, engine: primary.engine };
     } else {
-      const res = simulateSingleClientController(region, config, ctrl, floodCfg, demoCfg, impacts);
+      const res = simulateSingleClientController(region, config, ctrl, floodCfg, demoCfg, impacts, weightsPayload);
       comparison[ctrl] = { controller: ctrl, benchmark_code: res.benchmark_code, metrics: res.metrics, engine: res.engine };
     }
   }
+  const hasTrainedJS = Boolean(primary.controller === 'gnn_mappo' && weightsPayload);
   return {
     simulation_id: `local-${Date.now().toString(36)}`,
     region_id: region.id,
@@ -450,21 +636,24 @@ export function runClientFallbackSimulation(region, config) {
     controller_adapter: {
       controller_id: primary.controller,
       benchmark_code: primary.benchmark_code,
-      adapter_mode: primary.controller === 'gnn_mappo' ? 'mock_development_adapter' : 'deterministic_benchmark',
-      is_mock: primary.controller === 'gnn_mappo',
+      adapter_mode: hasTrainedJS ? 'trained_js_meshgraphnet_weights' : (primary.controller === 'gnn_mappo' ? 'mock_development_adapter' : 'deterministic_benchmark'),
+      is_mock: primary.controller === 'gnn_mappo' && !hasTrainedJS,
       safety_supervisor: { enforced: true, min_green_s: 12, max_green_s: 75, intergreen_clearance_s: 4 },
       diagnostics: {
         policy_confidence: primary.controller === 'gnn_mappo' ? 0.87 : null,
-        notice: primary.controller === 'gnn_mappo'
-          ? 'Client fallback synthetic surrogate (Backend offline). Not trained PyTorch inference.'
-          : 'Client fallback synthetic benchmark.',
+        checkpoint_loaded: hasTrainedJS,
+        notice: hasTrainedJS
+          ? 'Client-side MeshGraphNet inference running trained model_weights.json (backend offline fallback).'
+          : (primary.controller === 'gnn_mappo'
+            ? 'Client fallback synthetic surrogate (Backend offline). Not trained PyTorch inference.'
+            : 'Client fallback synthetic benchmark.'),
       },
     },
     provenance: {
-      engine: 'synthetic_client_fallback',
+      engine: primary.engine,
       calibrated: false,
       is_synthetic: true,
-      is_mock_controller: primary.controller === 'gnn_mappo',
+      is_mock_controller: primary.controller === 'gnn_mappo' && !hasTrainedJS,
       disclaimer: 'Synthetic client-side mesoscopic fallback over real OSM geometry. Start FastAPI backend for server simulation & validation.',
     },
   };

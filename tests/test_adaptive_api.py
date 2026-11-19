@@ -174,3 +174,54 @@ def test_trained_meshgraphnet_integration_pluit_flood():
     assert b3['throughput_vph'] > b1['throughput_vph']
     assert b3['spillback_events'] < b1['spillback_events']
     assert b3['throughput_vph'] > b2['throughput_vph']
+
+
+def test_connected_three_region_network_scoping_and_signage():
+    """Verify Pluit-Tanah Abang-Cilandak connected network, scoped disruptions, and dynamic signage."""
+    net = client.get('/api/regions/all/network')
+    assert net.status_code == 200
+    net_json = net.json()
+    connector_edges = [e for e in net_json['edges'] if e.get('is_inter_region_connector')]
+    assert len(connector_edges) >= 16
+    assert all(not e.get('flood_eligible') and not e.get('demonstration_eligible') for e in connector_edges)
+    assert len(net_json['signage_nodes']) >= 100
+
+    # Disruption midpoint between Pluit and Tanah Abang (outside the 3 study areas) must be rejected
+    outside = client.post('/api/regions/all/disruption/validate', json={
+        'lat': -6.1520,
+        'lon': 106.8178,
+        'disruption_kind': 'flood',
+    })
+    assert outside.status_code == 422
+
+    # Anchor inside Tanah Abang must be accepted cleanly in 'all' mode
+    ta_anchor = client.get('/api/regions').json()['regions']
+    ta = next(r for r in ta_anchor if r['id'] == 'tanah_abang')['disruption_anchors']['demonstration']
+    inside = client.post('/api/regions/all/disruption/validate', json={
+        'lat': ta['lat'],
+        'lon': ta['lon'],
+        'disruption_kind': 'demonstration',
+    })
+    assert inside.status_code == 200
+    assert inside.json()['accepted'] is True
+
+    # Connected 3-region simulation check
+    run = client.post('/api/simulation/run', json={
+        'region_id': 'all',
+        'time_period': 'sore',
+        'controller': 'gnn_mappo',
+        'flood': {'enabled': True, 'intensity': 0.80, 'sigma_m': 460},
+        'demonstration': {'enabled': True, 'intensity': 0.75, 'sigma_m': 400},
+        'duration_s': 360,
+        'seed': 42,
+    })
+    assert run.status_code == 200
+    data = run.json()['result']
+    assert data['frames'][4]['signage_states']
+    sample_sign = next(iter(data['frames'][4]['signage_states'].values()))
+    assert any(d in sample_sign['primary_label'] for d in ('Lurus', 'Belok Kiri', 'Belok Kanan', 'Putar Balik'))
+    b1 = data['comparison']['fixed_time']['metrics']
+    b3 = data['comparison']['gnn_mappo']['metrics']
+    assert b3['avg_congested_edges'] < b1['avg_congested_edges']
+    assert b3['throughput_vph'] > b1['throughput_vph']
+    assert b3['avg_delay_s'] <= b1['avg_delay_s']

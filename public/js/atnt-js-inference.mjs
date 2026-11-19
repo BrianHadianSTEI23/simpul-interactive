@@ -1,10 +1,10 @@
 /**
- * Zero-dependency JavaScript inference runtime for SIMPUL ATNT GNN-MAPPO Actor.
- * Mirrors PyTorch ATNTActor forward pass identically over Float32Array tensors
- * for offline/browser fallback inside simpul-interactive when FPGA/FastAPI are unavailable.
+ * Zero-dependency sparse JavaScript inference runtime for SIMPUL ATNT GNN-MAPPO ActorV2.
+ * Mirrors PyTorch HeteroSpatioTemporalGNNEncoder + ATNTActorV2 (including learned mov_head)
+ * over sparse incidence lists of any graph size (single study area or connected 3-region graph).
  */
 
-function linearLayer(x, rows, inDim, weightObj, biasObj, activation = 'none') {
+function linearSparse(x, rows, inDim, weightObj, biasObj, activation = 'none') {
   const outDim = weightObj.shape[0];
   const w = weightObj.data;
   const b = biasObj.data;
@@ -29,49 +29,22 @@ function linearLayer(x, rows, inDim, weightObj, biasObj, activation = 'none') {
   return out;
 }
 
-function matmul(a, rowsA, inner, b, colsB) {
-  const out = new Float32Array(rowsA * colsB);
-  for (let i = 0; i < rowsA; i++) {
-    const aBase = i * inner;
-    const oBase = i * colsB;
-    for (let k = 0; k < inner; k++) {
-      const aik = a[aBase + k];
-      if (aik === 0) continue;
-      const bBase = k * colsB;
-      for (let j = 0; j < colsB; j++) {
-        out[oBase + j] += aik * b[bBase + j];
-      }
-    }
-  }
-  return out;
-}
-
-function matmulTransposeA(a, rowsA, colsA, b, colsB) {
-  // computes A^T (colsA x rowsA) @ B (rowsA x colsB) -> (colsA x colsB)
-  const out = new Float32Array(colsA * colsB);
-  for (let k = 0; k < rowsA; k++) {
-    const aBase = k * colsA;
-    const bBase = k * colsB;
-    for (let i = 0; i < colsA; i++) {
-      const aki = a[aBase + i];
-      if (aki === 0) continue;
-      const oBase = i * colsB;
-      for (let j = 0; j < colsB; j++) {
-        out[oBase + j] += aki * b[bBase + j];
-      }
-    }
-  }
-  return out;
-}
-
-function applyMask(x, mask, rows, dim) {
+function sparseAgg(srcH, adjRows, dim) {
+  const rows = adjRows.length;
+  const out = new Float32Array(rows * dim);
   for (let r = 0; r < rows; r++) {
-    const m = mask[r];
-    if (m === 1) continue;
-    const base = r * dim;
-    for (let d = 0; d < dim; d++) x[base + d] *= m;
+    const nbrs = adjRows[r];
+    if (!nbrs || !nbrs.length) continue;
+    const oBase = r * dim;
+    for (let j = 0; j < nbrs.length; j++) {
+      const [srcIdx, weight] = nbrs[j];
+      const sBase = srcIdx * dim;
+      for (let d = 0; d < dim; d++) {
+        out[oBase + d] += weight * srcH[sBase + d];
+      }
+    }
   }
-  return x;
+  return out;
 }
 
 function concatLast(arrays, rows, dims) {
@@ -91,132 +64,98 @@ function concatLast(arrays, rows, dims) {
   return out;
 }
 
-export function inferATNTActorJS(weightsPayload, tensors) {
+export function inferATNTActorJS(weightsPayload, graphAndFeatures) {
   const arch = weightsPayload.architecture;
   const sd = weightsPayload.state_dict;
   const H = arch.hidden_dim;
-  const Ni = arch.tensor_limits.max_intersections;
-  const Nr = arch.tensor_limits.max_roads;
-  const Nm = arch.tensor_limits.max_movements;
   const Di = arch.tensor_limits.inter_feat_dim;
   const Dr = arch.tensor_limits.road_feat_dim;
   const Dm = arch.tensor_limits.mov_feat_dim;
   const A = arch.num_actions;
 
-  const interX = Float32Array.from(tensors.inter_x);
-  const roadX = Float32Array.from(tensors.road_x);
-  const movX = Float32Array.from(tensors.mov_x);
-  const interMask = Float32Array.from(tensors.inter_mask);
-  const roadMask = Float32Array.from(tensors.road_mask);
-  const movMask = Float32Array.from(tensors.mov_mask);
-  const adjR2IIn = Float32Array.from(tensors.adj_r2i_in);
-  const adjR2IOut = Float32Array.from(tensors.adj_r2i_out);
-  const adjM2I = Float32Array.from(tensors.adj_m2i);
-  const adjI2I = Float32Array.from(tensors.adj_i2i);
-  const actionMask = Float32Array.from(tensors.action_mask);
+  const {
+    nI, nR, nM,
+    interX, roadX, movX,
+    adjR2IIn, adjR2IOut, adjI2RT, adjI2I, adjM2I, adjI2MT,
+    movFrom, movTo, movGroups, movClosed, actionMask,
+  } = graphAndFeatures;
 
-  let hI;
-  if (arch.encoder_type === 'mlp') {
-    let h = linearLayer(interX, Ni, Di, sd['encoder.fc1.weight'], sd['encoder.fc1.bias'], 'relu');
-    h = linearLayer(h, Ni, H, sd['encoder.fc2.weight'], sd['encoder.fc2.bias'], 'relu');
-    hI = applyMask(linearLayer(h, Ni, H, sd['encoder.fc3.weight'], sd['encoder.fc3.bias'], 'relu'), interMask, Ni, H);
-  } else {
-    hI = applyMask(
-      linearLayer(
-        linearLayer(interX, Ni, Di, sd['encoder.inter_enc_1.weight'], sd['encoder.inter_enc_1.bias'], 'relu'),
-        Ni, H, sd['encoder.inter_enc_2.weight'], sd['encoder.inter_enc_2.bias'], 'relu'
-      ),
-      interMask, Ni, H
-    );
-    let hR = applyMask(
-      linearLayer(
-        linearLayer(roadX, Nr, Dr, sd['encoder.road_enc_1.weight'], sd['encoder.road_enc_1.bias'], 'relu'),
-        Nr, H, sd['encoder.road_enc_2.weight'], sd['encoder.road_enc_2.bias'], 'relu'
-      ),
-      roadMask, Nr, H
-    );
-    let hM = applyMask(
-      linearLayer(
-        linearLayer(movX, Nm, Dm, sd['encoder.mov_enc_1.weight'], sd['encoder.mov_enc_1.bias'], 'relu'),
-        Nm, H, sd['encoder.mov_enc_2.weight'], sd['encoder.mov_enc_2.bias'], 'relu'
-      ),
-      movMask, Nm, H
-    );
+  let hI = linearSparse(
+    linearSparse(interX, nI, Di, sd['encoder.inter_enc_1.weight'], sd['encoder.inter_enc_1.bias'], 'relu'),
+    nI, H, sd['encoder.inter_enc_2.weight'], sd['encoder.inter_enc_2.bias'], 'relu',
+  );
+  const hR = linearSparse(
+    linearSparse(roadX, nR, Dr, sd['encoder.road_enc_1.weight'], sd['encoder.road_enc_1.bias'], 'relu'),
+    nR, H, sd['encoder.road_enc_2.weight'], sd['encoder.road_enc_2.bias'], 'relu',
+  );
+  const hM = linearSparse(
+    linearSparse(movX, nM, Dm, sd['encoder.mov_enc_1.weight'], sd['encoder.mov_enc_1.bias'], 'relu'),
+    nM, H, sd['encoder.mov_enc_2.weight'], sd['encoder.mov_enc_2.bias'], 'relu',
+  );
 
-    for (let l = 0; l < arch.num_layers; l++) {
-      const p = `encoder.mp_layers.${l}`;
-      const gateR = linearLayer(hR, Nr, H, sd[`${p}.road_gate.weight`], sd[`${p}.road_gate.bias`], 'sigmoid');
-      const mRIn = linearLayer(hR, Nr, H, sd[`${p}.road_in_msg.weight`], sd[`${p}.road_in_msg.bias`], 'relu');
-      const mROut = linearLayer(hR, Nr, H, sd[`${p}.road_out_msg.weight`], sd[`${p}.road_out_msg.bias`], 'relu');
-      for (let k = 0; k < mRIn.length; k++) {
-        mRIn[k] *= gateR[k];
-        mROut[k] *= gateR[k];
-      }
-      const mMov = linearLayer(hM, Nm, H, sd[`${p}.mov_msg.weight`], sd[`${p}.mov_msg.bias`], 'relu');
-      const mNbr = linearLayer(hI, Ni, H, sd[`${p}.nbr_msg.weight`], sd[`${p}.nbr_msg.bias`], 'relu');
-
-      const aggIn = matmul(adjR2IIn, Ni, Nr, mRIn, H);
-      const aggOut = matmul(adjR2IOut, Ni, Nr, mROut, H);
-      const aggMov = matmul(adjM2I, Ni, Nm, mMov, H);
-      const aggNbr = matmul(adjI2I, Ni, Ni, mNbr, H);
-
-      const catI = concatLast([hI, aggIn, aggOut, aggMov, aggNbr], Ni, [H, H, H, H, H]);
-      const dhI = linearLayer(
-        linearLayer(catI, Ni, H * 5, sd[`${p}.inter_up_1.weight`], sd[`${p}.inter_up_1.bias`], 'relu'),
-        Ni, H, sd[`${p}.inter_up_2.weight`], sd[`${p}.inter_up_2.bias`], 'none'
-      );
-      const hINext = new Float32Array(Ni * H);
-      for (let k = 0; k < hINext.length; k++) hINext[k] = hI[k] + dhI[k];
-      applyMask(hINext, interMask, Ni, H);
-
-      const adjSumR2I = new Float32Array(adjR2IIn.length);
-      for (let k = 0; k < adjSumR2I.length; k++) adjSumR2I[k] = adjR2IIn[k] + adjR2IOut[k];
-      const iToR = matmulTransposeA(adjSumR2I, Ni, Nr, hINext, H);
-      for (let k = 0; k < iToR.length; k++) iToR[k] *= 0.5;
-      const iToM = matmulTransposeA(adjM2I, Ni, Nm, hINext, H);
-
-      const dR = linearLayer(concatLast([hR, iToR], Nr, [H, H]), Nr, H * 2, sd[`${p}.road_up.weight`], sd[`${p}.road_up.bias`], 'relu');
-      const dM = linearLayer(concatLast([hM, iToM], Nm, [H, H]), Nm, H * 2, sd[`${p}.mov_up.weight`], sd[`${p}.mov_up.bias`], 'relu');
-      for (let k = 0; k < hR.length; k++) hR[k] += dR[k];
-      for (let k = 0; k < hM.length; k++) hM[k] += dM[k];
-      applyMask(hR, roadMask, Nr, H);
-      applyMask(hM, movMask, Nm, H);
-      hI = hINext;
+  for (let l = 0; l < arch.num_layers; l++) {
+    const p = `encoder.mp_layers.${l}`;
+    const gateR = linearSparse(hR, nR, H, sd[`${p}.road_gate.weight`], sd[`${p}.road_gate.bias`], 'sigmoid');
+    const mRIn = linearSparse(hR, nR, H, sd[`${p}.road_in_msg.weight`], sd[`${p}.road_in_msg.bias`], 'relu');
+    const mROut = linearSparse(hR, nR, H, sd[`${p}.road_out_msg.weight`], sd[`${p}.road_out_msg.bias`], 'relu');
+    for (let k = 0; k < mRIn.length; k++) {
+      mRIn[k] *= gateR[k];
+      mROut[k] *= gateR[k];
     }
+    const mMov = linearSparse(hM, nM, H, sd[`${p}.mov_msg.weight`], sd[`${p}.mov_msg.bias`], 'relu');
+    const mNbr = linearSparse(hI, nI, H, sd[`${p}.nbr_msg.weight`], sd[`${p}.nbr_msg.bias`], 'relu');
 
-    if (arch.use_temporal_forecast) {
-      const roadFc = applyMask(
-        linearLayer(hR, Nr, H, sd['encoder.forecast_head.weight'], sd['encoder.forecast_head.bias'], 'none'),
-        roadMask, Nr, 2
-      );
-      const aggFc = matmul(adjR2IIn, Ni, Nr, roadFc, 2);
-      hI = applyMask(
-        linearLayer(concatLast([hI, aggFc], Ni, [H, 2]), Ni, H + 2, sd['encoder.forecast_fuse.weight'], sd['encoder.forecast_fuse.bias'], 'relu'),
-        interMask, Ni, H
-      );
-    }
+    const aggIn = sparseAgg(mRIn, adjR2IIn, H);
+    const aggOut = sparseAgg(mROut, adjR2IOut, H);
+    const aggMov = sparseAgg(mMov, adjM2I, H);
+    const aggNbr = sparseAgg(mNbr, adjI2I, H);
+
+    const catI = concatLast([hI, aggIn, aggOut, aggMov, aggNbr], nI, [H, H, H, H, H]);
+    const dhI = linearSparse(
+      linearSparse(catI, nI, H * 5, sd[`${p}.inter_up_1.weight`], sd[`${p}.inter_up_1.bias`], 'relu'),
+      nI, H, sd[`${p}.inter_up_2.weight`], sd[`${p}.inter_up_2.bias`], 'none',
+    );
+    const hINext = new Float32Array(nI * H);
+    for (let k = 0; k < hINext.length; k++) hINext[k] = hI[k] + dhI[k];
+
+    const iToR = sparseAgg(hINext, adjI2RT, H);
+    const iToM = sparseAgg(hINext, adjI2MT, H);
+    const dR = linearSparse(concatLast([hR, iToR], nR, [H, H]), nR, H * 2, sd[`${p}.road_up.weight`], sd[`${p}.road_up.bias`], 'relu');
+    const dM = linearSparse(concatLast([hM, iToM], nM, [H, H]), nM, H * 2, sd[`${p}.mov_up.weight`], sd[`${p}.mov_up.bias`], 'relu');
+    for (let k = 0; k < hR.length; k++) hR[k] += dR[k];
+    for (let k = 0; k < hM.length; k++) hM[k] += dM[k];
+    hI = hINext;
   }
 
-  const hPolicy = linearLayer(hI, Ni, H, sd['head_1.weight'], sd['head_1.bias'], 'relu');
-  const rawLogits = linearLayer(hPolicy, Ni, H, sd['head_2.weight'], sd['head_2.bias'], 'none');
+  if (arch.use_temporal_forecast) {
+    const roadFc = linearSparse(hR, nR, H, sd['encoder.forecast_head.weight'], sd['encoder.forecast_head.bias'], 'none');
+    const aggFc = sparseAgg(roadFc, adjR2IIn, 2);
+    hI = linearSparse(
+      concatLast([hI, aggFc], nI, [H, 2]),
+      nI, H + 2, sd['encoder.forecast_fuse.weight'], sd['encoder.forecast_fuse.bias'], 'relu',
+    );
+  }
 
-  const maskedLogits = new Float32Array(Ni * A);
-  const probs = new Float32Array(Ni * A);
-  const actions = new Int32Array(Ni);
+  const hPolicy = linearSparse(hI, nI, H, sd['head_1.weight'], sd['head_1.bias'], 'relu');
+  const rawLogits = linearSparse(hPolicy, nI, H, sd['head_2.weight'], sd['head_2.bias'], 'none');
 
-  for (let i = 0; i < Ni; i++) {
+  const probs = new Float32Array(nI * A);
+  const actions = new Int32Array(nI);
+  for (let i = 0; i < nI; i++) {
     const base = i * A;
     let maxL = -Infinity;
     for (let a = 0; a < A; a++) {
-      const ml = rawLogits[base + a] + (1.0 - actionMask[base + a]) * -1e9;
-      maskedLogits[base + a] = ml;
+      const maskVal = actionMask ? actionMask[base + a] : 1;
+      const ml = rawLogits[base + a] + (1 - maskVal) * -1e9;
       if (ml > maxL) maxL = ml;
     }
     let expSum = 0;
     let bestA = 0;
     let bestP = -1;
     for (let a = 0; a < A; a++) {
-      const e = Math.exp(maskedLogits[base + a] - maxL);
+      const maskVal = actionMask ? actionMask[base + a] : 1;
+      const ml = rawLogits[base + a] + (1 - maskVal) * -1e9;
+      const e = Math.exp(ml - maxL);
       probs[base + a] = e;
       expSum += e;
     }
@@ -230,5 +169,44 @@ export function inferATNTActorJS(weightsPayload, tensors) {
     actions[i] = bestA;
   }
 
-  return { maskedLogits, probs, actions };
+  // ATNTActorV2 learned movement routing scores
+  let movScores = null;
+  const hasMovHead = Boolean(arch.has_mov_head && sd['mov_head_1.weight'] && sd['mov_head_2.weight']);
+  if (hasMovHead && nM > 0) {
+    const movCat = new Float32Array(nM * H * 3);
+    for (let m = 0; m < nM; m++) {
+      const dst = m * H * 3;
+      const mOff = m * H;
+      const fOff = movFrom[m] * H;
+      const tOff = movTo[m] * H;
+      for (let d = 0; d < H; d++) {
+        movCat[dst + d] = hM[mOff + d];
+        movCat[dst + H + d] = hR[fOff + d];
+        movCat[dst + H * 2 + d] = hR[tOff + d];
+      }
+    }
+    const hMov = linearSparse(movCat, nM, H * 3, sd['mov_head_1.weight'], sd['mov_head_1.bias'], 'relu');
+    const movLogits = linearSparse(hMov, nM, H, sd['mov_head_2.weight'], sd['mov_head_2.bias'], 'none');
+    movScores = new Float32Array(nM);
+    for (const grp of movGroups || []) {
+      const openIdx = grp.filter(m => !movClosed?.[m]);
+      if (!openIdx.length) continue;
+      let maxV = -Infinity;
+      for (const m of openIdx) {
+        const v = movLogits[m];
+        if (v > maxV) maxV = v;
+      }
+      let denom = 0;
+      for (const m of openIdx) {
+        const ev = Math.exp(Math.max(-20, Math.min(20, movLogits[m] - maxV)));
+        movScores[m] = ev;
+        denom += ev;
+      }
+      for (const m of openIdx) {
+        movScores[m] = Math.max(0.01, Math.min(1, movScores[m] / Math.max(1e-9, denom)));
+      }
+    }
+  }
+
+  return { probs, actions, movScores, hasMovHead };
 }

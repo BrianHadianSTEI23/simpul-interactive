@@ -68,6 +68,7 @@ def get_region_network(region_id: str) -> dict[str, Any]:
         'edges': region['edges'],
         'intersections': region['intersections'],
         'movements': region['movements'],
+        'signage_nodes': region.get('signage_nodes', []),
         'transit_stops': region['transit_stops'],
         'waterbodies': region['waterbodies'],
         'geojson': geojson,

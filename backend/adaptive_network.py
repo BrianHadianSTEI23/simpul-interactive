@@ -12,6 +12,8 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal
 
+from .connected_network import build_connected_region, build_signage_nodes
+
 ROOT = Path(__file__).resolve().parent.parent
 REGIONS_DIR = ROOT / 'data' / 'regions'
 MANIFEST_PATH = ROOT / 'data' / 'provenance_manifest.json'
@@ -102,14 +104,39 @@ def list_region_ids() -> list[str]:
 
 @lru_cache(maxsize=8)
 def load_region(region_id: str) -> dict[str, Any]:
+    if region_id == 'all':
+        return build_connected_region({
+            rid: load_region(rid) for rid in ('pluit', 'tanah_abang', 'cilandak')
+        })
     path = REGIONS_DIR / f'{region_id}.json'
     if not path.is_file():
         raise KeyError(f'Unknown region_id: {region_id}')
-    return json.loads(path.read_text(encoding='utf-8'))
+    data = json.loads(path.read_text(encoding='utf-8'))
+    if 'signage_nodes' not in data:
+        data['signage_nodes'] = build_signage_nodes(data)
+    return data
 
 
 @lru_cache(maxsize=8)
 def load_region_geojson(region_id: str) -> dict[str, Any]:
+    if region_id == 'all':
+        features = []
+        for rid in ('pluit', 'tanah_abang', 'cilandak'):
+            features.extend(load_region_geojson(rid).get('features', []))
+        conn = load_region('all')
+        for e in conn['edges']:
+            if e.get('is_inter_region_connector'):
+                features.append({
+                    'type': 'Feature',
+                    'properties': {
+                        'layer': 'connector_road',
+                        'edge_id': e['edge_id'],
+                        'name': e['name'],
+                        'corridor_pair': e.get('corridor_pair', 'inter_region'),
+                    },
+                    'geometry': {'type': 'LineString', 'coordinates': e['coordinates']},
+                })
+        return {'type': 'FeatureCollection', 'name': 'jakarta_connected', 'features': features}
     path = REGIONS_DIR / f'{region_id}.geojson'
     if not path.is_file():
         raise KeyError(f'Unknown region_id: {region_id}')
@@ -139,6 +166,23 @@ def region_summaries() -> list[dict[str, Any]]:
 
 def region_coverage_payload(region_id: str) -> dict[str, Any]:
     r = load_region(region_id)
+    if region_id == 'all':
+        return {
+            'region_id': 'all',
+            'name': r['name'],
+            'bbox': r['bbox'],
+            'study_boundary': r['study_boundary'],
+            'coverage_mask': r['coverage_mask'],
+            'study_boundaries': r.get('study_boundaries', []),
+            'coverage_masks': r.get('coverage_masks', []),
+            'scenario_eligibility': r['scenario_eligibility'],
+            'disruption_anchors': r['disruption_anchors'],
+            'eligible_edge_ids': {
+                'flood': [e['edge_id'] for e in r['edges'] if e.get('flood_eligible')],
+                'demonstration': [e['edge_id'] for e in r['edges'] if e.get('demonstration_eligible')],
+            },
+            'provenance': r['provenance'],
+        }
     return {
         'region_id': r['id'],
         'name': r['name'],
@@ -163,6 +207,26 @@ def validate_and_snap_disruption(
     max_snap_distance_m: float = 200.0,
 ) -> dict[str, Any]:
     """Verify clicked coordinate against study-area coverage & disruption mask, then snap."""
+    if region_id == 'all':
+        for sub_rid in ('pluit', 'tanah_abang', 'cilandak'):
+            sub = load_region(sub_rid)
+            b = sub['bbox']
+            pad_deg = max_snap_distance_m / METERS_PER_DEG_LAT
+            if (b['south'] - pad_deg) <= lat <= (b['north'] + pad_deg) and (b['west'] - pad_deg) <= lon <= (b['east'] + pad_deg):
+                res = validate_and_snap_disruption(sub_rid, lat, lon, disruption_kind, max_snap_distance_m)
+                if res.get('accepted') or res.get('inside_region'):
+                    res['matched_region_id'] = sub_rid
+                    return res
+        return {
+            'accepted': False,
+            'inside_region': False,
+            'inside_coverage': False,
+            'eligible_for_disruption': False,
+            'reason': (
+                f'Selected coordinate ({lat:.5f}, {lon:.5f}) lies outside Tanah Abang, Cilandak, and Pluit. '
+                'Flooding and demonstration disruptions remain strictly scoped to those three study areas.'
+            ),
+        }
     region = load_region(region_id)
     elig_cfg = region['scenario_eligibility'].get(disruption_kind, {})
     if not elig_cfg.get('supported'):

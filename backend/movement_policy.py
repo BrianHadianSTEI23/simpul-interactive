@@ -58,12 +58,18 @@ def choose_turns(region, movements, states, use_model, endpoint=None, precompute
             downstream = states[m['to_edge']]
             risk = max(downstream.get('occupancy', 0.0), downstream.get('disruption_intensity', 0.0))
             default_score = max(0.01, 1.0 - risk)
-            ranked[m['movement_id']] = scores.get(m['movement_id'], default_score) if use_model else 1.0
+            if use_model and m['movement_id'] in scores:
+                raw_s = float(scores[m['movement_id']])
+                # Couple learned GNN movement score with live downstream congestion/disruption relief
+                relief = max(0.18, 1.0 - 0.62 * max(0.0, risk - 0.25))
+                ranked[m['movement_id']] = max(0.01, min(1.0, raw_s * relief))
+            else:
+                ranked[m['movement_id']] = default_score if use_model else 1.0
         best = max(ranked, key=ranked.get, default=None)
-        allowed = {mid: score for mid, score in ranked.items() if not use_model or score >= 0.35 or mid == best}
+        allowed = {mid: score for mid, score in ranked.items() if not use_model or score >= 0.20 or mid == best}
         if use_model:
             # Sharpen traffic-current redistribution toward high-scoring uncongested bypass routes
-            weighted = {mid: score * score for mid, score in allowed.items()}
+            weighted = {mid: (score ** 3.2) for mid, score in allowed.items()}
         else:
             weighted = allowed
         total = sum(weighted.values())

@@ -7,6 +7,7 @@
  */
 
 import { inferATNTActorJS } from './atnt-js-inference.mjs';
+import { buildClientFrameSignage, buildSignageNodes } from './connected-network.js';
 
 export const TIME_PERIODS = Object.freeze([
   Object.freeze({ id: 'pagi', label: 'Pagi', hours: '06:00–10:00', demandFactor: 1.08 }),
@@ -105,9 +106,14 @@ export function snapDisruptionLocation(region, lat, lon, kind, maxSnapM = 200) {
   if (!eligCfg?.supported) {
     return { accepted: false, reason: `${kind} scenario is not supported in ${region.name}.` };
   }
+
+  const coverageRings = Array.isArray(region.coverage_masks) && region.coverage_masks.length
+    ? region.coverage_masks
+    : [{ region_id: region.id, name: region.name, ring: region.coverage_mask }];
+  const inCoverageEntry = coverageRings.find(entry => pointInPolygon(lat, lon, entry.ring));
   const b = region.bbox;
   const inBbox = lat >= b.south && lat <= b.north && lon >= b.west && lon <= b.east;
-  if (!inBbox) {
+  if (!inBbox && !inCoverageEntry) {
     return {
       accepted: false,
       inside_region: false,
@@ -116,7 +122,7 @@ export function snapDisruptionLocation(region, lat, lon, kind, maxSnapM = 200) {
       reason: `Clicked point (${lat.toFixed(5)}, ${lon.toFixed(5)}) is outside the ${region.name} study area.`,
     };
   }
-  const inCoverage = pointInPolygon(lat, lon, region.coverage_mask);
+  const inCoverage = Boolean(inCoverageEntry);
   const flag = kind === 'flood' ? 'flood_eligible' : 'demonstration_eligible';
   const eligibleEdges = (region.edges || []).filter(e => Boolean(e[flag]));
 
@@ -129,7 +135,7 @@ export function snapDisruptionLocation(region, lat, lon, kind, maxSnapM = 200) {
   }
 
   let bestAny = Infinity;
-  for (const edge of region.edges || []) {
+  for (const edge of (region.edges || []).filter(e => !e.is_inter_region_connector)) {
     const res = pointToPolylineDistanceM(lat, lon, edge.coordinates);
     if (res.distanceM < bestAny) bestAny = res.distanceM;
   }
@@ -137,11 +143,13 @@ export function snapDisruptionLocation(region, lat, lon, kind, maxSnapM = 200) {
   if (!inCoverage && bestAny > maxSnapM) {
     return {
       accepted: false,
-      inside_region: true,
+      inside_region: !region.is_connected_network,
       inside_coverage: false,
       eligible_for_disruption: false,
       nearest_distance_m: Number(bestAny.toFixed(1)),
-      reason: `Clicked location is outside the covered road-network mask (nearest covered road: ${Math.round(bestAny)} m).`,
+      reason: region.is_connected_network
+        ? 'Flooding & demonstration placement remain strictly scoped to Tanah Abang, Cilandak, and Pluit (outside corridor masks).'
+        : `Clicked location is outside the covered road-network mask (nearest covered road: ${Math.round(bestAny)} m).`,
     };
   }
 
@@ -163,6 +171,7 @@ export function snapDisruptionLocation(region, lat, lon, kind, maxSnapM = 200) {
     inside_coverage: true,
     eligible_for_disruption: true,
     disruption_kind: kind,
+    matched_region_id: bestElig.edge.home_region || inCoverageEntry?.region_id || region.id,
     snapped_lat: Number(bestElig.snapLat.toFixed(6)),
     snapped_lon: Number(bestElig.snapLon.toFixed(6)),
     snapped_edge_id: bestElig.edge.edge_id,
@@ -252,35 +261,39 @@ function buildClientGraphCache(region) {
   const nM = movs.length;
   const interIdx = Object.fromEntries(inters.map((i, idx) => [i.node_id, idx]));
   const roadIdx = Object.fromEntries(edges.map((e, idx) => [e.edge_id, idx]));
-  const Ni = 128, Nr = 448, Nm = 448;
 
-  const interMask = new Float32Array(Ni);
-  const roadMask = new Float32Array(Nr);
-  const movMask = new Float32Array(Nm);
-  for (let i = 0; i < nI; i++) interMask[i] = 1;
-  for (let r = 0; r < nR; r++) roadMask[r] = 1;
-  for (let m = 0; m < nM; m++) movMask[m] = 1;
-
-  const adjR2IIn = new Float32Array(Ni * Nr);
-  const adjR2IOut = new Float32Array(Ni * Nr);
-  const adjM2I = new Float32Array(Ni * Nm);
-  const adjI2I = new Float32Array(Ni * Ni);
   const interIn = inters.map(i => (i.incoming_edges || []).map(eid => roadIdx[eid]).filter(x => x !== undefined));
   const interOut = inters.map(i => (i.outgoing_edges || []).map(eid => roadIdx[eid]).filter(x => x !== undefined));
-  for (let ii = 0; ii < nI; ii++) {
-    const inc = interIn[ii];
-    const out = interOut[ii];
-    const wIn = 1 / Math.max(1, inc.length);
-    const wOut = 1 / Math.max(1, out.length);
-    for (const r of inc) adjR2IIn[ii * Nr + r] = wIn;
-    for (const r of out) adjR2IOut[ii * Nr + r] = wOut;
-  }
+  const adjR2IIn = interIn.map(inc => {
+    const w = 1 / Math.max(1, inc.length);
+    return inc.map(r => [r, w]);
+  });
+  const adjR2IOut = interOut.map(out => {
+    const w = 1 / Math.max(1, out.length);
+    return out.map(r => [r, w]);
+  });
+  const adjI2RT = Array.from({ length: nR }, () => []);
+  interIn.forEach((inc, ii) => {
+    const w = 0.5 / Math.max(1, inc.length);
+    for (const r of inc) adjI2RT[r].push([ii, w]);
+  });
+  interOut.forEach((out, ii) => {
+    const w = 0.5 / Math.max(1, out.length);
+    for (const r of out) adjI2RT[r].push([ii, w]);
+  });
+
   const interMovs = Array.from({ length: nI }, () => []);
+  const movFrom = new Int32Array(nM);
+  const movTo = new Int32Array(nM);
+  const movByFromIdx = Array.from({ length: nR }, () => []);
   const movMeta = movs.map((m, idx) => {
     const ii = interIdx[m.intersection_id] ?? 0;
     const fr = roadIdx[m.from_edge] ?? 0;
     const tr = roadIdx[m.to_edge] ?? 0;
+    movFrom[idx] = fr;
+    movTo[idx] = tr;
     interMovs[ii].push(idx);
+    movByFromIdx[fr].push(idx);
     const fb = Number(edges[fr]?.bearing_deg || 0);
     const tb = Number(edges[tr]?.bearing_deg || 0);
     const ang = ((tb - fb + 180) % 360 + 360) % 360 - 180;
@@ -288,11 +301,13 @@ function buildClientGraphCache(region) {
     const parity = ((fb % 180 + 180) % 180) < 45 || ((fb % 180 + 180) % 180) >= 135 ? 0 : 1;
     return { m, ii, fr, tr, turn, parity };
   });
-  for (let ii = 0; ii < nI; ii++) {
-    const ml = interMovs[ii];
-    const wM = 1 / Math.max(1, ml.length);
-    for (const mi of ml) adjM2I[ii * Nm + mi] = wM;
-  }
+  const movGroups = movByFromIdx.filter(g => g.length > 0);
+  const adjM2I = interMovs.map(ml => {
+    const w = 1 / Math.max(1, ml.length);
+    return ml.map(mi => [mi, w]);
+  });
+  const adjI2MT = movMeta.map(mm => [[mm.ii, 1 / Math.max(1, interMovs[mm.ii].length)]]);
+
   const i2iSets = Array.from({ length: nI }, () => new Set());
   for (const e of edges) {
     const u = interIdx[e.from_node];
@@ -302,28 +317,30 @@ function buildClientGraphCache(region) {
       i2iSets[v].add(u);
     }
   }
-  for (let ii = 0; ii < nI; ii++) {
-    const wN = 1 / Math.max(1, i2iSets[ii].size);
-    for (const nb of i2iSets[ii]) adjI2I[ii * Ni + nb] = wN;
-  }
-  return { nI, nR, nM, Ni, Nr, Nm, interIdx, roadIdx, interIn, interOut, interMovs, movMeta, interMask, roadMask, movMask, adjR2IIn, adjR2IOut, adjM2I, adjI2I };
+  const adjI2I = i2iSets.map(s => {
+    const w = 1 / Math.max(1, s.size);
+    return [...s].map(nb => [nb, w]);
+  });
+
+  return {
+    nI, nR, nM, interIdx, roadIdx, interIn, interOut, interMovs, movMeta,
+    adjR2IIn, adjR2IOut, adjI2RT, adjI2I, adjM2I, adjI2MT, movFrom, movTo, movGroups,
+  };
 }
 
 function runTrainedJSStep(region, cache, weightsPayload, frameEdges, interPhase) {
-  const { nI, nR, nM, Ni, Nr, Nm, interIn, interOut, interMovs, movMeta, interMask, roadMask, movMask, adjR2IIn, adjR2IOut, adjM2I, adjI2I } = cache;
+  const {
+    nI, nR, nM, interIn, interOut, interMovs, movMeta,
+    adjR2IIn, adjR2IOut, adjI2RT, adjI2I, adjM2I, adjI2MT, movFrom, movTo, movGroups,
+  } = cache;
   const edges = region.edges || [];
   const inters = region.intersections || [];
-  const interX = new Float32Array(Ni * 14);
-  const roadX = new Float32Array(Nr * 16);
-  const movX = new Float32Array(Nm * 12);
-  const actionMask = new Float32Array(Ni * 8);
-  for (let i = 0; i < Ni; i++) {
-    if (i < nI) {
-      for (let a = 0; a < 8; a++) actionMask[i * 8 + a] = 1;
-    } else {
-      actionMask[i * 8] = 1;
-    }
-  }
+  const interX = new Float32Array(nI * 14);
+  const roadX = new Float32Array(nR * 16);
+  const movX = new Float32Array(nM * 12);
+  const actionMask = new Float32Array(nI * 8);
+  actionMask.fill(1);
+  const movClosed = new Uint8Array(nM);
 
   for (let r = 0; r < nR; r++) {
     const e = edges[r];
@@ -355,6 +372,7 @@ function runTrainedJSStep(region, cache, weightsPayload, frameEdges, interPhase)
     const mm = movMeta[m];
     const frSt = frameEdges[edges[mm.fr].edge_id] || {};
     const toSt = frameEdges[edges[mm.tr].edge_id] || {};
+    if (toSt.closed) movClosed[m] = 1;
     const base = m * 12;
     movX[base + 0] = 0.5;
     movX[base + 1] = Math.min(2, (frSt.queue_veh ?? 0) / 30);
@@ -381,30 +399,45 @@ function runTrainedJSStep(region, cache, weightsPayload, frameEdges, interPhase)
   }
 
   const out = inferATNTActorJS(weightsPayload, {
-    inter_x: interX, road_x: roadX, mov_x: movX,
-    inter_mask: interMask, road_mask: roadMask, mov_mask: movMask,
-    adj_r2i_in: adjR2IIn, adj_r2i_out: adjR2IOut, adj_m2i: adjM2I, adj_i2i: adjI2I,
-    action_mask: actionMask,
+    nI, nR, nM,
+    interX, roadX, movX,
+    adjR2IIn, adjR2IOut, adjI2RT, adjI2I, adjM2I, adjI2MT,
+    movFrom, movTo, movGroups, movClosed, actionMask,
   });
 
-  const turnActions = {};
+  const movByFrom = {};
   for (let m = 0; m < nM; m++) {
     const mm = movMeta[m];
-    const toSt = frameEdges[edges[mm.tr].edge_id] || {};
-    const act = out.actions[mm.ii];
-    const mode = act % 4;
-    const isRisk = (toSt.occupancy ?? 0) > 0.62 || (toSt.disruption_intensity ?? 0) > 0.35;
-    if (toSt.closed || (mode > 0 && isRisk && mm.turn[0] < 0.5)) {
-      turnActions[mm.m.movement_id] = {
-        intersection_id: mm.m.intersection_id, from_edge: mm.m.from_edge, to_edge: mm.m.to_edge, action: 'blocked',
-      };
-    } else if (mode > 0 && !isRisk && mm.turn[0] > 0.5) {
-      turnActions[mm.m.movement_id] = {
-        intersection_id: mm.m.intersection_id, from_edge: mm.m.from_edge, to_edge: mm.m.to_edge, action: 'redirected',
-      };
+    const fe = edges[mm.fr].edge_id;
+    (movByFrom[fe] ||= []).push({ m: mm.m, idx: m, mm });
+  }
+
+  const turnActions = {};
+  const routing = {};
+  for (const [feId, list] of Object.entries(movByFrom)) {
+    const legal = list.filter(x => !(frameEdges[x.m.to_edge]?.closed));
+    const scored = legal.map(x => {
+      const toSt = frameEdges[x.m.to_edge] || {};
+      const risk = Math.max(toSt.occupancy ?? 0, toSt.disruption_intensity ?? 0);
+      const rawS = out.movScores ? Number(out.movScores[x.idx] || 0.01) : Math.max(0.01, 1 - risk);
+      const relief = Math.max(0.18, 1 - 0.62 * Math.max(0, risk - 0.25));
+      return { ...x, score: Math.max(0.01, Math.min(1, rawS * relief)) };
+    });
+    const best = scored.reduce((a, b) => (!a || b.score > a.score ? b : a), null);
+    const allowed = scored.filter(x => x.score >= 0.20 || (best && x.idx === best.idx));
+    const total = allowed.reduce((s, x) => s + Math.pow(x.score, 3.2), 0);
+    routing[feId] = allowed.map(x => [x.m.to_edge, total > 0 ? Math.pow(x.score, 3.2) / total : 1 / allowed.length]);
+    for (const x of scored) {
+      const inAllowed = allowed.some(a => a.idx === x.idx);
+      if (!inAllowed || (legal.length > 1 && (allowed.length < legal.length || x.score >= 0.6) && best && x.idx === best.idx)) {
+        turnActions[x.m.movement_id] = {
+          intersection_id: x.m.intersection_id, from_edge: feId, to_edge: x.m.to_edge,
+          action: inAllowed ? 'redirected' : 'blocked',
+        };
+      }
     }
   }
-  return { actions: out.actions, turnActions };
+  return { actions: out.actions, turnActions, routing };
 }
 
 function simulateSingleClientController(region, config, controllerId, floodCfg, demoCfg, impacts, weightsPayload = null) {
@@ -424,7 +457,12 @@ function simulateSingleClientController(region, config, controllerId, floodCfg, 
 
   const edges = region.edges || [];
   const intersections = region.intersections || [];
-  const signalNodes = intersections.filter(i => i.signalized).slice(0, 40);
+  const signageNodes = region.signage_nodes || buildSignageNodes(region);
+  const movByFrom = {};
+  for (const m of region.movements || []) {
+    (movByFrom[m.from_edge] ||= []).push(m);
+  }
+  const signalNodes = intersections.filter(i => i.signalized);
 
   const edgeQueue = {};
   const edgeBaseDemand = {};
@@ -560,10 +598,12 @@ function simulateSingleClientController(region, config, controllerId, floodCfg, 
     }
 
     let turnActions = {};
+    let routing = {};
     let movementPolicy = controllerId === 'gnn_mappo' ? 'graph_heuristic' : 'signals_only';
     if (useTrainedJS && jsCache) {
       const jsStep = runTrainedJSStep(region, jsCache, weightsPayload, frameEdges, interPhase);
       turnActions = jsStep.turnActions;
+      routing = jsStep.routing;
       movementPolicy = 'meshgraphnet';
       for (const inter of signalNodes) {
         const idx = jsCache.interIdx[inter.node_id];
@@ -572,13 +612,35 @@ function simulateSingleClientController(region, config, controllerId, floodCfg, 
           frameIntersections[inter.node_id].phase = p;
         }
       }
+    } else {
+      for (const [feId, turns] of Object.entries(movByFrom)) {
+        const legal = turns.filter(m => !(frameEdges[m.to_edge]?.closed));
+        if (legal.length) {
+          routing[feId] = legal.map(m => [m.to_edge, 1 / legal.length]);
+        }
+      }
     }
+
+    const signageStates = buildClientFrameSignage(
+      signageNodes,
+      routing,
+      turnActions,
+      frameEdges,
+      frameIntersections,
+      controllerId,
+      {
+        floodEnabled: Boolean(floodCfg?.enabled),
+        demoEnabled: Boolean(demoCfg?.enabled),
+        timePeriod: config.time_period || 'pagi',
+      },
+    );
 
     frames.push({
       t_sec: tSec,
       edge_states: frameEdges,
       intersection_states: frameIntersections,
       turn_actions: turnActions,
+      signage_states: signageStates,
       movement_policy: movementPolicy,
     });
   }
@@ -586,6 +648,9 @@ function simulateSingleClientController(region, config, controllerId, floodCfg, 
   const sortedDelays = [...delays].sort((a, b) => a - b);
   const p95 = sortedDelays[Math.min(sortedDelays.length - 1, Math.floor(0.95 * sortedDelays.length))] || 0;
   const avg = arr => arr.reduce((s, x) => s + x, 0) / Math.max(1, arr.length);
+  const avgCongEdges = Number((frames.reduce((sum, f) => (
+    sum + Object.values(f.edge_states || {}).filter(st => isCongested(st)).length
+  ), 0) / Math.max(1, frames.length)).toFixed(1));
 
   return {
     controller: controllerId,
@@ -599,6 +664,7 @@ function simulateSingleClientController(region, config, controllerId, floodCfg, 
       avg_queue_length_veh: Number(avg(queues).toFixed(2)),
       max_queue_length_veh: Number(maxQueue.toFixed(1)),
       spillback_events: spillbackEvents,
+      avg_congested_edges: avgCongEdges,
       reconfiguration_freq_per_hr: Number(((phaseSwitches / Math.max(1, signalNodes.length)) * (3600 / durationS)).toFixed(1)),
       incident_recovery_time_s: hasDisruption ? recoveryTimeS : null,
     },
@@ -630,6 +696,7 @@ export function runClientFallbackSimulation(region, config, weightsPayload = nul
     benchmark_code: primary.benchmark_code,
     disruptions: { flood: floodCfg, demonstration: demoCfg },
     incident_impacts: impacts,
+    signage_nodes: region.signage_nodes || buildSignageNodes(region),
     frames: primary.frames,
     metrics: primary.metrics,
     comparison,

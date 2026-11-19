@@ -6,6 +6,7 @@
  * replay timeline, and 3-controller benchmark comparison.
  */
 import { ADAPTIVE_REGIONS_DATA } from './adaptive-regions-data.js';
+import { buildConnectedRegion } from './connected-network.js';
 import {
   TIME_PERIODS,
   CONTROLLERS,
@@ -20,9 +21,18 @@ import { apiRequest } from './api.js';
 import { safe } from './util.js';
 
 let activeInstance = null;
+let connectedNetworkCache = null;
+
+function getConnectedNetwork() {
+  if (!connectedNetworkCache) {
+    connectedNetworkCache = buildConnectedRegion(ADAPTIVE_REGIONS_DATA);
+  }
+  return connectedNetworkCache;
+}
 
 const defaultState = () => ({
-  regionId: 'pluit',
+  regionId: 'all',
+  focusRegionId: 'all',
   timePeriod: 'pagi',
   controller: 'gnn_mappo',
   disruptionMode: 'flood', // 'normal' | 'flood' | 'demonstration' | 'both'
@@ -36,11 +46,11 @@ const defaultState = () => ({
   },
   demonstration: {
     enabled: false,
-    lat: ADAPTIVE_REGIONS_DATA.pluit?.disruption_anchors?.demonstration?.lat ?? -6.121957,
-    lon: ADAPTIVE_REGIONS_DATA.pluit?.disruption_anchors?.demonstration?.lon ?? 106.803961,
-    roadName: ADAPTIVE_REGIONS_DATA.pluit?.disruption_anchors?.demonstration?.road_name ?? 'Jalan Muara Baru Raya',
+    lat: ADAPTIVE_REGIONS_DATA.tanah_abang?.disruption_anchors?.demonstration?.lat ?? -6.186654,
+    lon: ADAPTIVE_REGIONS_DATA.tanah_abang?.disruption_anchors?.demonstration?.lon ?? 106.81127,
+    roadName: ADAPTIVE_REGIONS_DATA.tanah_abang?.disruption_anchors?.demonstration?.road_name ?? 'Jalan Jatibaru',
     intensity: 0.72,
-    sigma_m: 380,
+    sigma_m: 400,
   },
   durationS: 600,
   seed: 42,
@@ -52,7 +62,7 @@ const defaultState = () => ({
   statusNotice: null, // { kind: 'ok'|'error'|'info', text: string }
   backendMode: 'checking', // 'checking' | 'connected' | 'offline_fallback'
   immersive: false,
-  layers: { transit: true, signals: true, gaussian: true, coverage: true, labels: true },
+  layers: { transit: true, signals: true, signage: true, gaussian: true, coverage: true, labels: true },
   trainedWeights: null,
   simResult: null,
 });
@@ -60,7 +70,8 @@ const defaultState = () => ({
 let simState = defaultState();
 
 function getRegion(regionId) {
-  return ADAPTIVE_REGIONS_DATA[regionId] || ADAPTIVE_REGIONS_DATA.pluit;
+  if (regionId === 'all') return getConnectedNetwork();
+  return ADAPTIVE_REGIONS_DATA[regionId] || getConnectedNetwork();
 }
 
 function syncDisruptionAnchorsForRegion(region) {
@@ -197,8 +208,12 @@ export function activateAdaptiveMapView() {
     onHover(info) {
       const box = document.getElementById('atn-hover-readout');
       if (!box) return;
+      if (info.signage) {
+        box.innerHTML = `<span class="atn-badge ok">VMS</span> <strong>${safe(info.signageName || info.signage.from_name)}</strong> · <b>${safe(info.signage.headline)}</b> · ${safe(info.signage.reason)}`;
+        return;
+      }
       if (!info.edge) {
-        box.innerHTML = `<span class="atn-muted">Lat ${info.lat.toFixed(5)}, Lon ${info.lon.toFixed(5)} · Hover road edge for live telemetry</span>`;
+        box.innerHTML = `<span class="atn-muted">Lat ${info.lat.toFixed(5)}, Lon ${info.lon.toFixed(5)} · Hover road edge or signage for live telemetry</span>`;
         return;
       }
       const st = info.edgeState;
@@ -326,7 +341,7 @@ export function activateAdaptiveMapView() {
 
   function renderControls() {
     document.querySelectorAll('[data-atn-region]').forEach(btn => {
-      btn.setAttribute('aria-pressed', String(btn.dataset.atnRegion === simState.regionId));
+      btn.setAttribute('aria-pressed', String(btn.dataset.atnRegion === simState.focusRegionId));
     });
     document.querySelectorAll('[data-atn-period]').forEach(btn => {
       btn.setAttribute('aria-pressed', String(btn.dataset.atnPeriod === simState.timePeriod));
@@ -378,9 +393,9 @@ export function activateAdaptiveMapView() {
       backendBadge.dataset.mode = simState.backendMode;
     }
 
-    const region = getRegion(simState.regionId);
+    const focusReg = simState.focusRegionId === 'all' ? getConnectedNetwork() : getRegion(simState.focusRegionId);
     const subtitle = document.getElementById('atn-region-subtitle');
-    if (subtitle) subtitle.textContent = `${region.name} (${region.district}) · ${region.subtitle}`;
+    if (subtitle) subtitle.textContent = `${focusReg.name} (${focusReg.district}) · ${focusReg.subtitle}`;
   }
 
   function renderMetricsAndComparison() {
@@ -403,10 +418,10 @@ export function activateAdaptiveMapView() {
       ['Corridor delay', formatMetricValue(m.corridor_avg_delay_s, ' s')],
       ['95th-pct delay', formatMetricValue(m.p95_delay_s, ' s')],
       ['Throughput', formatMetricValue(m.throughput_vph, ' veh/h')],
+      ['Congested links', formatMetricValue(m.avg_congested_edges, '')],
       ['Avg queue', formatMetricValue(m.avg_queue_length_veh, ' veh')],
       ['Max queue', formatMetricValue(m.max_queue_length_veh, ' veh')],
       ['Spillback events', formatMetricValue(m.spillback_events, '')],
-      ['Reconfig freq', formatMetricValue(m.reconfiguration_freq_per_hr, ' /h')],
       ['Recovery time', formatMetricValue(m.incident_recovery_time_s, ' s')],
     ];
     if (metricsGrid) {
@@ -437,7 +452,8 @@ export function activateAdaptiveMapView() {
             <div class="atn-compare-track"><div class="atn-compare-fill ${ctrlId}" style="width:${pct}%"></div></div>
             <div class="atn-compare-sub">
               <span>Throughput: ${safe(formatMetricValue(cm.throughput_vph, ' vph'))}</span>
-              <span>Spillbacks: ${safe(formatMetricValue(cm.spillback_events, ''))}</span>
+              <span>Congested: ${safe(formatMetricValue(cm.avg_congested_edges, ''))}</span>
+              <span>Spill: ${safe(formatMetricValue(cm.spillback_events, ''))}</span>
             </div>
           </div>
         `;
@@ -544,28 +560,47 @@ export function activateAdaptiveMapView() {
     }
   }
 
-  function switchRegion(regionId) {
-    if (!ADAPTIVE_REGIONS_DATA[regionId]) return;
-    simState.regionId = regionId;
-    simState.simResult = null;
+  function switchRegion(targetId) {
+    if (targetId !== 'all' && !ADAPTIVE_REGIONS_DATA[targetId]) return;
+    simState.regionId = 'all';
+    simState.focusRegionId = targetId;
     simState.frameIndex = 0;
-    const region = getRegion(regionId);
-    syncDisruptionAnchorsForRegion(region);
-    // Default disruption preset per region: Pluit highlights flooding; Tanah Abang & Cilandak highlight demonstration.
-    if (regionId === 'pluit') {
-      simState.disruptionMode = 'flood';
+
+    if (targetId === 'all') {
+      const fAnchor = ADAPTIVE_REGIONS_DATA.pluit.disruption_anchors?.flood;
+      const dAnchor = ADAPTIVE_REGIONS_DATA.tanah_abang.disruption_anchors?.demonstration;
+      if (fAnchor) simState.flood = { ...simState.flood, lat: fAnchor.lat, lon: fAnchor.lon, roadName: fAnchor.road_name, sigma_m: fAnchor.default_sigma_m || 460 };
+      if (dAnchor) simState.demonstration = { ...simState.demonstration, lat: dAnchor.lat, lon: dAnchor.lon, roadName: dAnchor.road_name, sigma_m: dAnchor.default_sigma_m || 420 };
+      simState.disruptionMode = 'both';
       simState.flood.enabled = true;
-      simState.demonstration.enabled = false;
-    } else {
-      simState.disruptionMode = 'demonstration';
-      simState.flood.enabled = false;
       simState.demonstration.enabled = true;
+      simState.statusNotice = {
+        kind: 'info',
+        text: `Showing full connected network (${getConnectedNetwork().stats.directed_edges} directed edges across Pluit ↔ Tanah Abang ↔ Cilandak).`,
+      };
+      renderer.focusRegionBbox?.(null, 'overview');
+    } else {
+      const targetRegion = ADAPTIVE_REGIONS_DATA[targetId];
+      syncDisruptionAnchorsForRegion(targetRegion);
+      if (targetId === 'pluit') {
+        simState.disruptionMode = 'flood';
+        simState.flood.enabled = true;
+        simState.demonstration.enabled = false;
+      } else {
+        simState.disruptionMode = 'demonstration';
+        simState.flood.enabled = false;
+        simState.demonstration.enabled = true;
+      }
+      simState.statusNotice = {
+        kind: 'info',
+        text: `Focused on ${targetRegion.name} inside connected 3-region system (${targetRegion.stats.directed_edges} local + inter-region corridor links).`,
+      };
+      renderer.focusRegionBbox?.(targetRegion.bbox, '2d');
     }
+
     simState.pendingSnap = null;
     simState.placementTarget = null;
-    simState.statusNotice = { kind: 'info', text: `Loaded ${region.name} (${region.stats.directed_edges} directed OSM road edges).` };
     renderer.setDisruptionPlacementMode(null);
-    renderer.setRegion(region);
     updateCameraButtons(renderer.getCamera?.());
     showSelection('');
     renderPendingConfirm();
@@ -722,7 +757,7 @@ export function activateAdaptiveMapView() {
     mapHost.querySelector('canvas[tabindex]')?.focus();
   });
   bindMapSearch(root, ADAPTIVE_REGIONS_DATA, id => {
-    if (id !== simState.regionId) switchRegion(id);
+    if (id !== simState.focusRegionId) switchRegion(id);
   }, location => renderer.focusLocation(location));
   if (window.matchMedia('(max-width: 850px)').matches) {
     root.querySelector('.atn-left').open = false;
@@ -745,8 +780,12 @@ export function activateAdaptiveMapView() {
     });
   });
 
-  // Initial load
-  renderer.setRegion(getRegion(simState.regionId));
+  // Initial load — connected 3-region Jakarta network
+  simState.statusNotice = {
+    kind: 'info',
+    text: 'Connected 3-region network active (Pluit ↔ Tanah Abang ↔ Cilandak). Flooding & demonstration stay scoped to the 3 places.',
+  };
+  renderer.setRegion(getRegion('all'));
   updateCameraButtons(renderer.getCamera?.());
   renderControls();
   renderStatusBanner();

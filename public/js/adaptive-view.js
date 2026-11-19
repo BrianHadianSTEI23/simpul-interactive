@@ -27,9 +27,13 @@ export function renderAdaptiveView() {
     <div class="atn-main-grid">
       <details class="atn-panel atn-left" open><summary>Scenario &amp; layers</summary>
         <section class="atn-section">
-          <div class="atn-section-head"><span>Study area</span></div>
+          <div class="atn-section-head"><span>Study area</span><small>Coupled Network</small></div>
+          <button type="button" class="atn-chip atn-chip-wide" data-atn-region="all" aria-pressed="true">
+            <b>All 3 Connected</b>
+            <small>Pluit ↔ Tanah Abang ↔ Cilandak</small>
+          </button>
           <div class="atn-btn-grid three">
-            ${regions.map(r => `<button type="button" class="atn-chip" data-atn-region="${safe(r.id)}" aria-pressed="${r.id === 'pluit'}">${safe(r.name)}</button>`).join('')}
+            ${regions.map(r => `<button type="button" class="atn-chip" data-atn-region="${safe(r.id)}" aria-pressed="false">${safe(r.name)}</button>`).join('')}
           </div>
           <small id="atn-region-subtitle"></small>
         </section>
@@ -103,6 +107,7 @@ export function renderAdaptiveView() {
           <div class="atn-section-head">Map layers</div>
           <div class="atn-layer-bar">
             <label><input type="checkbox" data-atn-layer="vehicles" checked /> Vehicles</label>
+            <label><input type="checkbox" data-atn-layer="signage" checked /> VMS signage</label>
             <label><input type="checkbox" data-atn-layer="gaussian" checked /> Gaussian field</label>
             <label><input type="checkbox" data-atn-layer="signals" checked /> Traffic lights</label>
             <label><input type="checkbox" data-atn-layer="transit" checked /> Transit</label>
@@ -156,6 +161,8 @@ export function renderAdaptiveView() {
               <span><i class="sw demo"></i> Demo Gaussian (I_e)</span>
               <span><i class="sw mrt"></i> Stations / activity hotspots</span>
               <span><i class="sw signal"></i> Green / yellow / red signal</span>
+              <span><i class="sw vms"></i> Dynamic VMS signage (hover)</span>
+              <span><i class="sw corridor"></i> Inter-region corridor link</span>
               <span><i class="sw turn"></i> Diverted turn</span>
               <span><i class="sw block"></i> Blocked turn</span>
             </div>

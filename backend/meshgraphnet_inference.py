@@ -290,7 +290,15 @@ def _forward_numpy(
     logits = logits - _np.max(logits, axis=-1, keepdims=True)
     exps = _np.exp(logits)
     probs = exps / _np.maximum(1e-12, _np.sum(exps, axis=-1, keepdims=True))
-    return probs.tolist()
+
+    mov_logits: list[float] | None = None
+    if arch.get('has_mov_head') and 'mov_head_1.weight' in sd:
+        m_from = _np.array(g['mov_from'], dtype=_np.int64)
+        m_to = _np.array(g['mov_to'], dtype=_np.int64)
+        m_cat = _np.concatenate([h_m, h_r[m_from], h_r[m_to]], axis=-1)
+        m_raw = lin(lin(m_cat, 'mov_head_1', 'relu'), 'mov_head_2', 'none').reshape(-1)
+        mov_logits = m_raw.tolist()
+    return probs.tolist(), mov_logits
 
 
 def _forward_pure_python(
@@ -372,7 +380,17 @@ def _forward_pure_python(
         exps = [math.exp(v - mx) for v in row]
         denom = sum(exps) or 1.0
         out_probs.append([e / denom for e in exps])
-    return out_probs
+
+    mov_logits: list[float] | None = None
+    if arch.get('has_mov_head') and 'mov_head_1.weight' in sd:
+        m_cat = [
+            h_m[m_i] + h_r[g['mov_from'][m_i]] + h_r[g['mov_to'][m_i]]
+            for m_i in range(n_m)
+        ]
+        m_h = _linear_py(m_cat, sd['mov_head_1.weight'], sd['mov_head_1.bias'], 'relu')
+        m_raw = _linear_py(m_h, sd['mov_head_2.weight'], sd['mov_head_2.bias'], 'none')
+        mov_logits = [row[0] for row in m_raw]
+    return out_probs, mov_logits
 
 
 def infer_trained_actor_probs(
@@ -404,6 +422,7 @@ def infer_trained_actor_probs(
         closed = bool(st.get('closed', False))
         cap_fac = 0.0 if closed else _clip(spd / max(1.0, free_spd), 0.0, 1.0)
         flow_vph = float(st.get('flow_vph', g['road_cap'][r] * 0.5))
+        d_q_dt = float(st.get('d_queue_dt', 0.0))
 
         r_q[r] = qv
         r_occ[r] = occ
@@ -424,7 +443,7 @@ def infer_trained_actor_probs(
             _clip(flood_i, 0.0, 1.0),
             _clip(demo_i, 0.0, 1.0),
             1.0 if closed else 0.0,
-            0.0,
+            _clip(d_q_dt / 10.0, -1.0, 1.0),
             _clip(occ, 0.0, 1.2),
             _clip(g['road_transit'][r] / 3.0, 0.0, 1.0),
         ])
@@ -454,6 +473,8 @@ def infer_trained_actor_probs(
         ist = i_states.get(nid, {})
         cur_p = float(ist.get('current_phase', 0) % 2)
         p_el = float(ist.get('phase_elapsed_s', 20.0))
+        hold_el = float(ist.get('hold_elapsed_s', 60.0))
+        topo_m = float(ist.get('topology_mode', 0.0))
         inc = g['inter_in'][ii]
         out = g['inter_out'][ii]
         in_qs = [_clip(r_q[r] / g['road_max_q'][r], 0.0, 2.0) for r in inc]
@@ -465,8 +486,8 @@ def infer_trained_actor_probs(
             g['signalized'][ii],
             cur_p,
             _clip(p_el / 75.0, 0.0, 2.0),
-            _clip(60.0 / 90.0, 0.0, 2.0),
-            0.0,
+            _clip(hold_el / 90.0, 0.0, 2.0),
+            _clip(topo_m / 3.0, 0.0, 1.0),
             min(1.5, len(inc) / 6.0),
             min(1.5, len(out) / 6.0),
             min(1.5, len(g['inter_movs'][ii]) / 16.0),
@@ -479,9 +500,9 @@ def infer_trained_actor_probs(
         ])
 
     if _np is not None:
-        all_probs = _forward_numpy(weights, g, inter_x, road_x, mov_x)
+        all_probs, mov_logits = _forward_numpy(weights, g, inter_x, road_x, mov_x)
     else:
-        all_probs = _forward_pure_python(weights, g, inter_x, road_x, mov_x)
+        all_probs, mov_logits = _forward_pure_python(weights, g, inter_x, road_x, mov_x)
 
     node_probs: dict[str, list[float]] = {}
     node_actions: dict[str, int] = {}
@@ -491,35 +512,55 @@ def infer_trained_actor_probs(
         node_actions[nid] = max(range(8), key=probs.__getitem__)
 
     movement_scores: dict[str, float] = {}
-    for m_i in range(n_m):
-        mid = g['mov_ids'][m_i]
-        to_r = g['mov_to'][m_i]
-        fr_r = g['mov_from'][m_i]
-        if r_closed[to_r]:
-            movement_scores[mid] = 0.0
-            continue
-        ii = g['mov_inter'][m_i]
-        p_vec = all_probs[ii]
-        mode_probs = [p_vec[m] + p_vec[4 + m] for m in range(4)]
-        out_occ = r_occ[to_r]
-        out_dis = r_dis[to_r]
-        is_through = g['mov_turn_type'][m_i][0] > 0.5
-        is_left = g['mov_turn_type'][m_i][1] > 0.5
-        has_transit = g['road_transit'][to_r] > 0.0 or g['road_transit'][fr_r] > 0.0
+    if mov_logits is not None:
+        by_fr: dict[int, list[int]] = {}
+        for m_i in range(n_m):
+            by_fr.setdefault(g['mov_from'][m_i], []).append(m_i)
+        for m_list in by_fr.values():
+            legal_idx = [m_i for m_i in m_list if not r_closed[g['mov_to'][m_i]]]
+            if legal_idx:
+                max_l = max(_clip(float(mov_logits[m_i]), -20.0, 20.0) for m_i in legal_idx)
+                for m_i in m_list:
+                    mid = g['mov_ids'][m_i]
+                    if r_closed[g['mov_to'][m_i]]:
+                        movement_scores[mid] = 0.0
+                    else:
+                        ml = _clip(float(mov_logits[m_i]), -20.0, 20.0)
+                        movement_scores[mid] = round(_clip(math.exp(ml - max_l), 0.01, 1.0), 4)
+            else:
+                for m_i in m_list:
+                    movement_scores[g['mov_ids'][m_i]] = 0.0
+    else:
+        for m_i in range(n_m):
+            mid = g['mov_ids'][m_i]
+            to_r = g['mov_to'][m_i]
+            fr_r = g['mov_from'][m_i]
+            if r_closed[to_r]:
+                movement_scores[mid] = 0.0
+                continue
+            ii = g['mov_inter'][m_i]
+            p_vec = all_probs[ii]
+            mode_probs = [p_vec[m] + p_vec[4 + m] for m in range(4)]
+            out_occ = r_occ[to_r]
+            out_dis = r_dis[to_r]
+            is_through = g['mov_turn_type'][m_i][0] > 0.5
+            is_left = g['mov_turn_type'][m_i][1] > 0.5
+            has_transit = g['road_transit'][to_r] > 0.0 or g['road_transit'][fr_r] > 0.0
 
-        g0 = 1.0
-        g1 = 0.18 if (is_left and out_occ > 0.55) else 1.0
-        g2 = 0.10 if (out_dis > 0.35 and not is_through) else (1.0 if out_dis < 0.35 else 0.78)
-        g3 = 0.14 if (out_occ > 0.72 and not has_transit) else 1.0
+            g0 = 1.0
+            g1 = 0.28 if (is_left and out_occ > 0.55) else 1.0
+            g2 = 0.24 if (out_dis > 0.35 and not is_through) else (1.0 if out_dis < 0.35 else 0.78)
+            g3 = 0.26 if (out_occ > 0.72 and not has_transit) else 1.0
 
-        policy_gate = mode_probs[0] * g0 + mode_probs[1] * g1 + mode_probs[2] * g2 + mode_probs[3] * g3
-        downstream_health = 1.0 - 0.35 * max(out_occ, out_dis)
-        score = _clip(policy_gate * downstream_health, 0.01, 1.0)
-        movement_scores[mid] = round(score, 4)
+            policy_gate = mode_probs[0] * g0 + mode_probs[1] * g1 + mode_probs[2] * g2 + mode_probs[3] * g3
+            downstream_health = 1.0 - 0.25 * max(out_occ, out_dis)
+            score = _clip(policy_gate * downstream_health, 0.01, 1.0)
+            movement_scores[mid] = round(score, 4)
 
     return {
         'node_probs': node_probs,
         'node_actions': node_actions,
         'movement_scores': movement_scores,
+        'has_mov_head': mov_logits is not None,
         'parameter_count': sum(len(v['data']) for v in weights['state_dict'].values()),
     }

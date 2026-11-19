@@ -172,24 +172,32 @@ def decide_controller_actions(
             raw_green = 28.0 + min(30.0, abs(p_scores[0] - p_scores[1]) * 1.4)
         else:
             p_scores = [0.0, 0.0]
+            phase_eligible = [0, 0]
             for idx, m in enumerate(movs):
                 in_r = road_map.get(m.from_edge)
                 out_r = road_map.get(m.to_edge)
-                if not m.green_eligible or (out_r and out_r.closed):
+                if out_r and out_r.closed:
                     p_scores[idx % 2] -= 10.0
                     continue
+                if not m.green_eligible:
+                    continue
+                phase_eligible[idx % 2] += 1
                 in_q = in_r.queue_veh if in_r else m.queue_veh
                 out_occ = m.downstream_occupancy
                 disruption_penalty = (out_r.disruption_intensity if out_r else 0.0) * 14.0
                 score = in_q * (1.15 - 0.55 * out_occ) - disruption_penalty
                 p_scores[idx % 2] += score
+            for p_idx in (0, 1):
+                if phase_eligible[p_idx] == 0:
+                    p_scores[p_idx] -= 10.0
 
             if using_trained_weights and trained_inf and inter.node_id in trained_inf['node_probs']:
                 probs = trained_inf['node_probs'][inter.node_id]
                 p0_prob = sum(probs[0:4])
                 p1_prob = sum(probs[4:8])
-                # Combine trained GNN policy probability with local pressure balance
-                raw_phase = 0 if (p0_prob + 0.04 * p_scores[0]) >= (p1_prob + 0.04 * p_scores[1]) else 1
+                # Trained ATNTActorV2 places stronger weight on learned phase logits alongside pressure balance
+                p_scale = 4.0 if trained_inf.get('has_mov_head') else 1.0
+                raw_phase = 0 if (p0_prob * p_scale + 0.04 * p_scores[0]) >= (p1_prob * p_scale + 0.04 * p_scores[1]) else 1
                 raw_green = 30.0 + min(32.0, abs(p_scores[0] - p_scores[1]) * 1.35 + abs(p0_prob - p1_prob) * 10.0)
             else:
                 raw_phase = 0 if p_scores[0] >= p_scores[1] else 1
@@ -254,12 +262,16 @@ def decide_controller_actions(
             'graph_message_passing_hops': 2 if state.controller == 'gnn_mappo' else 0,
             'checkpoint_loaded': using_trained_weights,
             'notice': (
-                'Trained Heterogeneous MeshGraphNet actor weights loaded (148,490 params) for joint signal & turn routing.'
-                if using_trained_weights
+                f"Trained Heterogeneous MeshGraphNet V2 actor weights loaded ({trained_inf.get('parameter_count', 160907):,} params) for learned per-movement turn & signal routing."
+                if using_trained_weights and trained_inf and trained_inf.get('has_mov_head')
                 else (
-                    'Graph heuristic surrogate for signal timing (synthetic/unmatched nodes).'
-                    if state.controller == 'gnn_mappo'
-                    else 'Deterministic benchmark signal controller.'
+                    'Trained Heterogeneous MeshGraphNet actor weights loaded (148,490 params) for joint signal & turn routing.'
+                    if using_trained_weights
+                    else (
+                        'Graph heuristic surrogate for signal timing (synthetic/unmatched nodes).'
+                        if state.controller == 'gnn_mappo'
+                        else 'Deterministic benchmark signal controller.'
+                    )
                 )
             ),
         },

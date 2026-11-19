@@ -12,9 +12,38 @@ const paintState = (key, fallback) => ['coalesce', ['feature-state', key], fallb
 const trafficColor = ['interpolate', ['linear'], paintState('load', 0), 0, blue, 0.4, copper, 0.65, orange, 0.85, '#B92732'];
 const visibleLayers = {
   vehicles: ['vehicles', 'queued-vehicles'],
+  signage: ['signage', 'turn-events', 'turn-routes'],
   gaussian: ['gaussian'], signals: ['signals'], transit: ['transit', 'station-labels'],
-  coverage: ['coverage'], labels: ['landmarks', 'landmark-labels'],
+  coverage: ['coverage', 'boundary'], labels: ['landmarks', 'landmark-labels', 'connector-labels'],
 };
+
+function escHtml(v) {
+  return String(v ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function addSignageIcon(map, id, arrowText, bgColor, borderColor, textColor = '#FFFFFF') {
+  const canvas = document.createElement('canvas');
+  canvas.width = 40;
+  canvas.height = 40;
+  const ctx = canvas.getContext('2d');
+  ctx.beginPath();
+  ctx.roundRect(4, 4, 32, 32, 8);
+  ctx.fillStyle = bgColor;
+  ctx.fill();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = borderColor;
+  ctx.stroke();
+  ctx.fillStyle = textColor;
+  ctx.font = 'bold 20px "Noto Sans", "Segoe UI", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(arrowText, 20, 21);
+  map.addImage(id, ctx.getImageData(0, 0, 40, 40), { pixelRatio: 2 });
+}
 
 function addVehicleIcon(map, id, color) {
   const canvas = document.createElement('canvas');
@@ -52,6 +81,13 @@ function overlayLayers(map) {
   add('selected-route', 'line', 'selected-route', {
     'line-color': orange, 'line-opacity': 0.55, 'line-width': 6,
   }, rounded);
+  add('connectors-halo', 'line', 'connectors', {
+    'line-color': blue, 'line-opacity': 0.24, 'line-width': ['interpolate', ['linear'], ['zoom'], 10.5, 6, 15, 11],
+  }, rounded);
+  add('connectors-guide', 'line', 'connectors', {
+    'line-color': blue, 'line-opacity': 0.52, 'line-width': ['interpolate', ['linear'], ['zoom'], 10.5, 2, 15, 3],
+    'line-dasharray': [2, 2],
+  });
   add('road-focus', 'line', 'roads', {
     'line-color': ['case', paintState('selected', false), orange, navy],
     'line-opacity': ['case', paintState('selected', false), 0.75, paintState('hover', false), 0.65, 0],
@@ -133,6 +169,28 @@ function overlayLayers(map) {
     'circle-radius': ['interpolate', ['linear'], ['zoom'], 12, 3, 16, 6],
     'circle-stroke-width': 2, 'circle-stroke-color': white,
   });
+  for (const [dirCode, glyph] of [['lurus', '↑'], ['belok_kiri', '↰'], ['belok_kanan', '↱'], ['putar_balik', '↺']]) {
+    addSignageIcon(map, `sign-${dirCode}-optimal`, glyph, blue, white);
+    addSignageIcon(map, `sign-${dirCode}-diverted`, glyph, orange, white);
+  }
+  addSignageIcon(map, 'sign-blocked', '✕', '#B92732', white);
+  addSignageIcon(map, 'sign-passive', '⇄', slate, '#CBD5E1');
+  add('signage', 'symbol', 'signage', {}, {
+    'icon-image': ['get', 'icon'],
+    'icon-size': ['interpolate', ['linear'], ['zoom'], 11, 0.72, 13.5, 0.88, 16, 1.12],
+    'icon-allow-overlap': ['step', ['zoom'], false, 14.2, true],
+    'icon-ignore-placement': false,
+    'symbol-sort-key': ['get', 'priority'],
+  });
+  add('connector-labels', 'symbol', 'connector-labels', {
+    'text-color': navy, 'text-halo-color': white, 'text-halo-width': 2,
+  }, {
+    'text-field': ['get', 'name'],
+    'text-font': ['Noto Sans Regular'],
+    'text-size': ['interpolate', ['linear'], ['zoom'], 11, 10, 14, 12],
+    'text-max-width': 12,
+    'text-allow-overlap': false,
+  });
   add('hotspots', 'symbol', 'hotspots', {
     'text-color': navy, 'text-halo-color': white, 'text-halo-width': 2,
   }, {
@@ -206,6 +264,16 @@ export function createGeospatialRenderer(container, callbacks) {
   let edges = new Map();
   let geometries = [];
   let geometryById = new Map();
+  let signageByInterId = new Map();
+  let focusBbox = null;
+  let hoveredSignage = null;
+  const signagePopup = new window.maplibregl.Popup({
+    closeButton: false,
+    closeOnClick: false,
+    className: 'atn-signage-popup-wrap',
+    offset: 14,
+    maxWidth: '280px',
+  });
   let clearanceTimer;
   const flowProgress = new Map();
   let lastTick = performance.now();
@@ -315,7 +383,100 @@ export function createGeospatialRenderer(container, callbacks) {
     }
     data('turn-routes', paths);
     data('turn-events', markers);
+
+    const signageFeatures = [];
+    const sNodes = simulation?.signage_nodes || region.signage_nodes || [];
+    const sigMap = frame?.signage_states || {};
+    for (const snode of sNodes) {
+      const nid = snode.intersection_id;
+      const st = sigMap[nid];
+      if (!st) continue;
+      let icon = 'sign-passive';
+      let priority = 3;
+      if (st.mode === 'blocked') {
+        icon = 'sign-blocked';
+        priority = 0;
+      } else if (st.mode === 'diverted') {
+        icon = `sign-${st.primary_dir || 'lurus'}-diverted`;
+        priority = snode.is_connector_hub || snode.is_gateway ? 0 : 1;
+      } else if (st.mode === 'optimal') {
+        icon = `sign-${st.primary_dir || 'lurus'}-optimal`;
+        priority = snode.is_connector_hub || snode.is_gateway ? 1 : 2;
+      } else if (snode.is_connector_hub || snode.is_gateway) {
+        priority = 1;
+      }
+      signageFeatures.push(point(snode, {
+        intersection_id: nid,
+        name: snode.name,
+        icon,
+        mode: st.mode,
+        priority,
+        headline: st.headline,
+        kind: 'Dynamic VMS Signage',
+      }));
+    }
+    data('signage', signageFeatures);
+    refreshHoveredSignagePopup();
     if (selected) callbacks.onEdgeClick?.(edges.get(selected), frame?.edge_states?.[selected]);
+  }
+
+  function renderSignagePopupHTML(hoverTarget, frame) {
+    const nid = hoverTarget.intersection_id;
+    const snode = signageByInterId.get(nid);
+    const sig = frame?.signage_states?.[nid];
+    const ctrlMap = { fixed_time: 'B1 Fixed-Time', max_pressure: 'B2 Max-Pressure', gnn_mappo: 'B3 SIMPUL MGN' };
+    const ctrlLabel = ctrlMap[simulation?.controller] || 'Controller';
+    const tSec = frame?.t_sec ?? 0;
+
+    if (!sig) {
+      const light = hoverTarget.light || 'unknown';
+      const lightLabel = light === 'green' ? 'HIJAU' : light === 'yellow' ? 'KUNING' : light === 'red' ? 'MERAH' : 'PASIF';
+      return `<div class="atn-vms-card">
+        <div class="atn-vms-top">
+          <div class="atn-vms-title">${escHtml(hoverTarget.name || 'Sinyal Simpang')}</div>
+          <span class="atn-vms-light ${escHtml(light)}">${escHtml(lightLabel)}</span>
+        </div>
+        <div class="atn-vms-sub">${escHtml(ctrlLabel)} · t = ${tSec}s</div>
+        <div class="atn-vms-reason">${escHtml(hoverTarget.detail || 'Kondisi sinyal persimpangan aktif')}</div>
+      </div>`;
+    }
+
+    const light = sig.light || 'uncontrolled';
+    const lightText = light === 'green'
+      ? `HIJAU${sig.green_s ? ` ${sig.green_s}s` : ''}`
+      : light === 'yellow'
+        ? 'KUNING'
+        : light === 'red'
+          ? 'MERAH'
+          : 'RAMBU ARAH';
+
+    const turnsHtml = (sig.turns || []).map(t => `
+      <div class="atn-vms-turn ${t.blocked ? 'blocked' : ''}">
+        <span class="atn-vms-turn-lbl"><b>${escHtml(t.arrow)} ${escHtml(t.dir_label)}</b> → ${escHtml(t.to_name)}</span>
+        <span class="atn-vms-turn-pct">${t.blocked ? 'TUTUP' : `${t.pct}% · ${Math.round(t.speed_kmh)} km/j`}</span>
+      </div>
+    `).join('');
+
+    return `<div class="atn-vms-card">
+      <div class="atn-vms-top">
+        <div class="atn-vms-title">${escHtml(snode?.name || sig.from_name || 'Simpang VMS')}</div>
+        <span class="atn-vms-light ${escHtml(light)}">${escHtml(lightText)}</span>
+      </div>
+      <div class="atn-vms-sub">Dari: ${escHtml(sig.from_name)} · ${escHtml(ctrlLabel)} · t = ${tSec}s</div>
+      <div class="atn-vms-directive" data-mode="${escHtml(sig.mode || 'optimal')}">${escHtml(sig.headline)}</div>
+      <div class="atn-vms-reason">${escHtml(sig.reason)}</div>
+      ${turnsHtml ? `<div class="atn-vms-turns">${turnsHtml}</div>` : ''}
+    </div>`;
+  }
+
+  function refreshHoveredSignagePopup() {
+    if (!ready || !hoveredSignage) {
+      signagePopup.remove();
+      return;
+    }
+    const html = renderSignagePopupHTML(hoveredSignage, activeFrame());
+    signagePopup.setLngLat(hoveredSignage.lngLat).setHTML(html);
+    if (!signagePopup.isOpen()) signagePopup.addTo(map);
   }
 
   function drawSignals(clearance) {
@@ -333,7 +494,8 @@ export function createGeospatialRenderer(container, callbacks) {
           : clearance && decision.phase_changed ? 'red'
           : green ? 'green' : 'red';
         return [point(location, {
-          light, name: geom.edge.name, kind: 'Traffic signal', detail: light === 'unknown' ? 'Signal phase unavailable' : light,
+          light, intersection_id: inter.node_id, name: geom.edge.name, kind: 'Traffic signal',
+          detail: light === 'unknown' ? 'Signal phase unavailable' : `Sinyal ${light.toUpperCase()} di ${geom.edge.name}`,
         })];
       });
     }));
@@ -344,8 +506,29 @@ export function createGeospatialRenderer(container, callbacks) {
     map.removeFeatureState({ source: 'roads' });
     data('roads', geometries.map(({ edge, coords }) =>
       feature('LineString', coords, { oneway: edge.oneway, featureId: edge.edge_id })));
-    data('boundary', [feature('LineString', region.study_boundary, { name: region.name, kind: 'Study area' })]);
-    data('coverage', [feature('Polygon', [region.coverage_mask], { name: region.name, kind: 'Study coverage' })]);
+    const connectorGeoms = geometries.filter(({ edge }) => edge.is_inter_region_connector);
+    data('connectors', connectorGeoms.map(({ edge, coords }) =>
+      feature('LineString', coords, { name: edge.name, corridor_pair: edge.corridor_pair || 'inter_region' })));
+    const labelSeen = new Set();
+    const connectorLabels = [];
+    for (const geom of connectorGeoms) {
+      const key = `${geom.edge.osm_way_id || geom.edge.name}`;
+      if (labelSeen.has(key) || !geom.edge.name) continue;
+      labelSeen.add(key);
+      if (geom.edge.osm_way_id?.endsWith('-2') || geom.edge.osm_way_id?.startsWith('conn-x')) {
+        const shortLabel = geom.edge.name.replace(/\s*\([^)]*\)/g, '');
+        connectorLabels.push(point(samplePolylineAt(geom, 0.5), { name: shortLabel }));
+      }
+    }
+    data('connector-labels', connectorLabels);
+    const boundsList = Array.isArray(region.study_boundaries) && region.study_boundaries.length
+      ? region.study_boundaries.map(b => feature('LineString', b.ring, { name: b.name, kind: 'Study area' }))
+      : [feature('LineString', region.study_boundary, { name: region.name, kind: 'Study area' })];
+    const maskList = Array.isArray(region.coverage_masks) && region.coverage_masks.length
+      ? region.coverage_masks.map(m => feature('Polygon', [m.ring], { name: m.name, kind: 'Study coverage' }))
+      : [feature('Polygon', [region.coverage_mask], { name: region.name, kind: 'Study coverage' })];
+    data('boundary', boundsList);
+    data('coverage', maskList);
     data('transit', region.transit_stops.map(stop => point(stop, { name: stop.name, kind: stop.mode === 'bus_stop' ? 'Transit stop' : 'Activity hotspot · station', mode: stop.mode })));
     data('landmarks', region.landmarks.map(landmark => point(landmark, { name: landmark.name, kind: 'Landmark' })));
     data('vehicles', []);
@@ -362,15 +545,16 @@ export function createGeospatialRenderer(container, callbacks) {
     const bearing = mode === '3d' ? -18 : 0;
     const motion = reducedMotion.matches ? 0 : duration;
     if (mode === 'overview') {
-      map.fitBounds([[106.69, -6.36], [106.97, -6.075]], { padding: 32, duration: motion, pitch, bearing });
+      const b = region.bbox;
+      map.fitBounds([[b.west, b.south], [b.east, b.north]], { padding: 36, duration: motion, pitch, bearing });
       return;
     }
-    const { west, south, east, north } = region.bbox;
+    const { west, south, east, north } = focusBbox || region.bbox;
     const padding = Math.min(46, container.clientWidth / 8);
     if (mode === '3d') {
       const flat = map.cameraForBounds([[west, south], [east, north]], { padding });
       if (!flat) return;
-      map.easeTo({ center: flat.center, zoom: Math.max(14.55, flat.zoom + 0.7), pitch, bearing, duration: motion });
+      map.easeTo({ center: flat.center, zoom: Math.max(13.6, flat.zoom + 0.65), pitch, bearing, duration: motion });
     } else {
       map.fitBounds([[west, south], [east, north]], { padding, duration: motion, pitch, bearing });
     }
@@ -394,6 +578,22 @@ export function createGeospatialRenderer(container, callbacks) {
 
   map.on('mousemove', event => {
     if (!ready || !region || map.isMoving()) return;
+    const signageHit = rendered(event.point, ['signage', 'turn-events', 'signals'], 10);
+    if (!placement && signageHit?.properties?.intersection_id) {
+      const coords = signageHit.geometry?.coordinates;
+      hoveredSignage = {
+        intersection_id: signageHit.properties.intersection_id,
+        name: signageHit.properties.name,
+        light: signageHit.properties.light,
+        detail: signageHit.properties.detail,
+        lngLat: Array.isArray(coords) && coords.length >= 2 ? coords : [event.lngLat.lng, event.lngLat.lat],
+      };
+      refreshHoveredSignagePopup();
+    } else if (hoveredSignage) {
+      hoveredSignage = null;
+      refreshHoveredSignagePopup();
+    }
+
     const hit = rendered(event.point, ['road-surface']);
     const id = hit?.properties.featureId;
     if (id !== hover) {
@@ -402,13 +602,24 @@ export function createGeospatialRenderer(container, callbacks) {
       roadState(hover, { hover: true });
     }
     const { lat, lng: lon } = event.lngLat;
-    const nearby = hit || rendered(event.point, ['transit', 'landmarks', 'signals', 'disruptions', 'disruption-labels', 'hotspots', 'turn-events', 'turn-routes']);
+    const nearby = signageHit || hit || rendered(event.point, ['transit', 'landmarks', 'disruptions', 'disruption-labels', 'hotspots', 'turn-routes']);
     map.getCanvas().style.cursor = placement ? 'crosshair' : nearby ? 'pointer' : 'grab';
-    callbacks.onHover?.({ edge: edges.get(id), edgeState: activeFrame()?.edge_states?.[id], lat, lon });
+    const frame = activeFrame();
+    const hovSig = hoveredSignage ? frame?.signage_states?.[hoveredSignage.intersection_id] : null;
+    callbacks.onHover?.({
+      edge: edges.get(id),
+      edgeState: frame?.edge_states?.[id],
+      signage: hovSig,
+      signageName: hoveredSignage?.name,
+      lat,
+      lon,
+    });
   });
   map.getCanvas().addEventListener('mouseleave', () => {
     roadState(hover, { hover: false });
     hover = null;
+    hoveredSignage = null;
+    refreshHoveredSignagePopup();
   });
 
   map.on('click', event => {
@@ -420,6 +631,18 @@ export function createGeospatialRenderer(container, callbacks) {
       updateDisruptions();
       if (pending) callbacks.onSnapAccepted?.(snap);
       else callbacks.onSnapRejected?.(snap);
+      return;
+    }
+    const signHit = rendered(event.point, ['signage'], 8);
+    if (signHit?.properties?.intersection_id) {
+      const sig = activeFrame()?.signage_states?.[signHit.properties.intersection_id];
+      const snode = signageByInterId.get(signHit.properties.intersection_id);
+      selectEdge(null);
+      callbacks.onFeatureClick?.({
+        kind: 'Dynamic VMS Signage',
+        name: snode?.name || signHit.properties.name,
+        detail: sig ? `${sig.headline} — ${sig.reason}` : signHit.properties.headline,
+      });
       return;
     }
     const incident = rendered(event.point, ['disruptions', 'disruption-labels', 'hotspots', 'turn-events', 'turn-routes'], 4);
@@ -523,24 +746,37 @@ export function createGeospatialRenderer(container, callbacks) {
   reducedMotion.addEventListener('change', syncMotion);
 
   return {
-    setRegion(nextRegion) {
+    setRegion(nextRegion, nextFocusBbox = null) {
       region = nextRegion;
+      focusBbox = nextFocusBbox;
       simulation = null;
       pending = null;
       hover = null;
+      hoveredSignage = null;
+      signagePopup.remove();
       selected = null;
       flowProgress.clear();
       geometries = buildEdgeGeometryCache(region).filter(geom => geom.coords.length > 1);
       geometryById = new Map(geometries.map(geom => [geom.edge.edge_id, geom]));
       edges = new Map(geometries.map(({ edge }) => [edge.edge_id, edge]));
+      signageByInterId = new Map((region.signage_nodes || []).map(s => [s.intersection_id, s]));
       updateRegion();
-      setCamera(camera === 'overview' ? '2d' : camera);
+      setCamera(nextFocusBbox ? (camera === 'overview' ? '2d' : camera) : (region.id === 'all' ? 'overview' : (camera === 'overview' ? '2d' : camera)));
     },
     setSimulation(result, index) {
       simulation = result;
+      if (Array.isArray(result?.signage_nodes) && result.signage_nodes.length) {
+        signageByInterId = new Map(result.signage_nodes.map(s => [s.intersection_id, s]));
+      }
       flowProgress.clear();
       this.setFrameIndex(index);
       updateDisruptions();
+    },
+    focusRegionBbox(nextBbox, mode = null) {
+      focusBbox = nextBbox || null;
+      if (!ready) return;
+      const targetMode = mode || (nextBbox ? (camera === 'overview' ? '2d' : camera) : 'overview');
+      setCamera(targetMode);
     },
     setFrameIndex(index = 0) { frameIndex = index; updateFrame(); },
     setPlayback(isPlaying, playbackSpeed) { playing = isPlaying; speed = playbackSpeed; },

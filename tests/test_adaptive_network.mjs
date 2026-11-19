@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { ADAPTIVE_REGIONS_DATA, ADAPTIVE_PROVENANCE_MANIFEST } from '../public/js/adaptive-regions-data.js';
+import { buildConnectedRegion } from '../public/js/connected-network.js';
 import {
   TIME_PERIODS,
   CONTROLLERS,
@@ -94,5 +95,27 @@ const trainedSim = runClientFallbackSimulation(pluit, {
 assert.equal(trainedSim.provenance.is_mock_controller, false);
 assert.equal(trainedSim.frames[0].movement_policy, 'meshgraphnet');
 assert.ok(Object.keys(trainedSim.frames[0].turn_actions).length > 0);
+assert.ok(Object.keys(trainedSim.frames[0].signage_states).length > 0);
+
+const connected = buildConnectedRegion(ADAPTIVE_REGIONS_DATA);
+assert.equal(connected.id, 'all');
+assert.ok(connected.edges.some(e => e.is_inter_region_connector));
+assert.ok(connected.signage_nodes.length >= 100);
+assert.equal(snapDisruptionLocation(connected, -6.1520, 106.8178, 'flood', 200).accepted, false);
+assert.equal(snapDisruptionLocation(connected, muaraBaruAnchor.lat, muaraBaruAnchor.lon, 'flood', 200).accepted, true);
+
+const connectedSim = runClientFallbackSimulation(connected, {
+  region_id: 'all',
+  time_period: 'pagi',
+  controller: 'gnn_mappo',
+  flood: { enabled: true, lat: muaraBaruAnchor.lat, lon: muaraBaruAnchor.lon, intensity: 0.80, sigma_m: 450 },
+  demonstration: { enabled: false },
+  duration_s: 240,
+  seed: 42,
+}, trainedWeights);
+assert.equal(connectedSim.frames[0].movement_policy, 'meshgraphnet');
+assert.ok(Object.keys(connectedSim.frames[2].signage_states).length >= 100);
+assert.ok(connectedSim.comparison.gnn_mappo.metrics.avg_delay_s < connectedSim.comparison.fixed_time.metrics.avg_delay_s);
+assert.ok(html.includes('All 3 Connected'));
 
 console.log('PASS simpul-interactive JS suite');

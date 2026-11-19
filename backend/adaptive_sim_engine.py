@@ -28,6 +28,7 @@ from .adaptive_network import (
     load_region,
     validate_and_snap_disruption,
 )
+from .connected_network import build_frame_signage
 from .meshgraphnet_inference import infer_trained_actor_probs
 from .movement_policy import choose_turns
 from .controller_adapter import (
@@ -58,7 +59,7 @@ class DisruptionSpec(BaseModel):
 
 
 class AdaptiveScenarioRequest(BaseModel):
-    region_id: Literal['tanah_abang', 'cilandak', 'pluit'] = 'pluit'
+    region_id: Literal['tanah_abang', 'cilandak', 'pluit', 'all'] = 'pluit'
     time_period: Literal['pagi', 'siang', 'sore'] = 'pagi'
     controller: ControllerId = 'gnn_mappo'
     flood: DisruptionSpec = Field(default_factory=DisruptionSpec)
@@ -119,7 +120,7 @@ def _simulate_single_controller(
 
     # Check if a precomputed SUMO artifact exists for this exact scenario signature.
     precomputed_path = PRECOMPUTED_SUMO_DIR / f'{req.region_id}_{req.time_period}_{controller}.json'
-    if precomputed_path.is_file() and not flood_cfg.get('enabled') and not demo_cfg.get('enabled'):
+    if req.region_id != 'all' and precomputed_path.is_file() and not flood_cfg.get('enabled') and not demo_cfg.get('enabled'):
         loaded = json.loads(precomputed_path.read_text(encoding='utf-8'))
         loaded['engine'] = 'precomputed_sumo'
         return loaded
@@ -143,6 +144,9 @@ def _simulate_single_controller(
 
     inter_phase: dict[str, int] = {inter['node_id']: 0 for inter in intersections}
     inter_elapsed: dict[str, float] = {inter['node_id']: 15.0 for inter in intersections}
+    inter_mode: dict[str, int] = {inter['node_id']: 0 for inter in intersections}
+    inter_hold_elapsed: dict[str, float] = {inter['node_id']: 60.0 for inter in intersections}
+    edge_dqueue_dt: dict[str, float] = {e['edge_id']: 0.0 for e in edges}
     mov_by_from: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for m in movements:
         mov_by_from[m['from_edge']].append(m)
@@ -177,7 +181,8 @@ def _simulate_single_controller(
     signal_service = {}
     previous_greens = {}
     routed_arrivals = {}
-    continuation_share = 0.40
+    is_connector = {e['edge_id']: bool(e.get('is_inter_region_connector')) for e in edges}
+    base_cont_share = 0.56 if req.region_id == 'all' else 0.44
     model_endpoint = os.environ.get('SIMPUL_MESHGRAPHNET_URL')
     incoming_routes = {m['to_edge'] for m in movements}
     edge_storage = {
@@ -188,6 +193,7 @@ def _simulate_single_controller(
         eid: min(1.0, edge_queue[eid] / edge_storage[eid])
         for eid in edge_queue
     }
+    signage_nodes = region.get('signage_nodes', [])
 
     for step_idx in range(steps + 1):
         t_s = step_idx * dt_s
@@ -219,9 +225,11 @@ def _simulate_single_controller(
             eff_cap_vps = e['capacity_vph'] * cap_factor * available_green / 3600.0
             if destination_links == []:
                 eff_cap_vps = 0.0
-            demand_rate_vps = edge_base_demand[eid] * (1 - continuation_share if eid in incoming_routes else 1) / 3600.0
+            in_cont = 0.86 if is_connector.get(eid) else base_cont_share
+            demand_rate_vps = edge_base_demand[eid] * (1.0 - in_cont if eid in incoming_routes else 1.0) / 3600.0
 
             q = edge_queue[eid]
+            q_prev = q
             max_storage_veh = edge_storage[eid]
 
             # Update queue over dt_s with realistic downstream spillback backpressure.
@@ -238,10 +246,15 @@ def _simulate_single_controller(
                 served = min(q + arrivals, eff_cap_vps * service_throttle * dt_s)
                 q_next = max(0.0, min(max_storage_veh * 1.15, q + arrivals - served))
                 edge_queue[eid] = q_next
+                transferred = 0.0
                 for destination, weight in destination_links or []:
-                    next_arrivals[destination] += served * continuation_share * weight
-                total_served_veh += served * (1 - continuation_share) if destination_links else served
+                    dest_cont = 0.86 if is_connector.get(destination) else base_cont_share
+                    flow_part = served * dest_cont * weight
+                    next_arrivals[destination] += flow_part
+                    transferred += flow_part
+                total_served_veh += max(0.0, served - transferred) if destination_links else served
                 q = q_next
+                edge_dqueue_dt[eid] = (q_next - q_prev) / dt_s
 
             occ = min(1.0, q / max_storage_veh)
             edge_occ_prev[eid] = occ
@@ -300,10 +313,24 @@ def _simulate_single_controller(
         trained_inf = None
         if controller == 'gnn_mappo' and not model_endpoint:
             inter_ctx = {
-                nid: {'current_phase': inter_phase[nid], 'phase_elapsed_s': min(600.0, inter_elapsed[nid])}
+                nid: {
+                    'current_phase': inter_phase[nid],
+                    'phase_elapsed_s': min(600.0, inter_elapsed[nid]),
+                    'hold_elapsed_s': min(600.0, inter_hold_elapsed[nid]),
+                    'topology_mode': inter_mode[nid],
+                }
                 for nid in signal_node_ids
             }
-            trained_inf = infer_trained_actor_probs(req.region_id, frame_edges, inter_ctx)
+            infer_edges = {eid: {**st, 'd_queue_dt': edge_dqueue_dt[eid]} for eid, st in frame_edges.items()}
+            trained_inf = infer_trained_actor_probs(req.region_id, infer_edges, inter_ctx)
+            if trained_inf:
+                for nid, act in trained_inf['node_actions'].items():
+                    new_mode = int(act) % 4
+                    if inter_hold_elapsed.get(nid, 60.0) >= 45.0 and new_mode != inter_mode.get(nid, 0):
+                        inter_mode[nid] = new_mode
+                        inter_hold_elapsed[nid] = dt_s
+                    else:
+                        inter_hold_elapsed[nid] = inter_hold_elapsed.get(nid, 60.0) + dt_s
 
         routing, turn_actions, movement_policy = choose_turns(
             req.region_id,
@@ -397,11 +424,26 @@ def _simulate_single_controller(
             elif recovered_started and recovery_time_s is None and t_s > req.duration_s * 0.55 and total_step_q <= peak_network_queue * 0.72:
                 recovery_time_s = round(t_s - 60.0, 1)
 
+        signage_states = build_frame_signage(
+            signage_nodes,
+            routing,
+            turn_actions,
+            frame_edges,
+            frame_intersections,
+            controller,
+            {
+                'flood_enabled': bool(flood_cfg.get('enabled')),
+                'demo_enabled': bool(demo_cfg.get('enabled')),
+                'time_period': req.time_period,
+            },
+        )
+
         frames.append({
             't_sec': int(t_s),
             'edge_states': frame_edges,
             'intersection_states': frame_intersections,
             'turn_actions': turn_actions,
+            'signage_states': signage_states,
             'movement_policy': movement_policy,
         })
 
@@ -414,6 +456,14 @@ def _simulate_single_controller(
     throughput_vph = (total_served_veh / max(1.0, req.duration_s)) * 3600.0
     reconfig_freq = (phase_switches / max(1, len(signal_nodes))) * (3600.0 / max(1.0, req.duration_s))
 
+    avg_congested_edges = round(
+        sum(
+            sum(1 for st in f['edge_states'].values() if not st.get('closed') and (st.get('congestion_index', 0) >= 0.65 or st.get('occupancy', 0) >= 0.65))
+            for f in frames
+        ) / max(1, len(frames)),
+        1,
+    )
+
     metrics = {
         'avg_travel_time_s': round(avg_tt, 1),
         'avg_delay_s': round(avg_delay, 1),
@@ -423,6 +473,7 @@ def _simulate_single_controller(
         'avg_queue_length_veh': round(avg_q, 2),
         'max_queue_length_veh': round(max_queue_seen, 1),
         'spillback_events': int(spillback_events),
+        'avg_congested_edges': avg_congested_edges,
         'reconfiguration_freq_per_hr': round(reconfig_freq, 1),
         'incident_recovery_time_s': recovery_time_s if has_disruption else None,
     }
@@ -479,6 +530,7 @@ def run_adaptive_simulation(req: AdaptiveScenarioRequest) -> dict[str, Any]:
             'demonstration': demo_cfg,
         },
         'incident_impacts': impacts,
+        'signage_nodes': region.get('signage_nodes', []),
         'frames': primary_result['frames'],
         'metrics': primary_result['metrics'],
         'comparison': comparison,

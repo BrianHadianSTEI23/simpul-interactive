@@ -1,0 +1,6372 @@
+{
+  "corridor": "Pluit to Cilandak (North-South Jakarta)",
+  "region_order": [
+    "pluit",
+    "tambora",
+    "tomang_harmoni",
+    "tanah_abang",
+    "sudirman_senayan",
+    "kebayoran_baru",
+    "kemang_cipete",
+    "cilandak"
+  ],
+  "pairs": [
+    {
+      "north_region_id": "pluit",
+      "north_region_name": "Pluit",
+      "south_region_id": "tambora",
+      "south_region_name": "Tambora – Kota Tua",
+      "shared_osm_way_count": 10,
+      "shared_osm_node_count": 18,
+      "connected": true,
+      "connectors": [
+        {
+          "osm_way_id": 29336620,
+          "road_name": "Jalan Jembatan Tiga Raya",
+          "highway": "trunk",
+          "oneway": true,
+          "lat": -6.12715,
+          "lon": 106.792288,
+          "shared_node_ids": [
+            "n-2506856534",
+            "n-347199345"
+          ],
+          "north_edge_ids": [
+            "pluit-e0029"
+          ],
+          "south_edge_ids": [
+            "tambora-e0056"
+          ]
+        },
+        {
+          "osm_way_id": 529335127,
+          "road_name": "Jalan Jembatan Tiga Raya",
+          "highway": "trunk",
+          "oneway": true,
+          "lat": -6.130386,
+          "lon": 106.792314,
+          "shared_node_ids": [
+            "n-12128709401",
+            "n-322399077"
+          ],
+          "north_edge_ids": [
+            "pluit-e0141"
+          ],
+          "south_edge_ids": [
+            "tambora-e0442"
+          ]
+        },
+        {
+          "osm_way_id": 30063496,
+          "road_name": "Jalan Lodan Raya",
+          "highway": "trunk",
+          "oneway": false,
+          "lat": -6.131676,
+          "lon": 106.819447,
+          "shared_node_ids": [
+            "n-331130096",
+            "n-331133161"
+          ],
+          "north_edge_ids": [
+            "pluit-e0033",
+            "pluit-e0034"
+          ],
+          "south_edge_ids": [
+            "tambora-e0059",
+            "tambora-e0060"
+          ]
+        },
+        {
+          "osm_way_id": 107492952,
+          "road_name": "Jalan Gedong Panjang",
+          "highway": "secondary",
+          "oneway": true,
+          "lat": -6.128611,
+          "lon": 106.804836,
+          "shared_node_ids": [
+            "n-6459027079",
+            "n-7119959243"
+          ],
+          "north_edge_ids": [
+            "pluit-e0055"
+          ],
+          "south_edge_ids": [
+            "tambora-e0177"
+          ]
+        },
+        {
+          "osm_way_id": 688683691,
+          "road_name": "Jalan Gedong Panjang",
+          "highway": "secondary",
+          "oneway": true,
+          "lat": -6.128705,
+          "lon": 106.804859,
+          "shared_node_ids": [
+            "n-331163240",
+            "n-6458995261"
+          ],
+          "north_edge_ids": [
+            "pluit-e0218"
+          ],
+          "south_edge_ids": [
+            "tambora-e0554",
+            "tambora-e0555"
+          ]
+        },
+        {
+          "osm_way_id": 688686364,
+          "road_name": "Secondary Link #688686364",
+          "highway": "secondary_link",
+          "oneway": true,
+          "lat": -6.128705,
+          "lon": 106.804859,
+          "shared_node_ids": [
+            "n-331163240",
+            "n-6459027077"
+          ],
+          "north_edge_ids": [
+            "pluit-e0220"
+          ],
+          "south_edge_ids": [
+            "tambora-e0557"
+          ]
+        },
+        {
+          "osm_way_id": 762052398,
+          "road_name": "Jalan Gedong Panjang",
+          "highway": "secondary",
+          "oneway": true,
+          "lat": -6.128664,
+          "lon": 106.80502,
+          "shared_node_ids": [
+            "n-5142172398",
+            "n-7119959244"
+          ],
+          "north_edge_ids": [
+            "pluit-e0261"
+          ],
+          "south_edge_ids": [
+            "tambora-e0690"
+          ]
+        },
+        {
+          "osm_way_id": 688686363,
+          "road_name": "Jalan Gedong Panjang",
+          "highway": "secondary",
+          "oneway": true,
+          "lat": -6.129607,
+          "lon": 106.805272,
+          "shared_node_ids": [
+            "n-4488618364",
+            "n-6459027077"
+          ],
+          "north_edge_ids": [
+            "pluit-e0219"
+          ],
+          "south_edge_ids": [
+            "tambora-e0556"
+          ]
+        },
+        {
+          "osm_way_id": 529331640,
+          "road_name": "Jalan Bakti",
+          "highway": "tertiary",
+          "oneway": false,
+          "lat": -6.127083,
+          "lon": 106.802375,
+          "shared_node_ids": [
+            "n-331163242",
+            "n-9685340822"
+          ],
+          "north_edge_ids": [
+            "pluit-e0139",
+            "pluit-e0140"
+          ],
+          "south_edge_ids": [
+            "tambora-e0440",
+            "tambora-e0441"
+          ]
+        },
+        {
+          "osm_way_id": 528693468,
+          "road_name": "Jalan Tongkol",
+          "highway": "tertiary",
+          "oneway": false,
+          "lat": -6.127504,
+          "lon": 106.809945,
+          "shared_node_ids": [
+            "n-331164645",
+            "n-5036305381"
+          ],
+          "north_edge_ids": [
+            "pluit-e0133",
+            "pluit-e0134"
+          ],
+          "south_edge_ids": [
+            "tambora-e0437",
+            "tambora-e0438"
+          ]
+        }
+      ]
+    },
+    {
+      "north_region_id": "tambora",
+      "north_region_name": "Tambora – Kota Tua",
+      "south_region_id": "tomang_harmoni",
+      "south_region_name": "Tomang – Harmoni",
+      "shared_osm_way_count": 24,
+      "shared_osm_node_count": 41,
+      "connected": true,
+      "connectors": [
+        {
+          "osm_way_id": 413475919,
+          "road_name": "Jalan Tol Cawang–Pluit",
+          "highway": "motorway",
+          "oneway": true,
+          "lat": -6.136767,
+          "lon": 106.786056,
+          "shared_node_ids": [
+            "n-1757817769",
+            "n-1757817897"
+          ],
+          "north_edge_ids": [
+            "tambora-e0238",
+            "tambora-e0239",
+            "tambora-e0240"
+          ],
+          "south_edge_ids": [
+            "tomang_harmoni-e0164",
+            "tomang_harmoni-e0165"
+          ]
+        },
+        {
+          "osm_way_id": 413475917,
+          "road_name": "Jalan Tol Cawang–Pluit",
+          "highway": "motorway",
+          "oneway": true,
+          "lat": -6.148885,
+          "lon": 106.792013,
+          "shared_node_ids": [
+            "n-1757817715",
+            "n-1757817984"
+          ],
+          "north_edge_ids": [
+            "tambora-e0237"
+          ],
+          "south_edge_ids": [
+            "tomang_harmoni-e0161",
+            "tomang_harmoni-e0162"
+          ]
+        },
+        {
+          "osm_way_id": 521155520,
+          "road_name": "Jalan Profesor Dokter Latumeten",
+          "highway": "trunk",
+          "oneway": true,
+          "lat": -6.156811,
+          "lon": 106.792704,
+          "shared_node_ids": [
+            "n-316948096",
+            "n-5005176931"
+          ],
+          "north_edge_ids": [
+            "tambora-e0418"
+          ],
+          "south_edge_ids": [
+            "tomang_harmoni-e0294",
+            "tomang_harmoni-e0295"
+          ]
+        },
+        {
+          "osm_way_id": 1288673262,
+          "road_name": "Jalan Profesor Dokter Latumeten",
+          "highway": "trunk",
+          "oneway": true,
+          "lat": -6.154039,
+          "lon": 106.793482,
+          "shared_node_ids": [
+            "n-316948124",
+            "n-6445764689"
+          ],
+          "north_edge_ids": [
+            "tambora-e0833"
+          ],
+          "south_edge_ids": [
+            "tomang_harmoni-e0711"
+          ]
+        },
+        {
+          "osm_way_id": 535110623,
+          "road_name": "Jalan Profesor Dokter Latumeten",
+          "highway": "trunk",
+          "oneway": true,
+          "lat": -6.153492,
+          "lon": 106.794249,
+          "shared_node_ids": [
+            "n-4963294078",
+            "n-6445764689"
+          ],
+          "north_edge_ids": [
+            "tambora-e0448"
+          ],
+          "south_edge_ids": [
+            "tomang_harmoni-e0310"
+          ]
+        },
+        {
+          "osm_way_id": 1288673265,
+          "road_name": "Jalan Profesor Dokter Latumeten",
+          "highway": "trunk",
+          "oneway": true,
+          "lat": -6.153673,
+          "lon": 106.794289,
+          "shared_node_ids": [
+            "n-349028061",
+            "n-4147997289",
+            "n-5005176931"
+          ],
+          "north_edge_ids": [
+            "tambora-e0836",
+            "tambora-e0837"
+          ],
+          "south_edge_ids": [
+            "tomang_harmoni-e0712",
+            "tomang_harmoni-e0713"
+          ]
+        },
+        {
+          "osm_way_id": 711236794,
+          "road_name": "Jalan Gajah Mada",
+          "highway": "primary",
+          "oneway": true,
+          "lat": -6.152961,
+          "lon": 106.817371,
+          "shared_node_ids": [
+            "n-348210237",
+            "n-4642354382"
+          ],
+          "north_edge_ids": [
+            "tambora-e0600"
+          ],
+          "south_edge_ids": [
+            "tomang_harmoni-e0461"
+          ]
+        },
+        {
+          "osm_way_id": 449670338,
+          "road_name": "Jalan Gajah Mada",
+          "highway": "primary",
+          "oneway": true,
+          "lat": -6.152605,
+          "lon": 106.817378,
+          "shared_node_ids": [
+            "n-13615841570",
+            "n-6768930111"
+          ],
+          "north_edge_ids": [
+            "tambora-e0246"
+          ],
+          "south_edge_ids": [
+            "tomang_harmoni-e0179"
+          ]
+        },
+        {
+          "osm_way_id": 711236795,
+          "road_name": "Jalan Hayam Wuruk",
+          "highway": "primary",
+          "oneway": true,
+          "lat": -6.152177,
+          "lon": 106.817591,
+          "shared_node_ids": [
+            "n-5377541072",
+            "n-7115091046"
+          ],
+          "north_edge_ids": [
+            "tambora-e0601"
+          ],
+          "south_edge_ids": [
+            "tomang_harmoni-e0462"
+          ]
+        },
+        {
+          "osm_way_id": 761532283,
+          "road_name": "Jalan Hayam Wuruk",
+          "highway": "primary",
+          "oneway": true,
+          "lat": -6.154311,
+          "lon": 106.818033,
+          "shared_node_ids": [
+            "n-4464980600",
+            "n-7115091046"
+          ],
+          "north_edge_ids": [
+            "tambora-e0668"
+          ],
+          "south_edge_ids": [
+            "tomang_harmoni-e0516"
+          ]
+        },
+        {
+          "osm_way_id": 679430172,
+          "road_name": "Jalan Setia Kawan Barat",
+          "highway": "secondary",
+          "oneway": true,
+          "lat": -6.153073,
+          "lon": 106.795045,
+          "shared_node_ids": [
+            "n-349030665",
+            "n-6362196464"
+          ],
+          "north_edge_ids": [
+            "tambora-e0536"
+          ],
+          "south_edge_ids": [
+            "tomang_harmoni-e0407"
+          ]
+        },
+        {
+          "osm_way_id": 1485538272,
+          "road_name": "Jalan Setia Kawan Barat",
+          "highway": "secondary",
+          "oneway": true,
+          "lat": -6.152778,
+          "lon": 106.795289,
+          "shared_node_ids": [
+            "n-413771151",
+            "n-6362196465"
+          ],
+          "north_edge_ids": [
+            "tambora-e0906"
+          ],
+          "south_edge_ids": [
+            "tomang_harmoni-e0780"
+          ]
+        },
+        {
+          "osm_way_id": 749322390,
+          "road_name": "Jalan Setia Kawan Barat",
+          "highway": "secondary",
+          "oneway": true,
+          "lat": -6.154462,
+          "lon": 106.79566,
+          "shared_node_ids": [
+            "n-6362196464",
+            "n-6362196465"
+          ],
+          "north_edge_ids": [
+            "tambora-e0638"
+          ],
+          "south_edge_ids": [
+            "tomang_harmoni-e0492"
+          ]
+        },
+        {
+          "osm_way_id": 1150446938,
+          "road_name": "Jalan Kyai Haji Mohammad Mansyur",
+          "highway": "secondary",
+          "oneway": true,
+          "lat": -6.141955,
+          "lon": 106.806624,
+          "shared_node_ids": [
+            "n-12745160800",
+            "n-331166993",
+            "n-349482996"
+          ],
+          "north_edge_ids": [
+            "tambora-e0775",
+            "tambora-e0776",
+            "tambora-e0777",
+            "tambora-e0778"
+          ],
+          "south_edge_ids": [
+            "tomang_harmoni-e0667",
+            "tomang_harmoni-e0668",
+            "tomang_harmoni-e0669",
+            "tomang_harmoni-e0670"
+          ]
+        },
+        {
+          "osm_way_id": 499771099,
+          "road_name": "Jalan Kyai Haji Mohammad Mansyur",
+          "highway": "secondary",
+          "oneway": true,
+          "lat": -6.1563,
+          "lon": 106.808148,
+          "shared_node_ids": [
+            "n-4909983137",
+            "n-4912461778",
+            "n-9582457254"
+          ],
+          "north_edge_ids": [
+            "tambora-e0327",
+            "tambora-e0328",
+            "tambora-e0329",
+            "tambora-e0330"
+          ],
+          "south_edge_ids": [
+            "tomang_harmoni-e0268",
+            "tomang_harmoni-e0269",
+            "tomang_harmoni-e0270"
+          ]
+        },
+        {
+          "osm_way_id": 30125237,
+          "road_name": "Jalan Jelambar Jaya III",
+          "highway": "tertiary",
+          "oneway": false,
+          "lat": -6.152548,
+          "lon": 106.788543,
+          "shared_node_ids": [
+            "n-331760488",
+            "n-331969720"
+          ],
+          "north_edge_ids": [
+            "tambora-e0104",
+            "tambora-e0105"
+          ],
+          "south_edge_ids": [
+            "tomang_harmoni-e0075",
+            "tomang_harmoni-e0076"
+          ]
+        },
+        {
+          "osm_way_id": 859631153,
+          "road_name": "Jalan Jelambar Timur",
+          "highway": "tertiary",
+          "oneway": false,
+          "lat": -6.154039,
+          "lon": 106.793482,
+          "shared_node_ids": [
+            "n-316948124",
+            "n-331760491"
+          ],
+          "north_edge_ids": [
+            "tambora-e0727",
+            "tambora-e0728"
+          ],
+          "south_edge_ids": [
+            "tomang_harmoni-e0620",
+            "tomang_harmoni-e0621"
+          ]
+        },
+        {
+          "osm_way_id": 31338815,
+          "road_name": "Jalan Dokter Semeru Raya",
+          "highway": "tertiary",
+          "oneway": false,
+          "lat": -6.158626,
+          "lon": 106.796432,
+          "shared_node_ids": [
+            "n-349008196",
+            "n-349028061"
+          ],
+          "north_edge_ids": [
+            "tambora-e0125",
+            "tambora-e0126"
+          ],
+          "south_edge_ids": [
+            "tomang_harmoni-e0110",
+            "tomang_harmoni-e0111",
+            "tomang_harmoni-e0112",
+            "tomang_harmoni-e0113"
+          ]
+        },
+        {
+          "osm_way_id": 1449604102,
+          "road_name": "Jalan Jembatan Besi VIII",
+          "highway": "tertiary",
+          "oneway": false,
+          "lat": -6.15205,
+          "lon": 106.797653,
+          "shared_node_ids": [
+            "n-331167073",
+            "n-331167086"
+          ],
+          "north_edge_ids": [
+            "tambora-e0875",
+            "tambora-e0876"
+          ],
+          "south_edge_ids": [
+            "tomang_harmoni-e0770",
+            "tomang_harmoni-e0771"
+          ]
+        },
+        {
+          "osm_way_id": 720156020,
+          "road_name": "Jalan Krendang Barat",
+          "highway": "tertiary",
+          "oneway": false,
+          "lat": -6.15394,
+          "lon": 106.801667,
+          "shared_node_ids": [
+            "n-331166969",
+            "n-331167051"
+          ],
+          "north_edge_ids": [
+            "tambora-e0616",
+            "tambora-e0617"
+          ],
+          "south_edge_ids": [
+            "tomang_harmoni-e0464",
+            "tomang_harmoni-e0465"
+          ]
+        },
+        {
+          "osm_way_id": 761550986,
+          "road_name": "Jalan Duri Utara",
+          "highway": "tertiary",
+          "oneway": false,
+          "lat": -6.15394,
+          "lon": 106.801667,
+          "shared_node_ids": [
+            "n-331166969",
+            "n-4863790475"
+          ],
+          "north_edge_ids": [
+            "tambora-e0669",
+            "tambora-e0670"
+          ],
+          "south_edge_ids": [
+            "tomang_harmoni-e0517",
+            "tomang_harmoni-e0518"
+          ]
+        },
+        {
+          "osm_way_id": 732720808,
+          "road_name": "Jalan Krendang Selatan",
+          "highway": "tertiary",
+          "oneway": false,
+          "lat": -6.153891,
+          "lon": 106.802738,
+          "shared_node_ids": [
+            "n-331166958",
+            "n-331166969"
+          ],
+          "north_edge_ids": [
+            "tambora-e0626",
+            "tambora-e0627"
+          ],
+          "south_edge_ids": [
+            "tomang_harmoni-e0476",
+            "tomang_harmoni-e0477"
+          ]
+        },
+        {
+          "osm_way_id": 30066572,
+          "road_name": "Jalan Krendang Selatan",
+          "highway": "tertiary",
+          "oneway": false,
+          "lat": -6.151457,
+          "lon": 106.804094,
+          "shared_node_ids": [
+            "n-331166938",
+            "n-331166958"
+          ],
+          "north_edge_ids": [
+            "tambora-e0092",
+            "tambora-e0093"
+          ],
+          "south_edge_ids": [
+            "tomang_harmoni-e0071",
+            "tomang_harmoni-e0072"
+          ]
+        },
+        {
+          "osm_way_id": 496586416,
+          "road_name": "Jalan Tanah Sereal",
+          "highway": "tertiary",
+          "oneway": false,
+          "lat": -6.154021,
+          "lon": 106.810909,
+          "shared_node_ids": [
+            "n-349499720",
+            "n-6332447163"
+          ],
+          "north_edge_ids": [
+            "tambora-e0319",
+            "tambora-e0320"
+          ],
+          "south_edge_ids": [
+            "tomang_harmoni-e0233",
+            "tomang_harmoni-e0234"
+          ]
+        }
+      ]
+    },
+    {
+      "north_region_id": "tomang_harmoni",
+      "north_region_name": "Tomang – Harmoni",
+      "south_region_id": "tanah_abang",
+      "south_region_name": "Tanah Abang",
+      "shared_osm_way_count": 7,
+      "shared_osm_node_count": 16,
+      "connected": true,
+      "connectors": [
+        {
+          "osm_way_id": 452354253,
+          "road_name": "Jalan Cideng Timur",
+          "highway": "primary",
+          "oneway": true,
+          "lat": -6.17561,
+          "lon": 106.812143,
+          "shared_node_ids": [
+            "n-310007476",
+            "n-315560209",
+            "n-6315576407"
+          ],
+          "north_edge_ids": [
+            "tomang_harmoni-e0184",
+            "tomang_harmoni-e0185"
+          ],
+          "south_edge_ids": [
+            "tanah_abang-e0105",
+            "tanah_abang-e0106"
+          ]
+        },
+        {
+          "osm_way_id": 28926405,
+          "road_name": "Jalan Cideng Barat",
+          "highway": "primary",
+          "oneway": true,
+          "lat": -6.178431,
+          "lon": 106.812593,
+          "shared_node_ids": [
+            "n-104342869",
+            "n-4845255983",
+            "n-7150700560"
+          ],
+          "north_edge_ids": [
+            "tomang_harmoni-e0051",
+            "tomang_harmoni-e0052"
+          ],
+          "south_edge_ids": [
+            "tanah_abang-e0035",
+            "tanah_abang-e0036"
+          ]
+        },
+        {
+          "osm_way_id": 674366439,
+          "road_name": "Primary Link #674366439",
+          "highway": "primary_link",
+          "oneway": true,
+          "lat": -6.178377,
+          "lon": 106.812809,
+          "shared_node_ids": [
+            "n-7229377488",
+            "n-7229377489"
+          ],
+          "north_edge_ids": [
+            "tomang_harmoni-e0385"
+          ],
+          "south_edge_ids": [
+            "tanah_abang-e0219"
+          ]
+        },
+        {
+          "osm_way_id": 453455941,
+          "road_name": "Jalan Medan Merdeka Barat",
+          "highway": "primary",
+          "oneway": true,
+          "lat": -6.175412,
+          "lon": 106.822743,
+          "shared_node_ids": [
+            "n-315706059",
+            "n-4501883427"
+          ],
+          "north_edge_ids": [
+            "tomang_harmoni-e0193"
+          ],
+          "south_edge_ids": [
+            "tanah_abang-e0117"
+          ]
+        },
+        {
+          "osm_way_id": 755079400,
+          "road_name": "Jalan Medan Merdeka Barat",
+          "highway": "primary",
+          "oneway": true,
+          "lat": -6.174627,
+          "lon": 106.82309,
+          "shared_node_ids": [
+            "n-4464981172",
+            "n-4464981231"
+          ],
+          "north_edge_ids": [
+            "tomang_harmoni-e0501"
+          ],
+          "south_edge_ids": [
+            "tanah_abang-e0258"
+          ]
+        },
+        {
+          "osm_way_id": 11669819,
+          "road_name": "Jalan Abdul Muis",
+          "highway": "secondary",
+          "oneway": false,
+          "lat": -6.179245,
+          "lon": 106.818378,
+          "shared_node_ids": [
+            "n-6131883042",
+            "n-9582481747"
+          ],
+          "north_edge_ids": [
+            "tomang_harmoni-e0001",
+            "tomang_harmoni-e0002"
+          ],
+          "south_edge_ids": [
+            "tanah_abang-e0001",
+            "tanah_abang-e0002"
+          ]
+        },
+        {
+          "osm_way_id": 28932371,
+          "road_name": "Jalan Citarum",
+          "highway": "tertiary",
+          "oneway": false,
+          "lat": -6.177379,
+          "lon": 106.808945,
+          "shared_node_ids": [
+            "n-318076680",
+            "n-7207423955"
+          ],
+          "north_edge_ids": [
+            "tomang_harmoni-e0062",
+            "tomang_harmoni-e0063"
+          ],
+          "south_edge_ids": [
+            "tanah_abang-e0037",
+            "tanah_abang-e0038"
+          ]
+        }
+      ]
+    },
+    {
+      "north_region_id": "tanah_abang",
+      "north_region_name": "Tanah Abang",
+      "south_region_id": "sudirman_senayan",
+      "south_region_name": "Sudirman – Senayan",
+      "shared_osm_way_count": 13,
+      "shared_osm_node_count": 23,
+      "connected": true,
+      "connectors": [
+        {
+          "osm_way_id": 306792306,
+          "road_name": "Jalan Aipda Karel Satsuit Tubun",
+          "highway": "primary",
+          "oneway": true,
+          "lat": -6.200631,
+          "lon": 106.799847,
+          "shared_node_ids": [
+            "n-193621912",
+            "n-7119846450"
+          ],
+          "north_edge_ids": [
+            "tanah_abang-e0051",
+            "tanah_abang-e0052",
+            "tanah_abang-e0053"
+          ],
+          "south_edge_ids": [
+            "sudirman_senayan-e0163"
+          ]
+        },
+        {
+          "osm_way_id": 496838338,
+          "road_name": "Jalan Aipda Karel Satsuit Tubun",
+          "highway": "primary",
+          "oneway": true,
+          "lat": -6.195571,
+          "lon": 106.805155,
+          "shared_node_ids": [
+            "n-4885029740",
+            "n-6331388419"
+          ],
+          "north_edge_ids": [
+            "tanah_abang-e0148",
+            "tanah_abang-e0149"
+          ],
+          "south_edge_ids": [
+            "sudirman_senayan-e0256"
+          ]
+        },
+        {
+          "osm_way_id": 688539431,
+          "road_name": "Jalan Kyai Haji Mas Mansyur",
+          "highway": "primary",
+          "oneway": true,
+          "lat": -6.198049,
+          "lon": 106.814288,
+          "shared_node_ids": [
+            "n-104342900",
+            "n-1363215182"
+          ],
+          "north_edge_ids": [
+            "tanah_abang-e0229"
+          ],
+          "south_edge_ids": [
+            "sudirman_senayan-e0539"
+          ]
+        },
+        {
+          "osm_way_id": 508304349,
+          "road_name": "Jalan Kyai Haji Mas Mansyur",
+          "highway": "primary",
+          "oneway": true,
+          "lat": -6.193544,
+          "lon": 106.814584,
+          "shared_node_ids": [
+            "n-309906876",
+            "n-6409680650"
+          ],
+          "north_edge_ids": [
+            "tanah_abang-e0162"
+          ],
+          "south_edge_ids": [
+            "sudirman_senayan-e0285"
+          ]
+        },
+        {
+          "osm_way_id": 449551295,
+          "road_name": "Jalan Jenderal Sudirman",
+          "highway": "primary",
+          "oneway": true,
+          "lat": -6.197462,
+          "lon": 106.823028,
+          "shared_node_ids": [
+            "n-11739825476",
+            "n-4464981824"
+          ],
+          "north_edge_ids": [
+            "tanah_abang-e0080"
+          ],
+          "south_edge_ids": [
+            "sudirman_senayan-e0184"
+          ]
+        },
+        {
+          "osm_way_id": 1263586498,
+          "road_name": "Jalan Jenderal Sudirman",
+          "highway": "primary",
+          "oneway": true,
+          "lat": -6.197462,
+          "lon": 106.823028,
+          "shared_node_ids": [
+            "n-11739825476",
+            "n-186790035"
+          ],
+          "north_edge_ids": [
+            "tanah_abang-e0372"
+          ],
+          "south_edge_ids": [
+            "sudirman_senayan-e0845"
+          ]
+        },
+        {
+          "osm_way_id": 449551306,
+          "road_name": "Jalan Jenderal Sudirman",
+          "highway": "primary",
+          "oneway": true,
+          "lat": -6.198624,
+          "lon": 106.823265,
+          "shared_node_ids": [
+            "n-5307668386",
+            "n-8487621941",
+            "n-8487621943"
+          ],
+          "north_edge_ids": [
+            "tanah_abang-e0084",
+            "tanah_abang-e0085"
+          ],
+          "south_edge_ids": [
+            "sudirman_senayan-e0187",
+            "sudirman_senayan-e0188"
+          ]
+        },
+        {
+          "osm_way_id": 512201374,
+          "road_name": "Jalan Teluk Betung",
+          "highway": "tertiary",
+          "oneway": false,
+          "lat": -6.197404,
+          "lon": 106.822577,
+          "shared_node_ids": [
+            "n-2138723937",
+            "n-4494182604"
+          ],
+          "north_edge_ids": [
+            "tanah_abang-e0164",
+            "tanah_abang-e0165"
+          ],
+          "south_edge_ids": [
+            "sudirman_senayan-e0286",
+            "sudirman_senayan-e0287"
+          ]
+        },
+        {
+          "osm_way_id": 761543188,
+          "road_name": "Jalan Teluk Betung",
+          "highway": "tertiary",
+          "oneway": false,
+          "lat": -6.197565,
+          "lon": 106.822728,
+          "shared_node_ids": [
+            "n-186789741",
+            "n-2138723937"
+          ],
+          "north_edge_ids": [
+            "tanah_abang-e0268",
+            "tanah_abang-e0269"
+          ],
+          "south_edge_ids": [
+            "sudirman_senayan-e0684",
+            "sudirman_senayan-e0685"
+          ]
+        },
+        {
+          "osm_way_id": 526737276,
+          "road_name": "Jalan Teluk Betung",
+          "highway": "tertiary",
+          "oneway": true,
+          "lat": -6.197415,
+          "lon": 106.822986,
+          "shared_node_ids": [
+            "n-10073506120",
+            "n-4464981826"
+          ],
+          "north_edge_ids": [
+            "tanah_abang-e0170"
+          ],
+          "south_edge_ids": [
+            "sudirman_senayan-e0311"
+          ]
+        },
+        {
+          "osm_way_id": 1376627595,
+          "road_name": "Jalan Teluk Betung",
+          "highway": "tertiary",
+          "oneway": true,
+          "lat": -6.197415,
+          "lon": 106.822986,
+          "shared_node_ids": [
+            "n-10073506120",
+            "n-11248283767"
+          ],
+          "north_edge_ids": [
+            "tanah_abang-e0388"
+          ],
+          "south_edge_ids": [
+            "sudirman_senayan-e0903"
+          ]
+        },
+        {
+          "osm_way_id": 654447206,
+          "road_name": "Jalan Pamekasan",
+          "highway": "tertiary",
+          "oneway": true,
+          "lat": -6.197647,
+          "lon": 106.823405,
+          "shared_node_ids": [
+            "n-10043624583",
+            "n-309668841"
+          ],
+          "north_edge_ids": [
+            "tanah_abang-e0214"
+          ],
+          "south_edge_ids": [
+            "sudirman_senayan-e0502"
+          ]
+        },
+        {
+          "osm_way_id": 761559698,
+          "road_name": "Jalan Pamekasan",
+          "highway": "tertiary",
+          "oneway": true,
+          "lat": -6.197191,
+          "lon": 106.823872,
+          "shared_node_ids": [
+            "n-309668841",
+            "n-6888474329"
+          ],
+          "north_edge_ids": [
+            "tanah_abang-e0270"
+          ],
+          "south_edge_ids": [
+            "sudirman_senayan-e0686"
+          ]
+        }
+      ]
+    },
+    {
+      "north_region_id": "sudirman_senayan",
+      "north_region_name": "Sudirman – Senayan",
+      "south_region_id": "kebayoran_baru",
+      "south_region_name": "Kebayoran Baru",
+      "shared_osm_way_count": 40,
+      "shared_osm_node_count": 57,
+      "connected": true,
+      "connectors": [
+        {
+          "osm_way_id": 562407889,
+          "road_name": "Jalan Tol Cawang–Pluit",
+          "highway": "motorway",
+          "oneway": true,
+          "lat": -6.224617,
+          "lon": 106.815873,
+          "shared_node_ids": [
+            "n-11307159647",
+            "n-5421926686"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0373"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0360"
+          ]
+        },
+        {
+          "osm_way_id": 1263666006,
+          "road_name": "Jalan Tol Cawang–Pluit",
+          "highway": "motorway",
+          "oneway": true,
+          "lat": -6.224857,
+          "lon": 106.816201,
+          "shared_node_ids": [
+            "n-309716135",
+            "n-5421926684"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0848"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0975"
+          ]
+        },
+        {
+          "osm_way_id": 562407890,
+          "road_name": "Jalan Tol Cawang–Pluit",
+          "highway": "motorway",
+          "oneway": true,
+          "lat": -6.226445,
+          "lon": 106.817112,
+          "shared_node_ids": [
+            "n-5421926685",
+            "n-5421926686"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0374"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0361"
+          ]
+        },
+        {
+          "osm_way_id": 562407887,
+          "road_name": "Jalan Tol Cawang–Pluit",
+          "highway": "motorway",
+          "oneway": true,
+          "lat": -6.226375,
+          "lon": 106.817233,
+          "shared_node_ids": [
+            "n-5421926683",
+            "n-5421926684"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0371"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0359"
+          ]
+        },
+        {
+          "osm_way_id": 749982040,
+          "road_name": "Jalan Tol Cawang–Pluit",
+          "highway": "motorway",
+          "oneway": true,
+          "lat": -6.226375,
+          "lon": 106.817233,
+          "shared_node_ids": [
+            "n-5421926683",
+            "n-5927982687"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0615"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0697"
+          ]
+        },
+        {
+          "osm_way_id": 28190908,
+          "road_name": "Jalan Tol Cawang–Pluit",
+          "highway": "motorway",
+          "oneway": true,
+          "lat": -6.236055,
+          "lon": 106.82597,
+          "shared_node_ids": [
+            "n-309647115",
+            "n-5421926685"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0019"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0034",
+            "kebayoran_baru-e0035"
+          ]
+        },
+        {
+          "osm_way_id": 484500591,
+          "road_name": "Jalan Jenderal Gatot Subroto",
+          "highway": "trunk",
+          "oneway": true,
+          "lat": -6.224759,
+          "lon": 106.815776,
+          "shared_node_ids": [
+            "n-4556726574",
+            "n-4556785172"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0223"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0272"
+          ]
+        },
+        {
+          "osm_way_id": 562407893,
+          "road_name": "Jalan Jenderal Gatot Subroto",
+          "highway": "trunk",
+          "oneway": true,
+          "lat": -6.226291,
+          "lon": 106.816813,
+          "shared_node_ids": [
+            "n-4556785172",
+            "n-5421926689"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0375"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0362"
+          ]
+        },
+        {
+          "osm_way_id": 562407885,
+          "road_name": "Jalan Jenderal Gatot Subroto",
+          "highway": "trunk",
+          "oneway": true,
+          "lat": -6.226086,
+          "lon": 106.817232,
+          "shared_node_ids": [
+            "n-5421926682",
+            "n-7070263913"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0369"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0358"
+          ]
+        },
+        {
+          "osm_way_id": 652837120,
+          "road_name": "Jalan Jenderal Gatot Subroto",
+          "highway": "trunk",
+          "oneway": true,
+          "lat": -6.226086,
+          "lon": 106.817232,
+          "shared_node_ids": [
+            "n-5421926682",
+            "n-6118223492"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0489"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0570"
+          ]
+        },
+        {
+          "osm_way_id": 652789273,
+          "road_name": "Jalan Jenderal Gatot Subroto",
+          "highway": "trunk",
+          "oneway": true,
+          "lat": -6.226999,
+          "lon": 106.81784,
+          "shared_node_ids": [
+            "n-4772393306",
+            "n-4834044962"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0488"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0565"
+          ]
+        },
+        {
+          "osm_way_id": 657450393,
+          "road_name": "Jalan Asia Afrika",
+          "highway": "primary",
+          "oneway": true,
+          "lat": -6.226594,
+          "lon": 106.798227,
+          "shared_node_ids": [
+            "n-4542222759",
+            "n-5377139085"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0503"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0582"
+          ]
+        },
+        {
+          "osm_way_id": 651868148,
+          "road_name": "Jalan Asia Afrika",
+          "highway": "primary",
+          "oneway": true,
+          "lat": -6.22676,
+          "lon": 106.798363,
+          "shared_node_ids": [
+            "n-4542228203",
+            "n-6041004295"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0430"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0471"
+          ]
+        },
+        {
+          "osm_way_id": 1536803889,
+          "road_name": "Jalan Jenderal Sudirman",
+          "highway": "primary",
+          "oneway": true,
+          "lat": -6.22578,
+          "lon": 106.80394,
+          "shared_node_ids": [
+            "n-11622998036",
+            "n-11622998064"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0933"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e1006"
+          ]
+        },
+        {
+          "osm_way_id": 652742499,
+          "road_name": "Jalan Jenderal Sudirman",
+          "highway": "primary",
+          "oneway": true,
+          "lat": -6.225401,
+          "lon": 106.804026,
+          "shared_node_ids": [
+            "n-4500008505",
+            "n-7768361973"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0487"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0562"
+          ]
+        },
+        {
+          "osm_way_id": 28197537,
+          "road_name": "Secondary #28197537",
+          "highway": "secondary",
+          "oneway": false,
+          "lat": -6.226195,
+          "lon": 106.80615,
+          "shared_node_ids": [
+            "n-237768534",
+            "n-4513170345"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0050",
+            "sudirman_senayan-e0051"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0051",
+            "kebayoran_baru-e0052"
+          ]
+        },
+        {
+          "osm_way_id": 567640859,
+          "road_name": "Secondary #567640859",
+          "highway": "secondary",
+          "oneway": true,
+          "lat": -6.226195,
+          "lon": 106.80615,
+          "shared_node_ids": [
+            "n-237768534",
+            "n-6546425219"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0377"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0377"
+          ]
+        },
+        {
+          "osm_way_id": 1109083260,
+          "road_name": "Secondary #1109083260",
+          "highway": "secondary",
+          "oneway": true,
+          "lat": -6.226195,
+          "lon": 106.80615,
+          "shared_node_ids": [
+            "n-237768534",
+            "n-8735679960"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0782"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0908"
+          ]
+        },
+        {
+          "osm_way_id": 943460507,
+          "road_name": "Secondary #943460507",
+          "highway": "secondary",
+          "oneway": true,
+          "lat": -6.226385,
+          "lon": 106.806346,
+          "shared_node_ids": [
+            "n-1783134181",
+            "n-8735679964"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0746"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0878"
+          ]
+        },
+        {
+          "osm_way_id": 947571016,
+          "road_name": "Secondary #947571016",
+          "highway": "secondary",
+          "oneway": true,
+          "lat": -6.226385,
+          "lon": 106.806346,
+          "shared_node_ids": [
+            "n-1783134181",
+            "n-6546425219"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0747"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0880"
+          ]
+        },
+        {
+          "osm_way_id": 592542512,
+          "road_name": "Secondary #592542512",
+          "highway": "secondary",
+          "oneway": true,
+          "lat": -6.226742,
+          "lon": 106.80641,
+          "shared_node_ids": [
+            "n-8735679955",
+            "n-8735679960",
+            "n-8735679964",
+            "n-8770891751"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0379",
+            "sudirman_senayan-e0380"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0415",
+            "kebayoran_baru-e0416"
+          ]
+        },
+        {
+          "osm_way_id": 28197566,
+          "road_name": "Sudirman Central Business District Eastway",
+          "highway": "secondary",
+          "oneway": true,
+          "lat": -6.226331,
+          "lon": 106.806738,
+          "shared_node_ids": [
+            "n-237769279",
+            "n-8770891751"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0052"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0053"
+          ]
+        },
+        {
+          "osm_way_id": 551619691,
+          "road_name": "Sudirman Central Business District Eastway",
+          "highway": "secondary",
+          "oneway": true,
+          "lat": -6.226331,
+          "lon": 106.806738,
+          "shared_node_ids": [
+            "n-237769279",
+            "n-8735666600"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0339"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0351"
+          ]
+        },
+        {
+          "osm_way_id": 760213441,
+          "road_name": "Sudirman Central Business District Eastway",
+          "highway": "secondary",
+          "oneway": true,
+          "lat": -6.226331,
+          "lon": 106.806738,
+          "shared_node_ids": [
+            "n-237769279",
+            "n-5019451860"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0662"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0787"
+          ]
+        },
+        {
+          "osm_way_id": 650447889,
+          "road_name": "Sudirman Central Business District Northway",
+          "highway": "secondary",
+          "oneway": true,
+          "lat": -6.226609,
+          "lon": 106.808999,
+          "shared_node_ids": [
+            "n-4503864474",
+            "n-5019451861"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0407"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0456"
+          ]
+        },
+        {
+          "osm_way_id": 759497242,
+          "road_name": "Sudirman Central Business District Southway",
+          "highway": "secondary",
+          "oneway": true,
+          "lat": -6.226578,
+          "lon": 106.810594,
+          "shared_node_ids": [
+            "n-4503864472",
+            "n-6367365332"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0646"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0730"
+          ]
+        },
+        {
+          "osm_way_id": 760239633,
+          "road_name": "Sudirman Central Business District Eastway",
+          "highway": "secondary",
+          "oneway": true,
+          "lat": -6.22599,
+          "lon": 106.812021,
+          "shared_node_ids": [
+            "n-309718070",
+            "n-4539273974"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0667"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0789"
+          ]
+        },
+        {
+          "osm_way_id": 760239632,
+          "road_name": "Secondary Link #760239632",
+          "highway": "secondary_link",
+          "oneway": true,
+          "lat": -6.225888,
+          "lon": 106.812029,
+          "shared_node_ids": [
+            "n-6315384922",
+            "n-7105527576"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0665",
+            "sudirman_senayan-e0666"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0788"
+          ]
+        },
+        {
+          "osm_way_id": 458015977,
+          "road_name": "Sudirman Central Business District Eastway",
+          "highway": "secondary",
+          "oneway": true,
+          "lat": -6.226075,
+          "lon": 106.812085,
+          "shared_node_ids": [
+            "n-4539273974",
+            "n-4540661788"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0212"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0270"
+          ]
+        },
+        {
+          "osm_way_id": 760619688,
+          "road_name": "Sudirman Central Business District Eastway",
+          "highway": "secondary",
+          "oneway": true,
+          "lat": -6.226075,
+          "lon": 106.812085,
+          "shared_node_ids": [
+            "n-4539273974",
+            "n-7241639832"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0681"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0794"
+          ]
+        },
+        {
+          "osm_way_id": 457858652,
+          "road_name": "Secondary Link #457858652",
+          "highway": "secondary_link",
+          "oneway": true,
+          "lat": -6.226639,
+          "lon": 106.812097,
+          "shared_node_ids": [
+            "n-4539273976",
+            "n-7241639832"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0209"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0265"
+          ]
+        },
+        {
+          "osm_way_id": 535867317,
+          "road_name": "Sudirman Central Business District Eastway",
+          "highway": "secondary",
+          "oneway": true,
+          "lat": -6.226457,
+          "lon": 106.812374,
+          "shared_node_ids": [
+            "n-2360112785",
+            "n-7241639837"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0320"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0348"
+          ]
+        },
+        {
+          "osm_way_id": 758664213,
+          "road_name": "Sudirman Central Business District Westway",
+          "highway": "secondary",
+          "oneway": true,
+          "lat": -6.226457,
+          "lon": 106.812374,
+          "shared_node_ids": [
+            "n-2360112785",
+            "n-4539286374"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0640"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0722"
+          ]
+        },
+        {
+          "osm_way_id": 758691604,
+          "road_name": "Sudirman Central Business District Westway",
+          "highway": "secondary",
+          "oneway": true,
+          "lat": -6.226457,
+          "lon": 106.812374,
+          "shared_node_ids": [
+            "n-2360112785",
+            "n-4539273976"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0643"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0724"
+          ]
+        },
+        {
+          "osm_way_id": 760619687,
+          "road_name": "Sudirman Central Business District Westway",
+          "highway": "secondary",
+          "oneway": true,
+          "lat": -6.22626,
+          "lon": 106.812437,
+          "shared_node_ids": [
+            "n-7105527574",
+            "n-7105527576"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0680"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0793"
+          ]
+        },
+        {
+          "osm_way_id": 457859770,
+          "road_name": "Secondary Link #457859770",
+          "highway": "secondary_link",
+          "oneway": true,
+          "lat": -6.226265,
+          "lon": 106.81268,
+          "shared_node_ids": [
+            "n-4539286374",
+            "n-4539286376"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0210"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0267"
+          ]
+        },
+        {
+          "osm_way_id": 653108278,
+          "road_name": "Sudirman Central Business District Westway",
+          "highway": "secondary",
+          "oneway": true,
+          "lat": -6.226265,
+          "lon": 106.81268,
+          "shared_node_ids": [
+            "n-4539286374",
+            "n-4556737640"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0495"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0575"
+          ]
+        },
+        {
+          "osm_way_id": 28197301,
+          "road_name": "Sudirman Central Business District Westway",
+          "highway": "secondary",
+          "oneway": true,
+          "lat": -6.22478,
+          "lon": 106.812901,
+          "shared_node_ids": [
+            "n-309716804",
+            "n-7105527574"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0042"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0050"
+          ]
+        },
+        {
+          "osm_way_id": 457851748,
+          "road_name": "Tertiary #457851748",
+          "highway": "tertiary",
+          "oneway": true,
+          "lat": -6.225906,
+          "lon": 106.808042,
+          "shared_node_ids": [
+            "n-4539223769",
+            "n-7632404067"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0208"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0262"
+          ]
+        },
+        {
+          "osm_way_id": 535107374,
+          "road_name": "Jalan Widya Chandra V",
+          "highway": "tertiary",
+          "oneway": true,
+          "lat": -6.226457,
+          "lon": 106.812374,
+          "shared_node_ids": [
+            "n-2360112785",
+            "n-4539286373"
+          ],
+          "north_edge_ids": [
+            "sudirman_senayan-e0315"
+          ],
+          "south_edge_ids": [
+            "kebayoran_baru-e0346"
+          ]
+        }
+      ]
+    },
+    {
+      "north_region_id": "kebayoran_baru",
+      "north_region_name": "Kebayoran Baru",
+      "south_region_id": "kemang_cipete",
+      "south_region_name": "Kemang – Cipete",
+      "shared_osm_way_count": 23,
+      "shared_osm_node_count": 33,
+      "connected": true,
+      "connectors": [
+        {
+          "osm_way_id": 1256686208,
+          "road_name": "Jalan RS Fatmawati",
+          "highway": "primary",
+          "oneway": true,
+          "lat": -6.255,
+          "lon": 106.797165,
+          "shared_node_ids": [
+            "n-12033804533",
+            "n-12033804535"
+          ],
+          "north_edge_ids": [
+            "kebayoran_baru-e0969"
+          ],
+          "south_edge_ids": [
+            "kemang_cipete-e0259"
+          ]
+        },
+        {
+          "osm_way_id": 645137217,
+          "road_name": "Jalan RS Fatmawati",
+          "highway": "primary",
+          "oneway": true,
+          "lat": -6.255012,
+          "lon": 106.797282,
+          "shared_node_ids": [
+            "n-12033804532",
+            "n-12033804534"
+          ],
+          "north_edge_ids": [
+            "kebayoran_baru-e0439"
+          ],
+          "south_edge_ids": [
+            "kemang_cipete-e0113"
+          ]
+        },
+        {
+          "osm_way_id": 202084399,
+          "road_name": "Jalan Mayjen TNI Profesor Dokter Moestopo",
+          "highway": "primary",
+          "oneway": true,
+          "lat": -6.248748,
+          "lon": 106.807,
+          "shared_node_ids": [
+            "n-7096301018",
+            "n-7808665046"
+          ],
+          "north_edge_ids": [
+            "kebayoran_baru-e0174"
+          ],
+          "south_edge_ids": [
+            "kemang_cipete-e0066"
+          ]
+        },
+        {
+          "osm_way_id": 653065899,
+          "road_name": "Jalan Prapanca Raya",
+          "highway": "primary",
+          "oneway": true,
+          "lat": -6.255657,
+          "lon": 106.80792,
+          "shared_node_ids": [
+            "n-356145269",
+            "n-7012978984"
+          ],
+          "north_edge_ids": [
+            "kebayoran_baru-e0573"
+          ],
+          "south_edge_ids": [
+            "kemang_cipete-e0122"
+          ]
+        },
+        {
+          "osm_way_id": 756079663,
+          "road_name": "Jalan Prapanca Raya",
+          "highway": "primary",
+          "oneway": true,
+          "lat": -6.255199,
+          "lon": 106.808004,
+          "shared_node_ids": [
+            "n-7012978984",
+            "n-7265241896"
+          ],
+          "north_edge_ids": [
+            "kebayoran_baru-e0714"
+          ],
+          "south_edge_ids": [
+            "kemang_cipete-e0154"
+          ]
+        },
+        {
+          "osm_way_id": 803655494,
+          "road_name": "Jalan Prapanca Raya",
+          "highway": "primary",
+          "oneway": true,
+          "lat": -6.255826,
+          "lon": 106.808022,
+          "shared_node_ids": [
+            "n-356145265",
+            "n-7096652252"
+          ],
+          "north_edge_ids": [
+            "kebayoran_baru-e0851"
+          ],
+          "south_edge_ids": [
+            "kemang_cipete-e0216"
+          ]
+        },
+        {
+          "osm_way_id": 756079664,
+          "road_name": "Jalan Prapanca Raya",
+          "highway": "primary",
+          "oneway": true,
+          "lat": -6.254913,
+          "lon": 106.808052,
+          "shared_node_ids": [
+            "n-7061717599",
+            "n-7265241896"
+          ],
+          "north_edge_ids": [
+            "kebayoran_baru-e0715"
+          ],
+          "south_edge_ids": [
+            "kemang_cipete-e0155"
+          ]
+        },
+        {
+          "osm_way_id": 202077687,
+          "road_name": "Jalan Mayjen TNI Profesor Dokter Moestopo",
+          "highway": "primary",
+          "oneway": true,
+          "lat": -6.264762,
+          "lon": 106.808437,
+          "shared_node_ids": [
+            "n-7808665045",
+            "n-9050068283"
+          ],
+          "north_edge_ids": [
+            "kebayoran_baru-e0172",
+            "kebayoran_baru-e0173"
+          ],
+          "south_edge_ids": [
+            "kemang_cipete-e0064"
+          ]
+        },
+        {
+          "osm_way_id": 653065907,
+          "road_name": "Jalan Prapanca Raya",
+          "highway": "primary",
+          "oneway": true,
+          "lat": -6.251557,
+          "lon": 106.809125,
+          "shared_node_ids": [
+            "n-356155692",
+            "n-7096652252"
+          ],
+          "north_edge_ids": [
+            "kebayoran_baru-e0574"
+          ],
+          "south_edge_ids": [
+            "kemang_cipete-e0123"
+          ]
+        },
+        {
+          "osm_way_id": 361133108,
+          "road_name": "Jalan Radio Dalam",
+          "highway": "secondary",
+          "oneway": false,
+          "lat": -6.260569,
+          "lon": 106.788962,
+          "shared_node_ids": [
+            "n-3171523464",
+            "n-5083296312"
+          ],
+          "north_edge_ids": [
+            "kebayoran_baru-e0235",
+            "kebayoran_baru-e0236"
+          ],
+          "south_edge_ids": [
+            "kemang_cipete-e0078",
+            "kemang_cipete-e0079"
+          ]
+        },
+        {
+          "osm_way_id": 28420299,
+          "road_name": "Jalan Dharmawangsa XI",
+          "highway": "tertiary",
+          "oneway": true,
+          "lat": -6.2575,
+          "lon": 106.800631,
+          "shared_node_ids": [
+            "n-312216413",
+            "n-312216568"
+          ],
+          "north_edge_ids": [
+            "kebayoran_baru-e0105"
+          ],
+          "south_edge_ids": [
+            "kemang_cipete-e0011"
+          ]
+        },
+        {
+          "osm_way_id": 759689194,
+          "road_name": "Jalan Dharmawangsa IV",
+          "highway": "tertiary",
+          "oneway": true,
+          "lat": -6.256226,
+          "lon": 106.801277,
+          "shared_node_ids": [
+            "n-356203283",
+            "n-7096586132"
+          ],
+          "north_edge_ids": [
+            "kebayoran_baru-e0748"
+          ],
+          "south_edge_ids": [
+            "kemang_cipete-e0160"
+          ]
+        },
+        {
+          "osm_way_id": 28420252,
+          "road_name": "Jalan Brawijaya III",
+          "highway": "tertiary",
+          "oneway": false,
+          "lat": -6.254549,
+          "lon": 106.805085,
+          "shared_node_ids": [
+            "n-5114866633",
+            "n-5492716004"
+          ],
+          "north_edge_ids": [
+            "kebayoran_baru-e0103",
+            "kebayoran_baru-e0104"
+          ],
+          "south_edge_ids": [
+            "kemang_cipete-e0008",
+            "kemang_cipete-e0009"
+          ]
+        },
+        {
+          "osm_way_id": 926954799,
+          "road_name": "Jalan Kemang Raya",
+          "highway": "tertiary",
+          "oneway": false,
+          "lat": -6.255089,
+          "lon": 106.808139,
+          "shared_node_ids": [
+            "n-7096652252",
+            "n-8600938403"
+          ],
+          "north_edge_ids": [
+            "kebayoran_baru-e0872",
+            "kebayoran_baru-e0873"
+          ],
+          "south_edge_ids": [
+            "kemang_cipete-e0227",
+            "kemang_cipete-e0228"
+          ]
+        },
+        {
+          "osm_way_id": 926954801,
+          "road_name": "Jalan Kemang Raya",
+          "highway": "tertiary",
+          "oneway": true,
+          "lat": -6.255089,
+          "lon": 106.808139,
+          "shared_node_ids": [
+            "n-7096652252",
+            "n-7265241896"
+          ],
+          "north_edge_ids": [
+            "kebayoran_baru-e0876"
+          ],
+          "south_edge_ids": [
+            "kemang_cipete-e0231"
+          ]
+        },
+        {
+          "osm_way_id": 926954800,
+          "road_name": "Jalan Kemang Raya",
+          "highway": "tertiary",
+          "oneway": false,
+          "lat": -6.255196,
+          "lon": 106.808629,
+          "shared_node_ids": [
+            "n-8600938402",
+            "n-8600938403"
+          ],
+          "north_edge_ids": [
+            "kebayoran_baru-e0874",
+            "kebayoran_baru-e0875"
+          ],
+          "south_edge_ids": [
+            "kemang_cipete-e0229",
+            "kemang_cipete-e0230"
+          ]
+        },
+        {
+          "osm_way_id": 803660146,
+          "road_name": "Jalan Kemang Raya",
+          "highway": "tertiary",
+          "oneway": false,
+          "lat": -6.255269,
+          "lon": 106.810129,
+          "shared_node_ids": [
+            "n-7265241910",
+            "n-8600938402"
+          ],
+          "north_edge_ids": [
+            "kebayoran_baru-e0852",
+            "kebayoran_baru-e0853"
+          ],
+          "south_edge_ids": [
+            "kemang_cipete-e0217",
+            "kemang_cipete-e0218"
+          ]
+        },
+        {
+          "osm_way_id": 778435270,
+          "road_name": "Jalan Kemang Raya",
+          "highway": "tertiary",
+          "oneway": false,
+          "lat": -6.255346,
+          "lon": 106.811423,
+          "shared_node_ids": [
+            "n-4821848249",
+            "n-7265241910"
+          ],
+          "north_edge_ids": [
+            "kebayoran_baru-e0829",
+            "kebayoran_baru-e0830"
+          ],
+          "south_edge_ids": [
+            "kemang_cipete-e0209",
+            "kemang_cipete-e0210"
+          ]
+        },
+        {
+          "osm_way_id": 375333978,
+          "road_name": "Jalan Kemang Raya",
+          "highway": "tertiary",
+          "oneway": false,
+          "lat": -6.255654,
+          "lon": 106.812499,
+          "shared_node_ids": [
+            "n-3787028858",
+            "n-4821848249"
+          ],
+          "north_edge_ids": [
+            "kebayoran_baru-e0242",
+            "kebayoran_baru-e0243"
+          ],
+          "south_edge_ids": [
+            "kemang_cipete-e0080",
+            "kemang_cipete-e0081"
+          ]
+        },
+        {
+          "osm_way_id": 28137298,
+          "road_name": "Jalan Kemang Raya",
+          "highway": "tertiary",
+          "oneway": true,
+          "lat": -6.255549,
+          "lon": 106.812942,
+          "shared_node_ids": [
+            "n-309040761",
+            "n-5492716020"
+          ],
+          "north_edge_ids": [
+            "kebayoran_baru-e0032"
+          ],
+          "south_edge_ids": [
+            "kemang_cipete-e0003"
+          ]
+        },
+        {
+          "osm_way_id": 759890072,
+          "road_name": "Jalan Kemang Raya",
+          "highway": "tertiary",
+          "oneway": true,
+          "lat": -6.255407,
+          "lon": 106.814731,
+          "shared_node_ids": [
+            "n-309040762",
+            "n-5492716020"
+          ],
+          "north_edge_ids": [
+            "kebayoran_baru-e0763"
+          ],
+          "south_edge_ids": [
+            "kemang_cipete-e0170"
+          ]
+        },
+        {
+          "osm_way_id": 31732421,
+          "road_name": "Jalan Kemang Raya",
+          "highway": "tertiary",
+          "oneway": true,
+          "lat": -6.257487,
+          "lon": 106.815054,
+          "shared_node_ids": [
+            "n-309040546",
+            "n-309040762"
+          ],
+          "north_edge_ids": [
+            "kebayoran_baru-e0129"
+          ],
+          "south_edge_ids": [
+            "kemang_cipete-e0012"
+          ]
+        },
+        {
+          "osm_way_id": 31758713,
+          "road_name": "Jalan Bangka Raya",
+          "highway": "tertiary",
+          "oneway": false,
+          "lat": -6.241343,
+          "lon": 106.817744,
+          "shared_node_ids": [
+            "n-309039297",
+            "n-309040762"
+          ],
+          "north_edge_ids": [
+            "kebayoran_baru-e0131",
+            "kebayoran_baru-e0132",
+            "kebayoran_baru-e0133",
+            "kebayoran_baru-e0134"
+          ],
+          "south_edge_ids": [
+            "kemang_cipete-e0013",
+            "kemang_cipete-e0014"
+          ]
+        }
+      ]
+    },
+    {
+      "north_region_id": "kemang_cipete",
+      "north_region_name": "Kemang – Cipete",
+      "south_region_id": "cilandak",
+      "south_region_name": "Cilandak",
+      "shared_osm_way_count": 10,
+      "shared_osm_node_count": 19,
+      "connected": true,
+      "connectors": [
+        {
+          "osm_way_id": 1304373727,
+          "road_name": "Jalan RS Fatmawati",
+          "highway": "primary",
+          "oneway": true,
+          "lat": -6.283756,
+          "lon": 106.795935,
+          "shared_node_ids": [
+            "n-361322342",
+            "n-7010683140"
+          ],
+          "north_edge_ids": [
+            "kemang_cipete-e0268"
+          ],
+          "south_edge_ids": [
+            "cilandak-e0317"
+          ]
+        },
+        {
+          "osm_way_id": 1230703597,
+          "road_name": "Jalan RS Fatmawati",
+          "highway": "primary",
+          "oneway": true,
+          "lat": -6.283321,
+          "lon": 106.795959,
+          "shared_node_ids": [
+            "n-11413425532",
+            "n-361322342"
+          ],
+          "north_edge_ids": [
+            "kemang_cipete-e0251"
+          ],
+          "south_edge_ids": [
+            "cilandak-e0302"
+          ]
+        },
+        {
+          "osm_way_id": 898547119,
+          "road_name": "Jalan RS Fatmawati",
+          "highway": "primary",
+          "oneway": true,
+          "lat": -6.282134,
+          "lon": 106.79614,
+          "shared_node_ids": [
+            "n-356229790",
+            "n-7010683139"
+          ],
+          "north_edge_ids": [
+            "kemang_cipete-e0223",
+            "kemang_cipete-e0224"
+          ],
+          "south_edge_ids": [
+            "cilandak-e0216"
+          ]
+        },
+        {
+          "osm_way_id": 735408829,
+          "road_name": "Jalan Pangeran Antasari",
+          "highway": "primary",
+          "oneway": true,
+          "lat": -6.283369,
+          "lon": 106.807227,
+          "shared_node_ids": [
+            "n-356147529",
+            "n-6702082243"
+          ],
+          "north_edge_ids": [
+            "kemang_cipete-e0138"
+          ],
+          "south_edge_ids": [
+            "cilandak-e0174",
+            "cilandak-e0175",
+            "cilandak-e0176",
+            "cilandak-e0177"
+          ]
+        },
+        {
+          "osm_way_id": 703133276,
+          "road_name": "Jalan Pangeran Antasari",
+          "highway": "primary",
+          "oneway": true,
+          "lat": -6.283369,
+          "lon": 106.807326,
+          "shared_node_ids": [
+            "n-356147522",
+            "n-3658055243"
+          ],
+          "north_edge_ids": [
+            "kemang_cipete-e0136"
+          ],
+          "south_edge_ids": [
+            "cilandak-e0163",
+            "cilandak-e0164",
+            "cilandak-e0165"
+          ]
+        },
+        {
+          "osm_way_id": 18568262,
+          "road_name": "Jalan Sekolah Duta Raya",
+          "highway": "tertiary",
+          "oneway": true,
+          "lat": -6.284284,
+          "lon": 106.787058,
+          "shared_node_ids": [
+            "n-3171606027",
+            "n-360083759"
+          ],
+          "north_edge_ids": [
+            "kemang_cipete-e0001"
+          ],
+          "south_edge_ids": [
+            "cilandak-e0001"
+          ]
+        },
+        {
+          "osm_way_id": 28415937,
+          "road_name": "Jalan Sekolah Duta Raya",
+          "highway": "tertiary",
+          "oneway": true,
+          "lat": -6.284193,
+          "lon": 106.787111,
+          "shared_node_ids": [
+            "n-312149663",
+            "n-312149811"
+          ],
+          "north_edge_ids": [
+            "kemang_cipete-e0006"
+          ],
+          "south_edge_ids": [
+            "cilandak-e0002"
+          ]
+        },
+        {
+          "osm_way_id": 32080503,
+          "road_name": "Jalan Terogong Raya",
+          "highway": "tertiary",
+          "oneway": false,
+          "lat": -6.28471,
+          "lon": 106.787887,
+          "shared_node_ids": [
+            "n-2282149039",
+            "n-360163126",
+            "n-361323536"
+          ],
+          "north_edge_ids": [
+            "kemang_cipete-e0046",
+            "kemang_cipete-e0047",
+            "kemang_cipete-e0048",
+            "kemang_cipete-e0049"
+          ],
+          "south_edge_ids": [
+            "cilandak-e0006",
+            "cilandak-e0007",
+            "cilandak-e0008",
+            "cilandak-e0009"
+          ]
+        },
+        {
+          "osm_way_id": 511977053,
+          "road_name": "Jalan Haji Batong Raya",
+          "highway": "tertiary",
+          "oneway": false,
+          "lat": -6.283366,
+          "lon": 106.79043,
+          "shared_node_ids": [
+            "n-361323536",
+            "n-361323946"
+          ],
+          "north_edge_ids": [
+            "kemang_cipete-e0096",
+            "kemang_cipete-e0097"
+          ],
+          "south_edge_ids": [
+            "cilandak-e0048",
+            "cilandak-e0049"
+          ]
+        },
+        {
+          "osm_way_id": 32201261,
+          "road_name": "Jalan BDN II",
+          "highway": "tertiary",
+          "oneway": false,
+          "lat": -6.279239,
+          "lon": 106.799515,
+          "shared_node_ids": [
+            "n-361119161",
+            "n-361121928"
+          ],
+          "north_edge_ids": [
+            "kemang_cipete-e0061",
+            "kemang_cipete-e0062"
+          ],
+          "south_edge_ids": [
+            "cilandak-e0014",
+            "cilandak-e0015"
+          ]
+        }
+      ]
+    }
+  ],
+  "by_region": {
+    "pluit": {
+      "north": null,
+      "south": {
+        "neighbor_id": "tambora",
+        "neighbor_name": "Tambora – Kota Tua",
+        "shared_osm_way_count": 10,
+        "shared_osm_node_count": 18,
+        "streets": [
+          "Jalan Jembatan Tiga Raya",
+          "Jalan Lodan Raya",
+          "Jalan Gedong Panjang",
+          "Jalan Bakti",
+          "Jalan Tongkol",
+          "Jalan Jembatan Tiga Raya",
+          "Jalan Gedong Panjang",
+          "Jalan Gedong Panjang",
+          "Jalan Gedong Panjang"
+        ],
+        "connectors": [
+          {
+            "osm_way_id": 29336620,
+            "road_name": "Jalan Jembatan Tiga Raya",
+            "highway": "trunk",
+            "oneway": true,
+            "lat": -6.12715,
+            "lon": 106.792288,
+            "shared_node_ids": [
+              "n-2506856534",
+              "n-347199345"
+            ],
+            "north_edge_ids": [
+              "pluit-e0029"
+            ],
+            "south_edge_ids": [
+              "tambora-e0056"
+            ]
+          },
+          {
+            "osm_way_id": 30063496,
+            "road_name": "Jalan Lodan Raya",
+            "highway": "trunk",
+            "oneway": false,
+            "lat": -6.131676,
+            "lon": 106.819447,
+            "shared_node_ids": [
+              "n-331130096",
+              "n-331133161"
+            ],
+            "north_edge_ids": [
+              "pluit-e0033",
+              "pluit-e0034"
+            ],
+            "south_edge_ids": [
+              "tambora-e0059",
+              "tambora-e0060"
+            ]
+          },
+          {
+            "osm_way_id": 107492952,
+            "road_name": "Jalan Gedong Panjang",
+            "highway": "secondary",
+            "oneway": true,
+            "lat": -6.128611,
+            "lon": 106.804836,
+            "shared_node_ids": [
+              "n-6459027079",
+              "n-7119959243"
+            ],
+            "north_edge_ids": [
+              "pluit-e0055"
+            ],
+            "south_edge_ids": [
+              "tambora-e0177"
+            ]
+          },
+          {
+            "osm_way_id": 688686364,
+            "road_name": "Secondary Link #688686364",
+            "highway": "secondary_link",
+            "oneway": true,
+            "lat": -6.128705,
+            "lon": 106.804859,
+            "shared_node_ids": [
+              "n-331163240",
+              "n-6459027077"
+            ],
+            "north_edge_ids": [
+              "pluit-e0220"
+            ],
+            "south_edge_ids": [
+              "tambora-e0557"
+            ]
+          },
+          {
+            "osm_way_id": 529331640,
+            "road_name": "Jalan Bakti",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.127083,
+            "lon": 106.802375,
+            "shared_node_ids": [
+              "n-331163242",
+              "n-9685340822"
+            ],
+            "north_edge_ids": [
+              "pluit-e0139",
+              "pluit-e0140"
+            ],
+            "south_edge_ids": [
+              "tambora-e0440",
+              "tambora-e0441"
+            ]
+          },
+          {
+            "osm_way_id": 528693468,
+            "road_name": "Jalan Tongkol",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.127504,
+            "lon": 106.809945,
+            "shared_node_ids": [
+              "n-331164645",
+              "n-5036305381"
+            ],
+            "north_edge_ids": [
+              "pluit-e0133",
+              "pluit-e0134"
+            ],
+            "south_edge_ids": [
+              "tambora-e0437",
+              "tambora-e0438"
+            ]
+          },
+          {
+            "osm_way_id": 529335127,
+            "road_name": "Jalan Jembatan Tiga Raya",
+            "highway": "trunk",
+            "oneway": true,
+            "lat": -6.130386,
+            "lon": 106.792314,
+            "shared_node_ids": [
+              "n-12128709401",
+              "n-322399077"
+            ],
+            "north_edge_ids": [
+              "pluit-e0141"
+            ],
+            "south_edge_ids": [
+              "tambora-e0442"
+            ]
+          },
+          {
+            "osm_way_id": 688683691,
+            "road_name": "Jalan Gedong Panjang",
+            "highway": "secondary",
+            "oneway": true,
+            "lat": -6.128705,
+            "lon": 106.804859,
+            "shared_node_ids": [
+              "n-331163240",
+              "n-6458995261"
+            ],
+            "north_edge_ids": [
+              "pluit-e0218"
+            ],
+            "south_edge_ids": [
+              "tambora-e0554",
+              "tambora-e0555"
+            ]
+          },
+          {
+            "osm_way_id": 762052398,
+            "road_name": "Jalan Gedong Panjang",
+            "highway": "secondary",
+            "oneway": true,
+            "lat": -6.128664,
+            "lon": 106.80502,
+            "shared_node_ids": [
+              "n-5142172398",
+              "n-7119959244"
+            ],
+            "north_edge_ids": [
+              "pluit-e0261"
+            ],
+            "south_edge_ids": [
+              "tambora-e0690"
+            ]
+          },
+          {
+            "osm_way_id": 688686363,
+            "road_name": "Jalan Gedong Panjang",
+            "highway": "secondary",
+            "oneway": true,
+            "lat": -6.129607,
+            "lon": 106.805272,
+            "shared_node_ids": [
+              "n-4488618364",
+              "n-6459027077"
+            ],
+            "north_edge_ids": [
+              "pluit-e0219"
+            ],
+            "south_edge_ids": [
+              "tambora-e0556"
+            ]
+          }
+        ]
+      }
+    },
+    "tambora": {
+      "north": {
+        "neighbor_id": "pluit",
+        "neighbor_name": "Pluit",
+        "shared_osm_way_count": 10,
+        "shared_osm_node_count": 18,
+        "streets": [
+          "Jalan Jembatan Tiga Raya",
+          "Jalan Lodan Raya",
+          "Jalan Gedong Panjang",
+          "Jalan Bakti",
+          "Jalan Tongkol",
+          "Jalan Jembatan Tiga Raya",
+          "Jalan Gedong Panjang",
+          "Jalan Gedong Panjang",
+          "Jalan Gedong Panjang"
+        ],
+        "connectors": [
+          {
+            "osm_way_id": 29336620,
+            "road_name": "Jalan Jembatan Tiga Raya",
+            "highway": "trunk",
+            "oneway": true,
+            "lat": -6.12715,
+            "lon": 106.792288,
+            "shared_node_ids": [
+              "n-2506856534",
+              "n-347199345"
+            ],
+            "north_edge_ids": [
+              "pluit-e0029"
+            ],
+            "south_edge_ids": [
+              "tambora-e0056"
+            ]
+          },
+          {
+            "osm_way_id": 30063496,
+            "road_name": "Jalan Lodan Raya",
+            "highway": "trunk",
+            "oneway": false,
+            "lat": -6.131676,
+            "lon": 106.819447,
+            "shared_node_ids": [
+              "n-331130096",
+              "n-331133161"
+            ],
+            "north_edge_ids": [
+              "pluit-e0033",
+              "pluit-e0034"
+            ],
+            "south_edge_ids": [
+              "tambora-e0059",
+              "tambora-e0060"
+            ]
+          },
+          {
+            "osm_way_id": 107492952,
+            "road_name": "Jalan Gedong Panjang",
+            "highway": "secondary",
+            "oneway": true,
+            "lat": -6.128611,
+            "lon": 106.804836,
+            "shared_node_ids": [
+              "n-6459027079",
+              "n-7119959243"
+            ],
+            "north_edge_ids": [
+              "pluit-e0055"
+            ],
+            "south_edge_ids": [
+              "tambora-e0177"
+            ]
+          },
+          {
+            "osm_way_id": 688686364,
+            "road_name": "Secondary Link #688686364",
+            "highway": "secondary_link",
+            "oneway": true,
+            "lat": -6.128705,
+            "lon": 106.804859,
+            "shared_node_ids": [
+              "n-331163240",
+              "n-6459027077"
+            ],
+            "north_edge_ids": [
+              "pluit-e0220"
+            ],
+            "south_edge_ids": [
+              "tambora-e0557"
+            ]
+          },
+          {
+            "osm_way_id": 529331640,
+            "road_name": "Jalan Bakti",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.127083,
+            "lon": 106.802375,
+            "shared_node_ids": [
+              "n-331163242",
+              "n-9685340822"
+            ],
+            "north_edge_ids": [
+              "pluit-e0139",
+              "pluit-e0140"
+            ],
+            "south_edge_ids": [
+              "tambora-e0440",
+              "tambora-e0441"
+            ]
+          },
+          {
+            "osm_way_id": 528693468,
+            "road_name": "Jalan Tongkol",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.127504,
+            "lon": 106.809945,
+            "shared_node_ids": [
+              "n-331164645",
+              "n-5036305381"
+            ],
+            "north_edge_ids": [
+              "pluit-e0133",
+              "pluit-e0134"
+            ],
+            "south_edge_ids": [
+              "tambora-e0437",
+              "tambora-e0438"
+            ]
+          },
+          {
+            "osm_way_id": 529335127,
+            "road_name": "Jalan Jembatan Tiga Raya",
+            "highway": "trunk",
+            "oneway": true,
+            "lat": -6.130386,
+            "lon": 106.792314,
+            "shared_node_ids": [
+              "n-12128709401",
+              "n-322399077"
+            ],
+            "north_edge_ids": [
+              "pluit-e0141"
+            ],
+            "south_edge_ids": [
+              "tambora-e0442"
+            ]
+          },
+          {
+            "osm_way_id": 688683691,
+            "road_name": "Jalan Gedong Panjang",
+            "highway": "secondary",
+            "oneway": true,
+            "lat": -6.128705,
+            "lon": 106.804859,
+            "shared_node_ids": [
+              "n-331163240",
+              "n-6458995261"
+            ],
+            "north_edge_ids": [
+              "pluit-e0218"
+            ],
+            "south_edge_ids": [
+              "tambora-e0554",
+              "tambora-e0555"
+            ]
+          },
+          {
+            "osm_way_id": 762052398,
+            "road_name": "Jalan Gedong Panjang",
+            "highway": "secondary",
+            "oneway": true,
+            "lat": -6.128664,
+            "lon": 106.80502,
+            "shared_node_ids": [
+              "n-5142172398",
+              "n-7119959244"
+            ],
+            "north_edge_ids": [
+              "pluit-e0261"
+            ],
+            "south_edge_ids": [
+              "tambora-e0690"
+            ]
+          },
+          {
+            "osm_way_id": 688686363,
+            "road_name": "Jalan Gedong Panjang",
+            "highway": "secondary",
+            "oneway": true,
+            "lat": -6.129607,
+            "lon": 106.805272,
+            "shared_node_ids": [
+              "n-4488618364",
+              "n-6459027077"
+            ],
+            "north_edge_ids": [
+              "pluit-e0219"
+            ],
+            "south_edge_ids": [
+              "tambora-e0556"
+            ]
+          }
+        ]
+      },
+      "south": {
+        "neighbor_id": "tomang_harmoni",
+        "neighbor_name": "Tomang – Harmoni",
+        "shared_osm_way_count": 24,
+        "shared_osm_node_count": 41,
+        "streets": [
+          "Jalan Tol Cawang–Pluit",
+          "Jalan Profesor Dokter Latumeten",
+          "Jalan Gajah Mada",
+          "Jalan Hayam Wuruk",
+          "Jalan Setia Kawan Barat",
+          "Jalan Kyai Haji Mohammad Mansyur",
+          "Jalan Jelambar Jaya III",
+          "Jalan Jelambar Timur",
+          "Jalan Dokter Semeru Raya",
+          "Jalan Jembatan Besi VIII",
+          "Jalan Krendang Barat",
+          "Jalan Duri Utara"
+        ],
+        "connectors": [
+          {
+            "osm_way_id": 413475919,
+            "road_name": "Jalan Tol Cawang–Pluit",
+            "highway": "motorway",
+            "oneway": true,
+            "lat": -6.136767,
+            "lon": 106.786056,
+            "shared_node_ids": [
+              "n-1757817769",
+              "n-1757817897"
+            ],
+            "north_edge_ids": [
+              "tambora-e0238",
+              "tambora-e0239",
+              "tambora-e0240"
+            ],
+            "south_edge_ids": [
+              "tomang_harmoni-e0164",
+              "tomang_harmoni-e0165"
+            ]
+          },
+          {
+            "osm_way_id": 521155520,
+            "road_name": "Jalan Profesor Dokter Latumeten",
+            "highway": "trunk",
+            "oneway": true,
+            "lat": -6.156811,
+            "lon": 106.792704,
+            "shared_node_ids": [
+              "n-316948096",
+              "n-5005176931"
+            ],
+            "north_edge_ids": [
+              "tambora-e0418"
+            ],
+            "south_edge_ids": [
+              "tomang_harmoni-e0294",
+              "tomang_harmoni-e0295"
+            ]
+          },
+          {
+            "osm_way_id": 711236794,
+            "road_name": "Jalan Gajah Mada",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.152961,
+            "lon": 106.817371,
+            "shared_node_ids": [
+              "n-348210237",
+              "n-4642354382"
+            ],
+            "north_edge_ids": [
+              "tambora-e0600"
+            ],
+            "south_edge_ids": [
+              "tomang_harmoni-e0461"
+            ]
+          },
+          {
+            "osm_way_id": 711236795,
+            "road_name": "Jalan Hayam Wuruk",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.152177,
+            "lon": 106.817591,
+            "shared_node_ids": [
+              "n-5377541072",
+              "n-7115091046"
+            ],
+            "north_edge_ids": [
+              "tambora-e0601"
+            ],
+            "south_edge_ids": [
+              "tomang_harmoni-e0462"
+            ]
+          },
+          {
+            "osm_way_id": 679430172,
+            "road_name": "Jalan Setia Kawan Barat",
+            "highway": "secondary",
+            "oneway": true,
+            "lat": -6.153073,
+            "lon": 106.795045,
+            "shared_node_ids": [
+              "n-349030665",
+              "n-6362196464"
+            ],
+            "north_edge_ids": [
+              "tambora-e0536"
+            ],
+            "south_edge_ids": [
+              "tomang_harmoni-e0407"
+            ]
+          },
+          {
+            "osm_way_id": 1150446938,
+            "road_name": "Jalan Kyai Haji Mohammad Mansyur",
+            "highway": "secondary",
+            "oneway": true,
+            "lat": -6.141955,
+            "lon": 106.806624,
+            "shared_node_ids": [
+              "n-12745160800",
+              "n-331166993",
+              "n-349482996"
+            ],
+            "north_edge_ids": [
+              "tambora-e0775",
+              "tambora-e0776",
+              "tambora-e0777",
+              "tambora-e0778"
+            ],
+            "south_edge_ids": [
+              "tomang_harmoni-e0667",
+              "tomang_harmoni-e0668",
+              "tomang_harmoni-e0669",
+              "tomang_harmoni-e0670"
+            ]
+          },
+          {
+            "osm_way_id": 30125237,
+            "road_name": "Jalan Jelambar Jaya III",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.152548,
+            "lon": 106.788543,
+            "shared_node_ids": [
+              "n-331760488",
+              "n-331969720"
+            ],
+            "north_edge_ids": [
+              "tambora-e0104",
+              "tambora-e0105"
+            ],
+            "south_edge_ids": [
+              "tomang_harmoni-e0075",
+              "tomang_harmoni-e0076"
+            ]
+          },
+          {
+            "osm_way_id": 859631153,
+            "road_name": "Jalan Jelambar Timur",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.154039,
+            "lon": 106.793482,
+            "shared_node_ids": [
+              "n-316948124",
+              "n-331760491"
+            ],
+            "north_edge_ids": [
+              "tambora-e0727",
+              "tambora-e0728"
+            ],
+            "south_edge_ids": [
+              "tomang_harmoni-e0620",
+              "tomang_harmoni-e0621"
+            ]
+          },
+          {
+            "osm_way_id": 31338815,
+            "road_name": "Jalan Dokter Semeru Raya",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.158626,
+            "lon": 106.796432,
+            "shared_node_ids": [
+              "n-349008196",
+              "n-349028061"
+            ],
+            "north_edge_ids": [
+              "tambora-e0125",
+              "tambora-e0126"
+            ],
+            "south_edge_ids": [
+              "tomang_harmoni-e0110",
+              "tomang_harmoni-e0111",
+              "tomang_harmoni-e0112",
+              "tomang_harmoni-e0113"
+            ]
+          },
+          {
+            "osm_way_id": 1449604102,
+            "road_name": "Jalan Jembatan Besi VIII",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.15205,
+            "lon": 106.797653,
+            "shared_node_ids": [
+              "n-331167073",
+              "n-331167086"
+            ],
+            "north_edge_ids": [
+              "tambora-e0875",
+              "tambora-e0876"
+            ],
+            "south_edge_ids": [
+              "tomang_harmoni-e0770",
+              "tomang_harmoni-e0771"
+            ]
+          },
+          {
+            "osm_way_id": 720156020,
+            "road_name": "Jalan Krendang Barat",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.15394,
+            "lon": 106.801667,
+            "shared_node_ids": [
+              "n-331166969",
+              "n-331167051"
+            ],
+            "north_edge_ids": [
+              "tambora-e0616",
+              "tambora-e0617"
+            ],
+            "south_edge_ids": [
+              "tomang_harmoni-e0464",
+              "tomang_harmoni-e0465"
+            ]
+          },
+          {
+            "osm_way_id": 761550986,
+            "road_name": "Jalan Duri Utara",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.15394,
+            "lon": 106.801667,
+            "shared_node_ids": [
+              "n-331166969",
+              "n-4863790475"
+            ],
+            "north_edge_ids": [
+              "tambora-e0669",
+              "tambora-e0670"
+            ],
+            "south_edge_ids": [
+              "tomang_harmoni-e0517",
+              "tomang_harmoni-e0518"
+            ]
+          },
+          {
+            "osm_way_id": 732720808,
+            "road_name": "Jalan Krendang Selatan",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.153891,
+            "lon": 106.802738,
+            "shared_node_ids": [
+              "n-331166958",
+              "n-331166969"
+            ],
+            "north_edge_ids": [
+              "tambora-e0626",
+              "tambora-e0627"
+            ],
+            "south_edge_ids": [
+              "tomang_harmoni-e0476",
+              "tomang_harmoni-e0477"
+            ]
+          },
+          {
+            "osm_way_id": 496586416,
+            "road_name": "Jalan Tanah Sereal",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.154021,
+            "lon": 106.810909,
+            "shared_node_ids": [
+              "n-349499720",
+              "n-6332447163"
+            ],
+            "north_edge_ids": [
+              "tambora-e0319",
+              "tambora-e0320"
+            ],
+            "south_edge_ids": [
+              "tomang_harmoni-e0233",
+              "tomang_harmoni-e0234"
+            ]
+          },
+          {
+            "osm_way_id": 413475917,
+            "road_name": "Jalan Tol Cawang–Pluit",
+            "highway": "motorway",
+            "oneway": true,
+            "lat": -6.148885,
+            "lon": 106.792013,
+            "shared_node_ids": [
+              "n-1757817715",
+              "n-1757817984"
+            ],
+            "north_edge_ids": [
+              "tambora-e0237"
+            ],
+            "south_edge_ids": [
+              "tomang_harmoni-e0161",
+              "tomang_harmoni-e0162"
+            ]
+          },
+          {
+            "osm_way_id": 1288673262,
+            "road_name": "Jalan Profesor Dokter Latumeten",
+            "highway": "trunk",
+            "oneway": true,
+            "lat": -6.154039,
+            "lon": 106.793482,
+            "shared_node_ids": [
+              "n-316948124",
+              "n-6445764689"
+            ],
+            "north_edge_ids": [
+              "tambora-e0833"
+            ],
+            "south_edge_ids": [
+              "tomang_harmoni-e0711"
+            ]
+          },
+          {
+            "osm_way_id": 535110623,
+            "road_name": "Jalan Profesor Dokter Latumeten",
+            "highway": "trunk",
+            "oneway": true,
+            "lat": -6.153492,
+            "lon": 106.794249,
+            "shared_node_ids": [
+              "n-4963294078",
+              "n-6445764689"
+            ],
+            "north_edge_ids": [
+              "tambora-e0448"
+            ],
+            "south_edge_ids": [
+              "tomang_harmoni-e0310"
+            ]
+          },
+          {
+            "osm_way_id": 1288673265,
+            "road_name": "Jalan Profesor Dokter Latumeten",
+            "highway": "trunk",
+            "oneway": true,
+            "lat": -6.153673,
+            "lon": 106.794289,
+            "shared_node_ids": [
+              "n-349028061",
+              "n-4147997289",
+              "n-5005176931"
+            ],
+            "north_edge_ids": [
+              "tambora-e0836",
+              "tambora-e0837"
+            ],
+            "south_edge_ids": [
+              "tomang_harmoni-e0712",
+              "tomang_harmoni-e0713"
+            ]
+          }
+        ]
+      }
+    },
+    "tomang_harmoni": {
+      "north": {
+        "neighbor_id": "tambora",
+        "neighbor_name": "Tambora – Kota Tua",
+        "shared_osm_way_count": 24,
+        "shared_osm_node_count": 41,
+        "streets": [
+          "Jalan Tol Cawang–Pluit",
+          "Jalan Profesor Dokter Latumeten",
+          "Jalan Gajah Mada",
+          "Jalan Hayam Wuruk",
+          "Jalan Setia Kawan Barat",
+          "Jalan Kyai Haji Mohammad Mansyur",
+          "Jalan Jelambar Jaya III",
+          "Jalan Jelambar Timur",
+          "Jalan Dokter Semeru Raya",
+          "Jalan Jembatan Besi VIII",
+          "Jalan Krendang Barat",
+          "Jalan Duri Utara"
+        ],
+        "connectors": [
+          {
+            "osm_way_id": 413475919,
+            "road_name": "Jalan Tol Cawang–Pluit",
+            "highway": "motorway",
+            "oneway": true,
+            "lat": -6.136767,
+            "lon": 106.786056,
+            "shared_node_ids": [
+              "n-1757817769",
+              "n-1757817897"
+            ],
+            "north_edge_ids": [
+              "tambora-e0238",
+              "tambora-e0239",
+              "tambora-e0240"
+            ],
+            "south_edge_ids": [
+              "tomang_harmoni-e0164",
+              "tomang_harmoni-e0165"
+            ]
+          },
+          {
+            "osm_way_id": 521155520,
+            "road_name": "Jalan Profesor Dokter Latumeten",
+            "highway": "trunk",
+            "oneway": true,
+            "lat": -6.156811,
+            "lon": 106.792704,
+            "shared_node_ids": [
+              "n-316948096",
+              "n-5005176931"
+            ],
+            "north_edge_ids": [
+              "tambora-e0418"
+            ],
+            "south_edge_ids": [
+              "tomang_harmoni-e0294",
+              "tomang_harmoni-e0295"
+            ]
+          },
+          {
+            "osm_way_id": 711236794,
+            "road_name": "Jalan Gajah Mada",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.152961,
+            "lon": 106.817371,
+            "shared_node_ids": [
+              "n-348210237",
+              "n-4642354382"
+            ],
+            "north_edge_ids": [
+              "tambora-e0600"
+            ],
+            "south_edge_ids": [
+              "tomang_harmoni-e0461"
+            ]
+          },
+          {
+            "osm_way_id": 711236795,
+            "road_name": "Jalan Hayam Wuruk",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.152177,
+            "lon": 106.817591,
+            "shared_node_ids": [
+              "n-5377541072",
+              "n-7115091046"
+            ],
+            "north_edge_ids": [
+              "tambora-e0601"
+            ],
+            "south_edge_ids": [
+              "tomang_harmoni-e0462"
+            ]
+          },
+          {
+            "osm_way_id": 679430172,
+            "road_name": "Jalan Setia Kawan Barat",
+            "highway": "secondary",
+            "oneway": true,
+            "lat": -6.153073,
+            "lon": 106.795045,
+            "shared_node_ids": [
+              "n-349030665",
+              "n-6362196464"
+            ],
+            "north_edge_ids": [
+              "tambora-e0536"
+            ],
+            "south_edge_ids": [
+              "tomang_harmoni-e0407"
+            ]
+          },
+          {
+            "osm_way_id": 1150446938,
+            "road_name": "Jalan Kyai Haji Mohammad Mansyur",
+            "highway": "secondary",
+            "oneway": true,
+            "lat": -6.141955,
+            "lon": 106.806624,
+            "shared_node_ids": [
+              "n-12745160800",
+              "n-331166993",
+              "n-349482996"
+            ],
+            "north_edge_ids": [
+              "tambora-e0775",
+              "tambora-e0776",
+              "tambora-e0777",
+              "tambora-e0778"
+            ],
+            "south_edge_ids": [
+              "tomang_harmoni-e0667",
+              "tomang_harmoni-e0668",
+              "tomang_harmoni-e0669",
+              "tomang_harmoni-e0670"
+            ]
+          },
+          {
+            "osm_way_id": 30125237,
+            "road_name": "Jalan Jelambar Jaya III",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.152548,
+            "lon": 106.788543,
+            "shared_node_ids": [
+              "n-331760488",
+              "n-331969720"
+            ],
+            "north_edge_ids": [
+              "tambora-e0104",
+              "tambora-e0105"
+            ],
+            "south_edge_ids": [
+              "tomang_harmoni-e0075",
+              "tomang_harmoni-e0076"
+            ]
+          },
+          {
+            "osm_way_id": 859631153,
+            "road_name": "Jalan Jelambar Timur",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.154039,
+            "lon": 106.793482,
+            "shared_node_ids": [
+              "n-316948124",
+              "n-331760491"
+            ],
+            "north_edge_ids": [
+              "tambora-e0727",
+              "tambora-e0728"
+            ],
+            "south_edge_ids": [
+              "tomang_harmoni-e0620",
+              "tomang_harmoni-e0621"
+            ]
+          },
+          {
+            "osm_way_id": 31338815,
+            "road_name": "Jalan Dokter Semeru Raya",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.158626,
+            "lon": 106.796432,
+            "shared_node_ids": [
+              "n-349008196",
+              "n-349028061"
+            ],
+            "north_edge_ids": [
+              "tambora-e0125",
+              "tambora-e0126"
+            ],
+            "south_edge_ids": [
+              "tomang_harmoni-e0110",
+              "tomang_harmoni-e0111",
+              "tomang_harmoni-e0112",
+              "tomang_harmoni-e0113"
+            ]
+          },
+          {
+            "osm_way_id": 1449604102,
+            "road_name": "Jalan Jembatan Besi VIII",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.15205,
+            "lon": 106.797653,
+            "shared_node_ids": [
+              "n-331167073",
+              "n-331167086"
+            ],
+            "north_edge_ids": [
+              "tambora-e0875",
+              "tambora-e0876"
+            ],
+            "south_edge_ids": [
+              "tomang_harmoni-e0770",
+              "tomang_harmoni-e0771"
+            ]
+          },
+          {
+            "osm_way_id": 720156020,
+            "road_name": "Jalan Krendang Barat",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.15394,
+            "lon": 106.801667,
+            "shared_node_ids": [
+              "n-331166969",
+              "n-331167051"
+            ],
+            "north_edge_ids": [
+              "tambora-e0616",
+              "tambora-e0617"
+            ],
+            "south_edge_ids": [
+              "tomang_harmoni-e0464",
+              "tomang_harmoni-e0465"
+            ]
+          },
+          {
+            "osm_way_id": 761550986,
+            "road_name": "Jalan Duri Utara",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.15394,
+            "lon": 106.801667,
+            "shared_node_ids": [
+              "n-331166969",
+              "n-4863790475"
+            ],
+            "north_edge_ids": [
+              "tambora-e0669",
+              "tambora-e0670"
+            ],
+            "south_edge_ids": [
+              "tomang_harmoni-e0517",
+              "tomang_harmoni-e0518"
+            ]
+          },
+          {
+            "osm_way_id": 732720808,
+            "road_name": "Jalan Krendang Selatan",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.153891,
+            "lon": 106.802738,
+            "shared_node_ids": [
+              "n-331166958",
+              "n-331166969"
+            ],
+            "north_edge_ids": [
+              "tambora-e0626",
+              "tambora-e0627"
+            ],
+            "south_edge_ids": [
+              "tomang_harmoni-e0476",
+              "tomang_harmoni-e0477"
+            ]
+          },
+          {
+            "osm_way_id": 496586416,
+            "road_name": "Jalan Tanah Sereal",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.154021,
+            "lon": 106.810909,
+            "shared_node_ids": [
+              "n-349499720",
+              "n-6332447163"
+            ],
+            "north_edge_ids": [
+              "tambora-e0319",
+              "tambora-e0320"
+            ],
+            "south_edge_ids": [
+              "tomang_harmoni-e0233",
+              "tomang_harmoni-e0234"
+            ]
+          },
+          {
+            "osm_way_id": 413475917,
+            "road_name": "Jalan Tol Cawang–Pluit",
+            "highway": "motorway",
+            "oneway": true,
+            "lat": -6.148885,
+            "lon": 106.792013,
+            "shared_node_ids": [
+              "n-1757817715",
+              "n-1757817984"
+            ],
+            "north_edge_ids": [
+              "tambora-e0237"
+            ],
+            "south_edge_ids": [
+              "tomang_harmoni-e0161",
+              "tomang_harmoni-e0162"
+            ]
+          },
+          {
+            "osm_way_id": 1288673262,
+            "road_name": "Jalan Profesor Dokter Latumeten",
+            "highway": "trunk",
+            "oneway": true,
+            "lat": -6.154039,
+            "lon": 106.793482,
+            "shared_node_ids": [
+              "n-316948124",
+              "n-6445764689"
+            ],
+            "north_edge_ids": [
+              "tambora-e0833"
+            ],
+            "south_edge_ids": [
+              "tomang_harmoni-e0711"
+            ]
+          },
+          {
+            "osm_way_id": 535110623,
+            "road_name": "Jalan Profesor Dokter Latumeten",
+            "highway": "trunk",
+            "oneway": true,
+            "lat": -6.153492,
+            "lon": 106.794249,
+            "shared_node_ids": [
+              "n-4963294078",
+              "n-6445764689"
+            ],
+            "north_edge_ids": [
+              "tambora-e0448"
+            ],
+            "south_edge_ids": [
+              "tomang_harmoni-e0310"
+            ]
+          },
+          {
+            "osm_way_id": 1288673265,
+            "road_name": "Jalan Profesor Dokter Latumeten",
+            "highway": "trunk",
+            "oneway": true,
+            "lat": -6.153673,
+            "lon": 106.794289,
+            "shared_node_ids": [
+              "n-349028061",
+              "n-4147997289",
+              "n-5005176931"
+            ],
+            "north_edge_ids": [
+              "tambora-e0836",
+              "tambora-e0837"
+            ],
+            "south_edge_ids": [
+              "tomang_harmoni-e0712",
+              "tomang_harmoni-e0713"
+            ]
+          }
+        ]
+      },
+      "south": {
+        "neighbor_id": "tanah_abang",
+        "neighbor_name": "Tanah Abang",
+        "shared_osm_way_count": 7,
+        "shared_osm_node_count": 16,
+        "streets": [
+          "Jalan Cideng Timur",
+          "Jalan Cideng Barat",
+          "Jalan Medan Merdeka Barat",
+          "Jalan Abdul Muis",
+          "Jalan Citarum",
+          "Jalan Medan Merdeka Barat"
+        ],
+        "connectors": [
+          {
+            "osm_way_id": 452354253,
+            "road_name": "Jalan Cideng Timur",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.17561,
+            "lon": 106.812143,
+            "shared_node_ids": [
+              "n-310007476",
+              "n-315560209",
+              "n-6315576407"
+            ],
+            "north_edge_ids": [
+              "tomang_harmoni-e0184",
+              "tomang_harmoni-e0185"
+            ],
+            "south_edge_ids": [
+              "tanah_abang-e0105",
+              "tanah_abang-e0106"
+            ]
+          },
+          {
+            "osm_way_id": 28926405,
+            "road_name": "Jalan Cideng Barat",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.178431,
+            "lon": 106.812593,
+            "shared_node_ids": [
+              "n-104342869",
+              "n-4845255983",
+              "n-7150700560"
+            ],
+            "north_edge_ids": [
+              "tomang_harmoni-e0051",
+              "tomang_harmoni-e0052"
+            ],
+            "south_edge_ids": [
+              "tanah_abang-e0035",
+              "tanah_abang-e0036"
+            ]
+          },
+          {
+            "osm_way_id": 674366439,
+            "road_name": "Primary Link #674366439",
+            "highway": "primary_link",
+            "oneway": true,
+            "lat": -6.178377,
+            "lon": 106.812809,
+            "shared_node_ids": [
+              "n-7229377488",
+              "n-7229377489"
+            ],
+            "north_edge_ids": [
+              "tomang_harmoni-e0385"
+            ],
+            "south_edge_ids": [
+              "tanah_abang-e0219"
+            ]
+          },
+          {
+            "osm_way_id": 453455941,
+            "road_name": "Jalan Medan Merdeka Barat",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.175412,
+            "lon": 106.822743,
+            "shared_node_ids": [
+              "n-315706059",
+              "n-4501883427"
+            ],
+            "north_edge_ids": [
+              "tomang_harmoni-e0193"
+            ],
+            "south_edge_ids": [
+              "tanah_abang-e0117"
+            ]
+          },
+          {
+            "osm_way_id": 11669819,
+            "road_name": "Jalan Abdul Muis",
+            "highway": "secondary",
+            "oneway": false,
+            "lat": -6.179245,
+            "lon": 106.818378,
+            "shared_node_ids": [
+              "n-6131883042",
+              "n-9582481747"
+            ],
+            "north_edge_ids": [
+              "tomang_harmoni-e0001",
+              "tomang_harmoni-e0002"
+            ],
+            "south_edge_ids": [
+              "tanah_abang-e0001",
+              "tanah_abang-e0002"
+            ]
+          },
+          {
+            "osm_way_id": 28932371,
+            "road_name": "Jalan Citarum",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.177379,
+            "lon": 106.808945,
+            "shared_node_ids": [
+              "n-318076680",
+              "n-7207423955"
+            ],
+            "north_edge_ids": [
+              "tomang_harmoni-e0062",
+              "tomang_harmoni-e0063"
+            ],
+            "south_edge_ids": [
+              "tanah_abang-e0037",
+              "tanah_abang-e0038"
+            ]
+          },
+          {
+            "osm_way_id": 755079400,
+            "road_name": "Jalan Medan Merdeka Barat",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.174627,
+            "lon": 106.82309,
+            "shared_node_ids": [
+              "n-4464981172",
+              "n-4464981231"
+            ],
+            "north_edge_ids": [
+              "tomang_harmoni-e0501"
+            ],
+            "south_edge_ids": [
+              "tanah_abang-e0258"
+            ]
+          }
+        ]
+      }
+    },
+    "tanah_abang": {
+      "north": {
+        "neighbor_id": "tomang_harmoni",
+        "neighbor_name": "Tomang – Harmoni",
+        "shared_osm_way_count": 7,
+        "shared_osm_node_count": 16,
+        "streets": [
+          "Jalan Cideng Timur",
+          "Jalan Cideng Barat",
+          "Jalan Medan Merdeka Barat",
+          "Jalan Abdul Muis",
+          "Jalan Citarum",
+          "Jalan Medan Merdeka Barat"
+        ],
+        "connectors": [
+          {
+            "osm_way_id": 452354253,
+            "road_name": "Jalan Cideng Timur",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.17561,
+            "lon": 106.812143,
+            "shared_node_ids": [
+              "n-310007476",
+              "n-315560209",
+              "n-6315576407"
+            ],
+            "north_edge_ids": [
+              "tomang_harmoni-e0184",
+              "tomang_harmoni-e0185"
+            ],
+            "south_edge_ids": [
+              "tanah_abang-e0105",
+              "tanah_abang-e0106"
+            ]
+          },
+          {
+            "osm_way_id": 28926405,
+            "road_name": "Jalan Cideng Barat",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.178431,
+            "lon": 106.812593,
+            "shared_node_ids": [
+              "n-104342869",
+              "n-4845255983",
+              "n-7150700560"
+            ],
+            "north_edge_ids": [
+              "tomang_harmoni-e0051",
+              "tomang_harmoni-e0052"
+            ],
+            "south_edge_ids": [
+              "tanah_abang-e0035",
+              "tanah_abang-e0036"
+            ]
+          },
+          {
+            "osm_way_id": 674366439,
+            "road_name": "Primary Link #674366439",
+            "highway": "primary_link",
+            "oneway": true,
+            "lat": -6.178377,
+            "lon": 106.812809,
+            "shared_node_ids": [
+              "n-7229377488",
+              "n-7229377489"
+            ],
+            "north_edge_ids": [
+              "tomang_harmoni-e0385"
+            ],
+            "south_edge_ids": [
+              "tanah_abang-e0219"
+            ]
+          },
+          {
+            "osm_way_id": 453455941,
+            "road_name": "Jalan Medan Merdeka Barat",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.175412,
+            "lon": 106.822743,
+            "shared_node_ids": [
+              "n-315706059",
+              "n-4501883427"
+            ],
+            "north_edge_ids": [
+              "tomang_harmoni-e0193"
+            ],
+            "south_edge_ids": [
+              "tanah_abang-e0117"
+            ]
+          },
+          {
+            "osm_way_id": 11669819,
+            "road_name": "Jalan Abdul Muis",
+            "highway": "secondary",
+            "oneway": false,
+            "lat": -6.179245,
+            "lon": 106.818378,
+            "shared_node_ids": [
+              "n-6131883042",
+              "n-9582481747"
+            ],
+            "north_edge_ids": [
+              "tomang_harmoni-e0001",
+              "tomang_harmoni-e0002"
+            ],
+            "south_edge_ids": [
+              "tanah_abang-e0001",
+              "tanah_abang-e0002"
+            ]
+          },
+          {
+            "osm_way_id": 28932371,
+            "road_name": "Jalan Citarum",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.177379,
+            "lon": 106.808945,
+            "shared_node_ids": [
+              "n-318076680",
+              "n-7207423955"
+            ],
+            "north_edge_ids": [
+              "tomang_harmoni-e0062",
+              "tomang_harmoni-e0063"
+            ],
+            "south_edge_ids": [
+              "tanah_abang-e0037",
+              "tanah_abang-e0038"
+            ]
+          },
+          {
+            "osm_way_id": 755079400,
+            "road_name": "Jalan Medan Merdeka Barat",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.174627,
+            "lon": 106.82309,
+            "shared_node_ids": [
+              "n-4464981172",
+              "n-4464981231"
+            ],
+            "north_edge_ids": [
+              "tomang_harmoni-e0501"
+            ],
+            "south_edge_ids": [
+              "tanah_abang-e0258"
+            ]
+          }
+        ]
+      },
+      "south": {
+        "neighbor_id": "sudirman_senayan",
+        "neighbor_name": "Sudirman – Senayan",
+        "shared_osm_way_count": 13,
+        "shared_osm_node_count": 23,
+        "streets": [
+          "Jalan Aipda Karel Satsuit Tubun",
+          "Jalan Kyai Haji Mas Mansyur",
+          "Jalan Jenderal Sudirman",
+          "Jalan Teluk Betung",
+          "Jalan Pamekasan",
+          "Jalan Aipda Karel Satsuit Tubun",
+          "Jalan Kyai Haji Mas Mansyur",
+          "Jalan Jenderal Sudirman",
+          "Jalan Jenderal Sudirman",
+          "Jalan Teluk Betung",
+          "Jalan Teluk Betung",
+          "Jalan Teluk Betung"
+        ],
+        "connectors": [
+          {
+            "osm_way_id": 306792306,
+            "road_name": "Jalan Aipda Karel Satsuit Tubun",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.200631,
+            "lon": 106.799847,
+            "shared_node_ids": [
+              "n-193621912",
+              "n-7119846450"
+            ],
+            "north_edge_ids": [
+              "tanah_abang-e0051",
+              "tanah_abang-e0052",
+              "tanah_abang-e0053"
+            ],
+            "south_edge_ids": [
+              "sudirman_senayan-e0163"
+            ]
+          },
+          {
+            "osm_way_id": 688539431,
+            "road_name": "Jalan Kyai Haji Mas Mansyur",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.198049,
+            "lon": 106.814288,
+            "shared_node_ids": [
+              "n-104342900",
+              "n-1363215182"
+            ],
+            "north_edge_ids": [
+              "tanah_abang-e0229"
+            ],
+            "south_edge_ids": [
+              "sudirman_senayan-e0539"
+            ]
+          },
+          {
+            "osm_way_id": 449551295,
+            "road_name": "Jalan Jenderal Sudirman",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.197462,
+            "lon": 106.823028,
+            "shared_node_ids": [
+              "n-11739825476",
+              "n-4464981824"
+            ],
+            "north_edge_ids": [
+              "tanah_abang-e0080"
+            ],
+            "south_edge_ids": [
+              "sudirman_senayan-e0184"
+            ]
+          },
+          {
+            "osm_way_id": 512201374,
+            "road_name": "Jalan Teluk Betung",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.197404,
+            "lon": 106.822577,
+            "shared_node_ids": [
+              "n-2138723937",
+              "n-4494182604"
+            ],
+            "north_edge_ids": [
+              "tanah_abang-e0164",
+              "tanah_abang-e0165"
+            ],
+            "south_edge_ids": [
+              "sudirman_senayan-e0286",
+              "sudirman_senayan-e0287"
+            ]
+          },
+          {
+            "osm_way_id": 654447206,
+            "road_name": "Jalan Pamekasan",
+            "highway": "tertiary",
+            "oneway": true,
+            "lat": -6.197647,
+            "lon": 106.823405,
+            "shared_node_ids": [
+              "n-10043624583",
+              "n-309668841"
+            ],
+            "north_edge_ids": [
+              "tanah_abang-e0214"
+            ],
+            "south_edge_ids": [
+              "sudirman_senayan-e0502"
+            ]
+          },
+          {
+            "osm_way_id": 496838338,
+            "road_name": "Jalan Aipda Karel Satsuit Tubun",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.195571,
+            "lon": 106.805155,
+            "shared_node_ids": [
+              "n-4885029740",
+              "n-6331388419"
+            ],
+            "north_edge_ids": [
+              "tanah_abang-e0148",
+              "tanah_abang-e0149"
+            ],
+            "south_edge_ids": [
+              "sudirman_senayan-e0256"
+            ]
+          },
+          {
+            "osm_way_id": 508304349,
+            "road_name": "Jalan Kyai Haji Mas Mansyur",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.193544,
+            "lon": 106.814584,
+            "shared_node_ids": [
+              "n-309906876",
+              "n-6409680650"
+            ],
+            "north_edge_ids": [
+              "tanah_abang-e0162"
+            ],
+            "south_edge_ids": [
+              "sudirman_senayan-e0285"
+            ]
+          },
+          {
+            "osm_way_id": 1263586498,
+            "road_name": "Jalan Jenderal Sudirman",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.197462,
+            "lon": 106.823028,
+            "shared_node_ids": [
+              "n-11739825476",
+              "n-186790035"
+            ],
+            "north_edge_ids": [
+              "tanah_abang-e0372"
+            ],
+            "south_edge_ids": [
+              "sudirman_senayan-e0845"
+            ]
+          },
+          {
+            "osm_way_id": 449551306,
+            "road_name": "Jalan Jenderal Sudirman",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.198624,
+            "lon": 106.823265,
+            "shared_node_ids": [
+              "n-5307668386",
+              "n-8487621941",
+              "n-8487621943"
+            ],
+            "north_edge_ids": [
+              "tanah_abang-e0084",
+              "tanah_abang-e0085"
+            ],
+            "south_edge_ids": [
+              "sudirman_senayan-e0187",
+              "sudirman_senayan-e0188"
+            ]
+          },
+          {
+            "osm_way_id": 761543188,
+            "road_name": "Jalan Teluk Betung",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.197565,
+            "lon": 106.822728,
+            "shared_node_ids": [
+              "n-186789741",
+              "n-2138723937"
+            ],
+            "north_edge_ids": [
+              "tanah_abang-e0268",
+              "tanah_abang-e0269"
+            ],
+            "south_edge_ids": [
+              "sudirman_senayan-e0684",
+              "sudirman_senayan-e0685"
+            ]
+          },
+          {
+            "osm_way_id": 526737276,
+            "road_name": "Jalan Teluk Betung",
+            "highway": "tertiary",
+            "oneway": true,
+            "lat": -6.197415,
+            "lon": 106.822986,
+            "shared_node_ids": [
+              "n-10073506120",
+              "n-4464981826"
+            ],
+            "north_edge_ids": [
+              "tanah_abang-e0170"
+            ],
+            "south_edge_ids": [
+              "sudirman_senayan-e0311"
+            ]
+          },
+          {
+            "osm_way_id": 1376627595,
+            "road_name": "Jalan Teluk Betung",
+            "highway": "tertiary",
+            "oneway": true,
+            "lat": -6.197415,
+            "lon": 106.822986,
+            "shared_node_ids": [
+              "n-10073506120",
+              "n-11248283767"
+            ],
+            "north_edge_ids": [
+              "tanah_abang-e0388"
+            ],
+            "south_edge_ids": [
+              "sudirman_senayan-e0903"
+            ]
+          },
+          {
+            "osm_way_id": 761559698,
+            "road_name": "Jalan Pamekasan",
+            "highway": "tertiary",
+            "oneway": true,
+            "lat": -6.197191,
+            "lon": 106.823872,
+            "shared_node_ids": [
+              "n-309668841",
+              "n-6888474329"
+            ],
+            "north_edge_ids": [
+              "tanah_abang-e0270"
+            ],
+            "south_edge_ids": [
+              "sudirman_senayan-e0686"
+            ]
+          }
+        ]
+      }
+    },
+    "sudirman_senayan": {
+      "north": {
+        "neighbor_id": "tanah_abang",
+        "neighbor_name": "Tanah Abang",
+        "shared_osm_way_count": 13,
+        "shared_osm_node_count": 23,
+        "streets": [
+          "Jalan Aipda Karel Satsuit Tubun",
+          "Jalan Kyai Haji Mas Mansyur",
+          "Jalan Jenderal Sudirman",
+          "Jalan Teluk Betung",
+          "Jalan Pamekasan",
+          "Jalan Aipda Karel Satsuit Tubun",
+          "Jalan Kyai Haji Mas Mansyur",
+          "Jalan Jenderal Sudirman",
+          "Jalan Jenderal Sudirman",
+          "Jalan Teluk Betung",
+          "Jalan Teluk Betung",
+          "Jalan Teluk Betung"
+        ],
+        "connectors": [
+          {
+            "osm_way_id": 306792306,
+            "road_name": "Jalan Aipda Karel Satsuit Tubun",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.200631,
+            "lon": 106.799847,
+            "shared_node_ids": [
+              "n-193621912",
+              "n-7119846450"
+            ],
+            "north_edge_ids": [
+              "tanah_abang-e0051",
+              "tanah_abang-e0052",
+              "tanah_abang-e0053"
+            ],
+            "south_edge_ids": [
+              "sudirman_senayan-e0163"
+            ]
+          },
+          {
+            "osm_way_id": 688539431,
+            "road_name": "Jalan Kyai Haji Mas Mansyur",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.198049,
+            "lon": 106.814288,
+            "shared_node_ids": [
+              "n-104342900",
+              "n-1363215182"
+            ],
+            "north_edge_ids": [
+              "tanah_abang-e0229"
+            ],
+            "south_edge_ids": [
+              "sudirman_senayan-e0539"
+            ]
+          },
+          {
+            "osm_way_id": 449551295,
+            "road_name": "Jalan Jenderal Sudirman",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.197462,
+            "lon": 106.823028,
+            "shared_node_ids": [
+              "n-11739825476",
+              "n-4464981824"
+            ],
+            "north_edge_ids": [
+              "tanah_abang-e0080"
+            ],
+            "south_edge_ids": [
+              "sudirman_senayan-e0184"
+            ]
+          },
+          {
+            "osm_way_id": 512201374,
+            "road_name": "Jalan Teluk Betung",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.197404,
+            "lon": 106.822577,
+            "shared_node_ids": [
+              "n-2138723937",
+              "n-4494182604"
+            ],
+            "north_edge_ids": [
+              "tanah_abang-e0164",
+              "tanah_abang-e0165"
+            ],
+            "south_edge_ids": [
+              "sudirman_senayan-e0286",
+              "sudirman_senayan-e0287"
+            ]
+          },
+          {
+            "osm_way_id": 654447206,
+            "road_name": "Jalan Pamekasan",
+            "highway": "tertiary",
+            "oneway": true,
+            "lat": -6.197647,
+            "lon": 106.823405,
+            "shared_node_ids": [
+              "n-10043624583",
+              "n-309668841"
+            ],
+            "north_edge_ids": [
+              "tanah_abang-e0214"
+            ],
+            "south_edge_ids": [
+              "sudirman_senayan-e0502"
+            ]
+          },
+          {
+            "osm_way_id": 496838338,
+            "road_name": "Jalan Aipda Karel Satsuit Tubun",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.195571,
+            "lon": 106.805155,
+            "shared_node_ids": [
+              "n-4885029740",
+              "n-6331388419"
+            ],
+            "north_edge_ids": [
+              "tanah_abang-e0148",
+              "tanah_abang-e0149"
+            ],
+            "south_edge_ids": [
+              "sudirman_senayan-e0256"
+            ]
+          },
+          {
+            "osm_way_id": 508304349,
+            "road_name": "Jalan Kyai Haji Mas Mansyur",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.193544,
+            "lon": 106.814584,
+            "shared_node_ids": [
+              "n-309906876",
+              "n-6409680650"
+            ],
+            "north_edge_ids": [
+              "tanah_abang-e0162"
+            ],
+            "south_edge_ids": [
+              "sudirman_senayan-e0285"
+            ]
+          },
+          {
+            "osm_way_id": 1263586498,
+            "road_name": "Jalan Jenderal Sudirman",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.197462,
+            "lon": 106.823028,
+            "shared_node_ids": [
+              "n-11739825476",
+              "n-186790035"
+            ],
+            "north_edge_ids": [
+              "tanah_abang-e0372"
+            ],
+            "south_edge_ids": [
+              "sudirman_senayan-e0845"
+            ]
+          },
+          {
+            "osm_way_id": 449551306,
+            "road_name": "Jalan Jenderal Sudirman",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.198624,
+            "lon": 106.823265,
+            "shared_node_ids": [
+              "n-5307668386",
+              "n-8487621941",
+              "n-8487621943"
+            ],
+            "north_edge_ids": [
+              "tanah_abang-e0084",
+              "tanah_abang-e0085"
+            ],
+            "south_edge_ids": [
+              "sudirman_senayan-e0187",
+              "sudirman_senayan-e0188"
+            ]
+          },
+          {
+            "osm_way_id": 761543188,
+            "road_name": "Jalan Teluk Betung",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.197565,
+            "lon": 106.822728,
+            "shared_node_ids": [
+              "n-186789741",
+              "n-2138723937"
+            ],
+            "north_edge_ids": [
+              "tanah_abang-e0268",
+              "tanah_abang-e0269"
+            ],
+            "south_edge_ids": [
+              "sudirman_senayan-e0684",
+              "sudirman_senayan-e0685"
+            ]
+          },
+          {
+            "osm_way_id": 526737276,
+            "road_name": "Jalan Teluk Betung",
+            "highway": "tertiary",
+            "oneway": true,
+            "lat": -6.197415,
+            "lon": 106.822986,
+            "shared_node_ids": [
+              "n-10073506120",
+              "n-4464981826"
+            ],
+            "north_edge_ids": [
+              "tanah_abang-e0170"
+            ],
+            "south_edge_ids": [
+              "sudirman_senayan-e0311"
+            ]
+          },
+          {
+            "osm_way_id": 1376627595,
+            "road_name": "Jalan Teluk Betung",
+            "highway": "tertiary",
+            "oneway": true,
+            "lat": -6.197415,
+            "lon": 106.822986,
+            "shared_node_ids": [
+              "n-10073506120",
+              "n-11248283767"
+            ],
+            "north_edge_ids": [
+              "tanah_abang-e0388"
+            ],
+            "south_edge_ids": [
+              "sudirman_senayan-e0903"
+            ]
+          },
+          {
+            "osm_way_id": 761559698,
+            "road_name": "Jalan Pamekasan",
+            "highway": "tertiary",
+            "oneway": true,
+            "lat": -6.197191,
+            "lon": 106.823872,
+            "shared_node_ids": [
+              "n-309668841",
+              "n-6888474329"
+            ],
+            "north_edge_ids": [
+              "tanah_abang-e0270"
+            ],
+            "south_edge_ids": [
+              "sudirman_senayan-e0686"
+            ]
+          }
+        ]
+      },
+      "south": {
+        "neighbor_id": "kebayoran_baru",
+        "neighbor_name": "Kebayoran Baru",
+        "shared_osm_way_count": 40,
+        "shared_osm_node_count": 57,
+        "streets": [
+          "Jalan Tol Cawang–Pluit",
+          "Jalan Jenderal Gatot Subroto",
+          "Jalan Asia Afrika",
+          "Jalan Jenderal Sudirman",
+          "Sudirman Central Business District Eastway",
+          "Sudirman Central Business District Northway",
+          "Sudirman Central Business District Southway",
+          "Sudirman Central Business District Westway",
+          "Jalan Widya Chandra V"
+        ],
+        "connectors": [
+          {
+            "osm_way_id": 562407889,
+            "road_name": "Jalan Tol Cawang–Pluit",
+            "highway": "motorway",
+            "oneway": true,
+            "lat": -6.224617,
+            "lon": 106.815873,
+            "shared_node_ids": [
+              "n-11307159647",
+              "n-5421926686"
+            ],
+            "north_edge_ids": [
+              "sudirman_senayan-e0373"
+            ],
+            "south_edge_ids": [
+              "kebayoran_baru-e0360"
+            ]
+          },
+          {
+            "osm_way_id": 484500591,
+            "road_name": "Jalan Jenderal Gatot Subroto",
+            "highway": "trunk",
+            "oneway": true,
+            "lat": -6.224759,
+            "lon": 106.815776,
+            "shared_node_ids": [
+              "n-4556726574",
+              "n-4556785172"
+            ],
+            "north_edge_ids": [
+              "sudirman_senayan-e0223"
+            ],
+            "south_edge_ids": [
+              "kebayoran_baru-e0272"
+            ]
+          },
+          {
+            "osm_way_id": 657450393,
+            "road_name": "Jalan Asia Afrika",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.226594,
+            "lon": 106.798227,
+            "shared_node_ids": [
+              "n-4542222759",
+              "n-5377139085"
+            ],
+            "north_edge_ids": [
+              "sudirman_senayan-e0503"
+            ],
+            "south_edge_ids": [
+              "kebayoran_baru-e0582"
+            ]
+          },
+          {
+            "osm_way_id": 1536803889,
+            "road_name": "Jalan Jenderal Sudirman",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.22578,
+            "lon": 106.80394,
+            "shared_node_ids": [
+              "n-11622998036",
+              "n-11622998064"
+            ],
+            "north_edge_ids": [
+              "sudirman_senayan-e0933"
+            ],
+            "south_edge_ids": [
+              "kebayoran_baru-e1006"
+            ]
+          },
+          {
+            "osm_way_id": 28197537,
+            "road_name": "Secondary #28197537",
+            "highway": "secondary",
+            "oneway": false,
+            "lat": -6.226195,
+            "lon": 106.80615,
+            "shared_node_ids": [
+              "n-237768534",
+              "n-4513170345"
+            ],
+            "north_edge_ids": [
+              "sudirman_senayan-e0050",
+              "sudirman_senayan-e0051"
+            ],
+            "south_edge_ids": [
+              "kebayoran_baru-e0051",
+              "kebayoran_baru-e0052"
+            ]
+          },
+          {
+            "osm_way_id": 567640859,
+            "road_name": "Secondary #567640859",
+            "highway": "secondary",
+            "oneway": true,
+            "lat": -6.226195,
+            "lon": 106.80615,
+            "shared_node_ids": [
+              "n-237768534",
+              "n-6546425219"
+            ],
+            "north_edge_ids": [
+              "sudirman_senayan-e0377"
+            ],
+            "south_edge_ids": [
+              "kebayoran_baru-e0377"
+            ]
+          },
+          {
+            "osm_way_id": 1109083260,
+            "road_name": "Secondary #1109083260",
+            "highway": "secondary",
+            "oneway": true,
+            "lat": -6.226195,
+            "lon": 106.80615,
+            "shared_node_ids": [
+              "n-237768534",
+              "n-8735679960"
+            ],
+            "north_edge_ids": [
+              "sudirman_senayan-e0782"
+            ],
+            "south_edge_ids": [
+              "kebayoran_baru-e0908"
+            ]
+          },
+          {
+            "osm_way_id": 943460507,
+            "road_name": "Secondary #943460507",
+            "highway": "secondary",
+            "oneway": true,
+            "lat": -6.226385,
+            "lon": 106.806346,
+            "shared_node_ids": [
+              "n-1783134181",
+              "n-8735679964"
+            ],
+            "north_edge_ids": [
+              "sudirman_senayan-e0746"
+            ],
+            "south_edge_ids": [
+              "kebayoran_baru-e0878"
+            ]
+          },
+          {
+            "osm_way_id": 947571016,
+            "road_name": "Secondary #947571016",
+            "highway": "secondary",
+            "oneway": true,
+            "lat": -6.226385,
+            "lon": 106.806346,
+            "shared_node_ids": [
+              "n-1783134181",
+              "n-6546425219"
+            ],
+            "north_edge_ids": [
+              "sudirman_senayan-e0747"
+            ],
+            "south_edge_ids": [
+              "kebayoran_baru-e0880"
+            ]
+          },
+          {
+            "osm_way_id": 592542512,
+            "road_name": "Secondary #592542512",
+            "highway": "secondary",
+            "oneway": true,
+            "lat": -6.226742,
+            "lon": 106.80641,
+            "shared_node_ids": [
+              "n-8735679955",
+              "n-8735679960",
+              "n-8735679964",
+              "n-8770891751"
+            ],
+            "north_edge_ids": [
+              "sudirman_senayan-e0379",
+              "sudirman_senayan-e0380"
+            ],
+            "south_edge_ids": [
+              "kebayoran_baru-e0415",
+              "kebayoran_baru-e0416"
+            ]
+          },
+          {
+            "osm_way_id": 28197566,
+            "road_name": "Sudirman Central Business District Eastway",
+            "highway": "secondary",
+            "oneway": true,
+            "lat": -6.226331,
+            "lon": 106.806738,
+            "shared_node_ids": [
+              "n-237769279",
+              "n-8770891751"
+            ],
+            "north_edge_ids": [
+              "sudirman_senayan-e0052"
+            ],
+            "south_edge_ids": [
+              "kebayoran_baru-e0053"
+            ]
+          },
+          {
+            "osm_way_id": 650447889,
+            "road_name": "Sudirman Central Business District Northway",
+            "highway": "secondary",
+            "oneway": true,
+            "lat": -6.226609,
+            "lon": 106.808999,
+            "shared_node_ids": [
+              "n-4503864474",
+              "n-5019451861"
+            ],
+            "north_edge_ids": [
+              "sudirman_senayan-e0407"
+            ],
+            "south_edge_ids": [
+              "kebayoran_baru-e0456"
+            ]
+          },
+          {
+            "osm_way_id": 759497242,
+            "road_name": "Sudirman Central Business District Southway",
+            "highway": "secondary",
+            "oneway": true,
+            "lat": -6.226578,
+            "lon": 106.810594,
+            "shared_node_ids": [
+              "n-4503864472",
+              "n-6367365332"
+            ],
+            "north_edge_ids": [
+              "sudirman_senayan-e0646"
+            ],
+            "south_edge_ids": [
+              "kebayoran_baru-e0730"
+            ]
+          },
+          {
+            "osm_way_id": 760239632,
+            "road_name": "Secondary Link #760239632",
+            "highway": "secondary_link",
+            "oneway": true,
+            "lat": -6.225888,
+            "lon": 106.812029,
+            "shared_node_ids": [
+              "n-6315384922",
+              "n-7105527576"
+            ],
+            "north_edge_ids": [
+              "sudirman_senayan-e0665",
+              "sudirman_senayan-e0666"
+            ],
+            "south_edge_ids": [
+              "kebayoran_baru-e0788"
+            ]
+          },
+          {
+            "osm_way_id": 457858652,
+            "road_name": "Secondary Link #457858652",
+            "highway": "secondary_link",
+            "oneway": true,
+            "lat": -6.226639,
+            "lon": 106.812097,
+            "shared_node_ids": [
+              "n-4539273976",
+              "n-7241639832"
+            ],
+            "north_edge_ids": [
+              "sudirman_senayan-e0209"
+            ],
+            "south_edge_ids": [
+              "kebayoran_baru-e0265"
+            ]
+          },
+          {
+            "osm_way_id": 758664213,
+            "road_name": "Sudirman Central Business District Westway",
+            "highway": "secondary",
+            "oneway": true,
+            "lat": -6.226457,
+            "lon": 106.812374,
+            "shared_node_ids": [
+              "n-2360112785",
+              "n-4539286374"
+            ],
+            "north_edge_ids": [
+              "sudirman_senayan-e0640"
+            ],
+            "south_edge_ids": [
+              "kebayoran_baru-e0722"
+            ]
+          },
+          {
+            "osm_way_id": 457859770,
+            "road_name": "Secondary Link #457859770",
+            "highway": "secondary_link",
+            "oneway": true,
+            "lat": -6.226265,
+            "lon": 106.81268,
+            "shared_node_ids": [
+              "n-4539286374",
+              "n-4539286376"
+            ],
+            "north_edge_ids": [
+              "sudirman_senayan-e0210"
+            ],
+            "south_edge_ids": [
+              "kebayoran_baru-e0267"
+            ]
+          },
+          {
+            "osm_way_id": 457851748,
+            "road_name": "Tertiary #457851748",
+            "highway": "tertiary",
+            "oneway": true,
+            "lat": -6.225906,
+            "lon": 106.808042,
+            "shared_node_ids": [
+              "n-4539223769",
+              "n-7632404067"
+            ],
+            "north_edge_ids": [
+              "sudirman_senayan-e0208"
+            ],
+            "south_edge_ids": [
+              "kebayoran_baru-e0262"
+            ]
+          }
+        ]
+      }
+    },
+    "kebayoran_baru": {
+      "north": {
+        "neighbor_id": "sudirman_senayan",
+        "neighbor_name": "Sudirman – Senayan",
+        "shared_osm_way_count": 40,
+        "shared_osm_node_count": 57,
+        "streets": [
+          "Jalan Tol Cawang–Pluit",
+          "Jalan Jenderal Gatot Subroto",
+          "Jalan Asia Afrika",
+          "Jalan Jenderal Sudirman",
+          "Sudirman Central Business District Eastway",
+          "Sudirman Central Business District Northway",
+          "Sudirman Central Business District Southway",
+          "Sudirman Central Business District Westway",
+          "Jalan Widya Chandra V"
+        ],
+        "connectors": [
+          {
+            "osm_way_id": 562407889,
+            "road_name": "Jalan Tol Cawang–Pluit",
+            "highway": "motorway",
+            "oneway": true,
+            "lat": -6.224617,
+            "lon": 106.815873,
+            "shared_node_ids": [
+              "n-11307159647",
+              "n-5421926686"
+            ],
+            "north_edge_ids": [
+              "sudirman_senayan-e0373"
+            ],
+            "south_edge_ids": [
+              "kebayoran_baru-e0360"
+            ]
+          },
+          {
+            "osm_way_id": 484500591,
+            "road_name": "Jalan Jenderal Gatot Subroto",
+            "highway": "trunk",
+            "oneway": true,
+            "lat": -6.224759,
+            "lon": 106.815776,
+            "shared_node_ids": [
+              "n-4556726574",
+              "n-4556785172"
+            ],
+            "north_edge_ids": [
+              "sudirman_senayan-e0223"
+            ],
+            "south_edge_ids": [
+              "kebayoran_baru-e0272"
+            ]
+          },
+          {
+            "osm_way_id": 657450393,
+            "road_name": "Jalan Asia Afrika",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.226594,
+            "lon": 106.798227,
+            "shared_node_ids": [
+              "n-4542222759",
+              "n-5377139085"
+            ],
+            "north_edge_ids": [
+              "sudirman_senayan-e0503"
+            ],
+            "south_edge_ids": [
+              "kebayoran_baru-e0582"
+            ]
+          },
+          {
+            "osm_way_id": 1536803889,
+            "road_name": "Jalan Jenderal Sudirman",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.22578,
+            "lon": 106.80394,
+            "shared_node_ids": [
+              "n-11622998036",
+              "n-11622998064"
+            ],
+            "north_edge_ids": [
+              "sudirman_senayan-e0933"
+            ],
+            "south_edge_ids": [
+              "kebayoran_baru-e1006"
+            ]
+          },
+          {
+            "osm_way_id": 28197537,
+            "road_name": "Secondary #28197537",
+            "highway": "secondary",
+            "oneway": false,
+            "lat": -6.226195,
+            "lon": 106.80615,
+            "shared_node_ids": [
+              "n-237768534",
+              "n-4513170345"
+            ],
+            "north_edge_ids": [
+              "sudirman_senayan-e0050",
+              "sudirman_senayan-e0051"
+            ],
+            "south_edge_ids": [
+              "kebayoran_baru-e0051",
+              "kebayoran_baru-e0052"
+            ]
+          },
+          {
+            "osm_way_id": 567640859,
+            "road_name": "Secondary #567640859",
+            "highway": "secondary",
+            "oneway": true,
+            "lat": -6.226195,
+            "lon": 106.80615,
+            "shared_node_ids": [
+              "n-237768534",
+              "n-6546425219"
+            ],
+            "north_edge_ids": [
+              "sudirman_senayan-e0377"
+            ],
+            "south_edge_ids": [
+              "kebayoran_baru-e0377"
+            ]
+          },
+          {
+            "osm_way_id": 1109083260,
+            "road_name": "Secondary #1109083260",
+            "highway": "secondary",
+            "oneway": true,
+            "lat": -6.226195,
+            "lon": 106.80615,
+            "shared_node_ids": [
+              "n-237768534",
+              "n-8735679960"
+            ],
+            "north_edge_ids": [
+              "sudirman_senayan-e0782"
+            ],
+            "south_edge_ids": [
+              "kebayoran_baru-e0908"
+            ]
+          },
+          {
+            "osm_way_id": 943460507,
+            "road_name": "Secondary #943460507",
+            "highway": "secondary",
+            "oneway": true,
+            "lat": -6.226385,
+            "lon": 106.806346,
+            "shared_node_ids": [
+              "n-1783134181",
+              "n-8735679964"
+            ],
+            "north_edge_ids": [
+              "sudirman_senayan-e0746"
+            ],
+            "south_edge_ids": [
+              "kebayoran_baru-e0878"
+            ]
+          },
+          {
+            "osm_way_id": 947571016,
+            "road_name": "Secondary #947571016",
+            "highway": "secondary",
+            "oneway": true,
+            "lat": -6.226385,
+            "lon": 106.806346,
+            "shared_node_ids": [
+              "n-1783134181",
+              "n-6546425219"
+            ],
+            "north_edge_ids": [
+              "sudirman_senayan-e0747"
+            ],
+            "south_edge_ids": [
+              "kebayoran_baru-e0880"
+            ]
+          },
+          {
+            "osm_way_id": 592542512,
+            "road_name": "Secondary #592542512",
+            "highway": "secondary",
+            "oneway": true,
+            "lat": -6.226742,
+            "lon": 106.80641,
+            "shared_node_ids": [
+              "n-8735679955",
+              "n-8735679960",
+              "n-8735679964",
+              "n-8770891751"
+            ],
+            "north_edge_ids": [
+              "sudirman_senayan-e0379",
+              "sudirman_senayan-e0380"
+            ],
+            "south_edge_ids": [
+              "kebayoran_baru-e0415",
+              "kebayoran_baru-e0416"
+            ]
+          },
+          {
+            "osm_way_id": 28197566,
+            "road_name": "Sudirman Central Business District Eastway",
+            "highway": "secondary",
+            "oneway": true,
+            "lat": -6.226331,
+            "lon": 106.806738,
+            "shared_node_ids": [
+              "n-237769279",
+              "n-8770891751"
+            ],
+            "north_edge_ids": [
+              "sudirman_senayan-e0052"
+            ],
+            "south_edge_ids": [
+              "kebayoran_baru-e0053"
+            ]
+          },
+          {
+            "osm_way_id": 650447889,
+            "road_name": "Sudirman Central Business District Northway",
+            "highway": "secondary",
+            "oneway": true,
+            "lat": -6.226609,
+            "lon": 106.808999,
+            "shared_node_ids": [
+              "n-4503864474",
+              "n-5019451861"
+            ],
+            "north_edge_ids": [
+              "sudirman_senayan-e0407"
+            ],
+            "south_edge_ids": [
+              "kebayoran_baru-e0456"
+            ]
+          },
+          {
+            "osm_way_id": 759497242,
+            "road_name": "Sudirman Central Business District Southway",
+            "highway": "secondary",
+            "oneway": true,
+            "lat": -6.226578,
+            "lon": 106.810594,
+            "shared_node_ids": [
+              "n-4503864472",
+              "n-6367365332"
+            ],
+            "north_edge_ids": [
+              "sudirman_senayan-e0646"
+            ],
+            "south_edge_ids": [
+              "kebayoran_baru-e0730"
+            ]
+          },
+          {
+            "osm_way_id": 760239632,
+            "road_name": "Secondary Link #760239632",
+            "highway": "secondary_link",
+            "oneway": true,
+            "lat": -6.225888,
+            "lon": 106.812029,
+            "shared_node_ids": [
+              "n-6315384922",
+              "n-7105527576"
+            ],
+            "north_edge_ids": [
+              "sudirman_senayan-e0665",
+              "sudirman_senayan-e0666"
+            ],
+            "south_edge_ids": [
+              "kebayoran_baru-e0788"
+            ]
+          },
+          {
+            "osm_way_id": 457858652,
+            "road_name": "Secondary Link #457858652",
+            "highway": "secondary_link",
+            "oneway": true,
+            "lat": -6.226639,
+            "lon": 106.812097,
+            "shared_node_ids": [
+              "n-4539273976",
+              "n-7241639832"
+            ],
+            "north_edge_ids": [
+              "sudirman_senayan-e0209"
+            ],
+            "south_edge_ids": [
+              "kebayoran_baru-e0265"
+            ]
+          },
+          {
+            "osm_way_id": 758664213,
+            "road_name": "Sudirman Central Business District Westway",
+            "highway": "secondary",
+            "oneway": true,
+            "lat": -6.226457,
+            "lon": 106.812374,
+            "shared_node_ids": [
+              "n-2360112785",
+              "n-4539286374"
+            ],
+            "north_edge_ids": [
+              "sudirman_senayan-e0640"
+            ],
+            "south_edge_ids": [
+              "kebayoran_baru-e0722"
+            ]
+          },
+          {
+            "osm_way_id": 457859770,
+            "road_name": "Secondary Link #457859770",
+            "highway": "secondary_link",
+            "oneway": true,
+            "lat": -6.226265,
+            "lon": 106.81268,
+            "shared_node_ids": [
+              "n-4539286374",
+              "n-4539286376"
+            ],
+            "north_edge_ids": [
+              "sudirman_senayan-e0210"
+            ],
+            "south_edge_ids": [
+              "kebayoran_baru-e0267"
+            ]
+          },
+          {
+            "osm_way_id": 457851748,
+            "road_name": "Tertiary #457851748",
+            "highway": "tertiary",
+            "oneway": true,
+            "lat": -6.225906,
+            "lon": 106.808042,
+            "shared_node_ids": [
+              "n-4539223769",
+              "n-7632404067"
+            ],
+            "north_edge_ids": [
+              "sudirman_senayan-e0208"
+            ],
+            "south_edge_ids": [
+              "kebayoran_baru-e0262"
+            ]
+          }
+        ]
+      },
+      "south": {
+        "neighbor_id": "kemang_cipete",
+        "neighbor_name": "Kemang – Cipete",
+        "shared_osm_way_count": 23,
+        "shared_osm_node_count": 33,
+        "streets": [
+          "Jalan RS Fatmawati",
+          "Jalan Mayjen TNI Profesor Dokter Moestopo",
+          "Jalan Prapanca Raya",
+          "Jalan Radio Dalam",
+          "Jalan Dharmawangsa XI",
+          "Jalan Dharmawangsa IV",
+          "Jalan Brawijaya III",
+          "Jalan Kemang Raya",
+          "Jalan Bangka Raya",
+          "Jalan RS Fatmawati",
+          "Jalan Prapanca Raya",
+          "Jalan Prapanca Raya"
+        ],
+        "connectors": [
+          {
+            "osm_way_id": 1256686208,
+            "road_name": "Jalan RS Fatmawati",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.255,
+            "lon": 106.797165,
+            "shared_node_ids": [
+              "n-12033804533",
+              "n-12033804535"
+            ],
+            "north_edge_ids": [
+              "kebayoran_baru-e0969"
+            ],
+            "south_edge_ids": [
+              "kemang_cipete-e0259"
+            ]
+          },
+          {
+            "osm_way_id": 202084399,
+            "road_name": "Jalan Mayjen TNI Profesor Dokter Moestopo",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.248748,
+            "lon": 106.807,
+            "shared_node_ids": [
+              "n-7096301018",
+              "n-7808665046"
+            ],
+            "north_edge_ids": [
+              "kebayoran_baru-e0174"
+            ],
+            "south_edge_ids": [
+              "kemang_cipete-e0066"
+            ]
+          },
+          {
+            "osm_way_id": 653065899,
+            "road_name": "Jalan Prapanca Raya",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.255657,
+            "lon": 106.80792,
+            "shared_node_ids": [
+              "n-356145269",
+              "n-7012978984"
+            ],
+            "north_edge_ids": [
+              "kebayoran_baru-e0573"
+            ],
+            "south_edge_ids": [
+              "kemang_cipete-e0122"
+            ]
+          },
+          {
+            "osm_way_id": 361133108,
+            "road_name": "Jalan Radio Dalam",
+            "highway": "secondary",
+            "oneway": false,
+            "lat": -6.260569,
+            "lon": 106.788962,
+            "shared_node_ids": [
+              "n-3171523464",
+              "n-5083296312"
+            ],
+            "north_edge_ids": [
+              "kebayoran_baru-e0235",
+              "kebayoran_baru-e0236"
+            ],
+            "south_edge_ids": [
+              "kemang_cipete-e0078",
+              "kemang_cipete-e0079"
+            ]
+          },
+          {
+            "osm_way_id": 28420299,
+            "road_name": "Jalan Dharmawangsa XI",
+            "highway": "tertiary",
+            "oneway": true,
+            "lat": -6.2575,
+            "lon": 106.800631,
+            "shared_node_ids": [
+              "n-312216413",
+              "n-312216568"
+            ],
+            "north_edge_ids": [
+              "kebayoran_baru-e0105"
+            ],
+            "south_edge_ids": [
+              "kemang_cipete-e0011"
+            ]
+          },
+          {
+            "osm_way_id": 759689194,
+            "road_name": "Jalan Dharmawangsa IV",
+            "highway": "tertiary",
+            "oneway": true,
+            "lat": -6.256226,
+            "lon": 106.801277,
+            "shared_node_ids": [
+              "n-356203283",
+              "n-7096586132"
+            ],
+            "north_edge_ids": [
+              "kebayoran_baru-e0748"
+            ],
+            "south_edge_ids": [
+              "kemang_cipete-e0160"
+            ]
+          },
+          {
+            "osm_way_id": 28420252,
+            "road_name": "Jalan Brawijaya III",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.254549,
+            "lon": 106.805085,
+            "shared_node_ids": [
+              "n-5114866633",
+              "n-5492716004"
+            ],
+            "north_edge_ids": [
+              "kebayoran_baru-e0103",
+              "kebayoran_baru-e0104"
+            ],
+            "south_edge_ids": [
+              "kemang_cipete-e0008",
+              "kemang_cipete-e0009"
+            ]
+          },
+          {
+            "osm_way_id": 926954799,
+            "road_name": "Jalan Kemang Raya",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.255089,
+            "lon": 106.808139,
+            "shared_node_ids": [
+              "n-7096652252",
+              "n-8600938403"
+            ],
+            "north_edge_ids": [
+              "kebayoran_baru-e0872",
+              "kebayoran_baru-e0873"
+            ],
+            "south_edge_ids": [
+              "kemang_cipete-e0227",
+              "kemang_cipete-e0228"
+            ]
+          },
+          {
+            "osm_way_id": 31758713,
+            "road_name": "Jalan Bangka Raya",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.241343,
+            "lon": 106.817744,
+            "shared_node_ids": [
+              "n-309039297",
+              "n-309040762"
+            ],
+            "north_edge_ids": [
+              "kebayoran_baru-e0131",
+              "kebayoran_baru-e0132",
+              "kebayoran_baru-e0133",
+              "kebayoran_baru-e0134"
+            ],
+            "south_edge_ids": [
+              "kemang_cipete-e0013",
+              "kemang_cipete-e0014"
+            ]
+          },
+          {
+            "osm_way_id": 645137217,
+            "road_name": "Jalan RS Fatmawati",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.255012,
+            "lon": 106.797282,
+            "shared_node_ids": [
+              "n-12033804532",
+              "n-12033804534"
+            ],
+            "north_edge_ids": [
+              "kebayoran_baru-e0439"
+            ],
+            "south_edge_ids": [
+              "kemang_cipete-e0113"
+            ]
+          },
+          {
+            "osm_way_id": 756079663,
+            "road_name": "Jalan Prapanca Raya",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.255199,
+            "lon": 106.808004,
+            "shared_node_ids": [
+              "n-7012978984",
+              "n-7265241896"
+            ],
+            "north_edge_ids": [
+              "kebayoran_baru-e0714"
+            ],
+            "south_edge_ids": [
+              "kemang_cipete-e0154"
+            ]
+          },
+          {
+            "osm_way_id": 803655494,
+            "road_name": "Jalan Prapanca Raya",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.255826,
+            "lon": 106.808022,
+            "shared_node_ids": [
+              "n-356145265",
+              "n-7096652252"
+            ],
+            "north_edge_ids": [
+              "kebayoran_baru-e0851"
+            ],
+            "south_edge_ids": [
+              "kemang_cipete-e0216"
+            ]
+          },
+          {
+            "osm_way_id": 756079664,
+            "road_name": "Jalan Prapanca Raya",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.254913,
+            "lon": 106.808052,
+            "shared_node_ids": [
+              "n-7061717599",
+              "n-7265241896"
+            ],
+            "north_edge_ids": [
+              "kebayoran_baru-e0715"
+            ],
+            "south_edge_ids": [
+              "kemang_cipete-e0155"
+            ]
+          },
+          {
+            "osm_way_id": 202077687,
+            "road_name": "Jalan Mayjen TNI Profesor Dokter Moestopo",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.264762,
+            "lon": 106.808437,
+            "shared_node_ids": [
+              "n-7808665045",
+              "n-9050068283"
+            ],
+            "north_edge_ids": [
+              "kebayoran_baru-e0172",
+              "kebayoran_baru-e0173"
+            ],
+            "south_edge_ids": [
+              "kemang_cipete-e0064"
+            ]
+          },
+          {
+            "osm_way_id": 653065907,
+            "road_name": "Jalan Prapanca Raya",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.251557,
+            "lon": 106.809125,
+            "shared_node_ids": [
+              "n-356155692",
+              "n-7096652252"
+            ],
+            "north_edge_ids": [
+              "kebayoran_baru-e0574"
+            ],
+            "south_edge_ids": [
+              "kemang_cipete-e0123"
+            ]
+          },
+          {
+            "osm_way_id": 926954801,
+            "road_name": "Jalan Kemang Raya",
+            "highway": "tertiary",
+            "oneway": true,
+            "lat": -6.255089,
+            "lon": 106.808139,
+            "shared_node_ids": [
+              "n-7096652252",
+              "n-7265241896"
+            ],
+            "north_edge_ids": [
+              "kebayoran_baru-e0876"
+            ],
+            "south_edge_ids": [
+              "kemang_cipete-e0231"
+            ]
+          },
+          {
+            "osm_way_id": 926954800,
+            "road_name": "Jalan Kemang Raya",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.255196,
+            "lon": 106.808629,
+            "shared_node_ids": [
+              "n-8600938402",
+              "n-8600938403"
+            ],
+            "north_edge_ids": [
+              "kebayoran_baru-e0874",
+              "kebayoran_baru-e0875"
+            ],
+            "south_edge_ids": [
+              "kemang_cipete-e0229",
+              "kemang_cipete-e0230"
+            ]
+          },
+          {
+            "osm_way_id": 803660146,
+            "road_name": "Jalan Kemang Raya",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.255269,
+            "lon": 106.810129,
+            "shared_node_ids": [
+              "n-7265241910",
+              "n-8600938402"
+            ],
+            "north_edge_ids": [
+              "kebayoran_baru-e0852",
+              "kebayoran_baru-e0853"
+            ],
+            "south_edge_ids": [
+              "kemang_cipete-e0217",
+              "kemang_cipete-e0218"
+            ]
+          }
+        ]
+      }
+    },
+    "kemang_cipete": {
+      "north": {
+        "neighbor_id": "kebayoran_baru",
+        "neighbor_name": "Kebayoran Baru",
+        "shared_osm_way_count": 23,
+        "shared_osm_node_count": 33,
+        "streets": [
+          "Jalan RS Fatmawati",
+          "Jalan Mayjen TNI Profesor Dokter Moestopo",
+          "Jalan Prapanca Raya",
+          "Jalan Radio Dalam",
+          "Jalan Dharmawangsa XI",
+          "Jalan Dharmawangsa IV",
+          "Jalan Brawijaya III",
+          "Jalan Kemang Raya",
+          "Jalan Bangka Raya",
+          "Jalan RS Fatmawati",
+          "Jalan Prapanca Raya",
+          "Jalan Prapanca Raya"
+        ],
+        "connectors": [
+          {
+            "osm_way_id": 1256686208,
+            "road_name": "Jalan RS Fatmawati",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.255,
+            "lon": 106.797165,
+            "shared_node_ids": [
+              "n-12033804533",
+              "n-12033804535"
+            ],
+            "north_edge_ids": [
+              "kebayoran_baru-e0969"
+            ],
+            "south_edge_ids": [
+              "kemang_cipete-e0259"
+            ]
+          },
+          {
+            "osm_way_id": 202084399,
+            "road_name": "Jalan Mayjen TNI Profesor Dokter Moestopo",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.248748,
+            "lon": 106.807,
+            "shared_node_ids": [
+              "n-7096301018",
+              "n-7808665046"
+            ],
+            "north_edge_ids": [
+              "kebayoran_baru-e0174"
+            ],
+            "south_edge_ids": [
+              "kemang_cipete-e0066"
+            ]
+          },
+          {
+            "osm_way_id": 653065899,
+            "road_name": "Jalan Prapanca Raya",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.255657,
+            "lon": 106.80792,
+            "shared_node_ids": [
+              "n-356145269",
+              "n-7012978984"
+            ],
+            "north_edge_ids": [
+              "kebayoran_baru-e0573"
+            ],
+            "south_edge_ids": [
+              "kemang_cipete-e0122"
+            ]
+          },
+          {
+            "osm_way_id": 361133108,
+            "road_name": "Jalan Radio Dalam",
+            "highway": "secondary",
+            "oneway": false,
+            "lat": -6.260569,
+            "lon": 106.788962,
+            "shared_node_ids": [
+              "n-3171523464",
+              "n-5083296312"
+            ],
+            "north_edge_ids": [
+              "kebayoran_baru-e0235",
+              "kebayoran_baru-e0236"
+            ],
+            "south_edge_ids": [
+              "kemang_cipete-e0078",
+              "kemang_cipete-e0079"
+            ]
+          },
+          {
+            "osm_way_id": 28420299,
+            "road_name": "Jalan Dharmawangsa XI",
+            "highway": "tertiary",
+            "oneway": true,
+            "lat": -6.2575,
+            "lon": 106.800631,
+            "shared_node_ids": [
+              "n-312216413",
+              "n-312216568"
+            ],
+            "north_edge_ids": [
+              "kebayoran_baru-e0105"
+            ],
+            "south_edge_ids": [
+              "kemang_cipete-e0011"
+            ]
+          },
+          {
+            "osm_way_id": 759689194,
+            "road_name": "Jalan Dharmawangsa IV",
+            "highway": "tertiary",
+            "oneway": true,
+            "lat": -6.256226,
+            "lon": 106.801277,
+            "shared_node_ids": [
+              "n-356203283",
+              "n-7096586132"
+            ],
+            "north_edge_ids": [
+              "kebayoran_baru-e0748"
+            ],
+            "south_edge_ids": [
+              "kemang_cipete-e0160"
+            ]
+          },
+          {
+            "osm_way_id": 28420252,
+            "road_name": "Jalan Brawijaya III",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.254549,
+            "lon": 106.805085,
+            "shared_node_ids": [
+              "n-5114866633",
+              "n-5492716004"
+            ],
+            "north_edge_ids": [
+              "kebayoran_baru-e0103",
+              "kebayoran_baru-e0104"
+            ],
+            "south_edge_ids": [
+              "kemang_cipete-e0008",
+              "kemang_cipete-e0009"
+            ]
+          },
+          {
+            "osm_way_id": 926954799,
+            "road_name": "Jalan Kemang Raya",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.255089,
+            "lon": 106.808139,
+            "shared_node_ids": [
+              "n-7096652252",
+              "n-8600938403"
+            ],
+            "north_edge_ids": [
+              "kebayoran_baru-e0872",
+              "kebayoran_baru-e0873"
+            ],
+            "south_edge_ids": [
+              "kemang_cipete-e0227",
+              "kemang_cipete-e0228"
+            ]
+          },
+          {
+            "osm_way_id": 31758713,
+            "road_name": "Jalan Bangka Raya",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.241343,
+            "lon": 106.817744,
+            "shared_node_ids": [
+              "n-309039297",
+              "n-309040762"
+            ],
+            "north_edge_ids": [
+              "kebayoran_baru-e0131",
+              "kebayoran_baru-e0132",
+              "kebayoran_baru-e0133",
+              "kebayoran_baru-e0134"
+            ],
+            "south_edge_ids": [
+              "kemang_cipete-e0013",
+              "kemang_cipete-e0014"
+            ]
+          },
+          {
+            "osm_way_id": 645137217,
+            "road_name": "Jalan RS Fatmawati",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.255012,
+            "lon": 106.797282,
+            "shared_node_ids": [
+              "n-12033804532",
+              "n-12033804534"
+            ],
+            "north_edge_ids": [
+              "kebayoran_baru-e0439"
+            ],
+            "south_edge_ids": [
+              "kemang_cipete-e0113"
+            ]
+          },
+          {
+            "osm_way_id": 756079663,
+            "road_name": "Jalan Prapanca Raya",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.255199,
+            "lon": 106.808004,
+            "shared_node_ids": [
+              "n-7012978984",
+              "n-7265241896"
+            ],
+            "north_edge_ids": [
+              "kebayoran_baru-e0714"
+            ],
+            "south_edge_ids": [
+              "kemang_cipete-e0154"
+            ]
+          },
+          {
+            "osm_way_id": 803655494,
+            "road_name": "Jalan Prapanca Raya",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.255826,
+            "lon": 106.808022,
+            "shared_node_ids": [
+              "n-356145265",
+              "n-7096652252"
+            ],
+            "north_edge_ids": [
+              "kebayoran_baru-e0851"
+            ],
+            "south_edge_ids": [
+              "kemang_cipete-e0216"
+            ]
+          },
+          {
+            "osm_way_id": 756079664,
+            "road_name": "Jalan Prapanca Raya",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.254913,
+            "lon": 106.808052,
+            "shared_node_ids": [
+              "n-7061717599",
+              "n-7265241896"
+            ],
+            "north_edge_ids": [
+              "kebayoran_baru-e0715"
+            ],
+            "south_edge_ids": [
+              "kemang_cipete-e0155"
+            ]
+          },
+          {
+            "osm_way_id": 202077687,
+            "road_name": "Jalan Mayjen TNI Profesor Dokter Moestopo",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.264762,
+            "lon": 106.808437,
+            "shared_node_ids": [
+              "n-7808665045",
+              "n-9050068283"
+            ],
+            "north_edge_ids": [
+              "kebayoran_baru-e0172",
+              "kebayoran_baru-e0173"
+            ],
+            "south_edge_ids": [
+              "kemang_cipete-e0064"
+            ]
+          },
+          {
+            "osm_way_id": 653065907,
+            "road_name": "Jalan Prapanca Raya",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.251557,
+            "lon": 106.809125,
+            "shared_node_ids": [
+              "n-356155692",
+              "n-7096652252"
+            ],
+            "north_edge_ids": [
+              "kebayoran_baru-e0574"
+            ],
+            "south_edge_ids": [
+              "kemang_cipete-e0123"
+            ]
+          },
+          {
+            "osm_way_id": 926954801,
+            "road_name": "Jalan Kemang Raya",
+            "highway": "tertiary",
+            "oneway": true,
+            "lat": -6.255089,
+            "lon": 106.808139,
+            "shared_node_ids": [
+              "n-7096652252",
+              "n-7265241896"
+            ],
+            "north_edge_ids": [
+              "kebayoran_baru-e0876"
+            ],
+            "south_edge_ids": [
+              "kemang_cipete-e0231"
+            ]
+          },
+          {
+            "osm_way_id": 926954800,
+            "road_name": "Jalan Kemang Raya",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.255196,
+            "lon": 106.808629,
+            "shared_node_ids": [
+              "n-8600938402",
+              "n-8600938403"
+            ],
+            "north_edge_ids": [
+              "kebayoran_baru-e0874",
+              "kebayoran_baru-e0875"
+            ],
+            "south_edge_ids": [
+              "kemang_cipete-e0229",
+              "kemang_cipete-e0230"
+            ]
+          },
+          {
+            "osm_way_id": 803660146,
+            "road_name": "Jalan Kemang Raya",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.255269,
+            "lon": 106.810129,
+            "shared_node_ids": [
+              "n-7265241910",
+              "n-8600938402"
+            ],
+            "north_edge_ids": [
+              "kebayoran_baru-e0852",
+              "kebayoran_baru-e0853"
+            ],
+            "south_edge_ids": [
+              "kemang_cipete-e0217",
+              "kemang_cipete-e0218"
+            ]
+          }
+        ]
+      },
+      "south": {
+        "neighbor_id": "cilandak",
+        "neighbor_name": "Cilandak",
+        "shared_osm_way_count": 10,
+        "shared_osm_node_count": 19,
+        "streets": [
+          "Jalan RS Fatmawati",
+          "Jalan Pangeran Antasari",
+          "Jalan Sekolah Duta Raya",
+          "Jalan Terogong Raya",
+          "Jalan Haji Batong Raya",
+          "Jalan BDN II",
+          "Jalan RS Fatmawati",
+          "Jalan RS Fatmawati",
+          "Jalan Pangeran Antasari",
+          "Jalan Sekolah Duta Raya"
+        ],
+        "connectors": [
+          {
+            "osm_way_id": 1304373727,
+            "road_name": "Jalan RS Fatmawati",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.283756,
+            "lon": 106.795935,
+            "shared_node_ids": [
+              "n-361322342",
+              "n-7010683140"
+            ],
+            "north_edge_ids": [
+              "kemang_cipete-e0268"
+            ],
+            "south_edge_ids": [
+              "cilandak-e0317"
+            ]
+          },
+          {
+            "osm_way_id": 735408829,
+            "road_name": "Jalan Pangeran Antasari",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.283369,
+            "lon": 106.807227,
+            "shared_node_ids": [
+              "n-356147529",
+              "n-6702082243"
+            ],
+            "north_edge_ids": [
+              "kemang_cipete-e0138"
+            ],
+            "south_edge_ids": [
+              "cilandak-e0174",
+              "cilandak-e0175",
+              "cilandak-e0176",
+              "cilandak-e0177"
+            ]
+          },
+          {
+            "osm_way_id": 18568262,
+            "road_name": "Jalan Sekolah Duta Raya",
+            "highway": "tertiary",
+            "oneway": true,
+            "lat": -6.284284,
+            "lon": 106.787058,
+            "shared_node_ids": [
+              "n-3171606027",
+              "n-360083759"
+            ],
+            "north_edge_ids": [
+              "kemang_cipete-e0001"
+            ],
+            "south_edge_ids": [
+              "cilandak-e0001"
+            ]
+          },
+          {
+            "osm_way_id": 32080503,
+            "road_name": "Jalan Terogong Raya",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.28471,
+            "lon": 106.787887,
+            "shared_node_ids": [
+              "n-2282149039",
+              "n-360163126",
+              "n-361323536"
+            ],
+            "north_edge_ids": [
+              "kemang_cipete-e0046",
+              "kemang_cipete-e0047",
+              "kemang_cipete-e0048",
+              "kemang_cipete-e0049"
+            ],
+            "south_edge_ids": [
+              "cilandak-e0006",
+              "cilandak-e0007",
+              "cilandak-e0008",
+              "cilandak-e0009"
+            ]
+          },
+          {
+            "osm_way_id": 511977053,
+            "road_name": "Jalan Haji Batong Raya",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.283366,
+            "lon": 106.79043,
+            "shared_node_ids": [
+              "n-361323536",
+              "n-361323946"
+            ],
+            "north_edge_ids": [
+              "kemang_cipete-e0096",
+              "kemang_cipete-e0097"
+            ],
+            "south_edge_ids": [
+              "cilandak-e0048",
+              "cilandak-e0049"
+            ]
+          },
+          {
+            "osm_way_id": 32201261,
+            "road_name": "Jalan BDN II",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.279239,
+            "lon": 106.799515,
+            "shared_node_ids": [
+              "n-361119161",
+              "n-361121928"
+            ],
+            "north_edge_ids": [
+              "kemang_cipete-e0061",
+              "kemang_cipete-e0062"
+            ],
+            "south_edge_ids": [
+              "cilandak-e0014",
+              "cilandak-e0015"
+            ]
+          },
+          {
+            "osm_way_id": 1230703597,
+            "road_name": "Jalan RS Fatmawati",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.283321,
+            "lon": 106.795959,
+            "shared_node_ids": [
+              "n-11413425532",
+              "n-361322342"
+            ],
+            "north_edge_ids": [
+              "kemang_cipete-e0251"
+            ],
+            "south_edge_ids": [
+              "cilandak-e0302"
+            ]
+          },
+          {
+            "osm_way_id": 898547119,
+            "road_name": "Jalan RS Fatmawati",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.282134,
+            "lon": 106.79614,
+            "shared_node_ids": [
+              "n-356229790",
+              "n-7010683139"
+            ],
+            "north_edge_ids": [
+              "kemang_cipete-e0223",
+              "kemang_cipete-e0224"
+            ],
+            "south_edge_ids": [
+              "cilandak-e0216"
+            ]
+          },
+          {
+            "osm_way_id": 703133276,
+            "road_name": "Jalan Pangeran Antasari",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.283369,
+            "lon": 106.807326,
+            "shared_node_ids": [
+              "n-356147522",
+              "n-3658055243"
+            ],
+            "north_edge_ids": [
+              "kemang_cipete-e0136"
+            ],
+            "south_edge_ids": [
+              "cilandak-e0163",
+              "cilandak-e0164",
+              "cilandak-e0165"
+            ]
+          },
+          {
+            "osm_way_id": 28415937,
+            "road_name": "Jalan Sekolah Duta Raya",
+            "highway": "tertiary",
+            "oneway": true,
+            "lat": -6.284193,
+            "lon": 106.787111,
+            "shared_node_ids": [
+              "n-312149663",
+              "n-312149811"
+            ],
+            "north_edge_ids": [
+              "kemang_cipete-e0006"
+            ],
+            "south_edge_ids": [
+              "cilandak-e0002"
+            ]
+          }
+        ]
+      }
+    },
+    "cilandak": {
+      "north": {
+        "neighbor_id": "kemang_cipete",
+        "neighbor_name": "Kemang – Cipete",
+        "shared_osm_way_count": 10,
+        "shared_osm_node_count": 19,
+        "streets": [
+          "Jalan RS Fatmawati",
+          "Jalan Pangeran Antasari",
+          "Jalan Sekolah Duta Raya",
+          "Jalan Terogong Raya",
+          "Jalan Haji Batong Raya",
+          "Jalan BDN II",
+          "Jalan RS Fatmawati",
+          "Jalan RS Fatmawati",
+          "Jalan Pangeran Antasari",
+          "Jalan Sekolah Duta Raya"
+        ],
+        "connectors": [
+          {
+            "osm_way_id": 1304373727,
+            "road_name": "Jalan RS Fatmawati",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.283756,
+            "lon": 106.795935,
+            "shared_node_ids": [
+              "n-361322342",
+              "n-7010683140"
+            ],
+            "north_edge_ids": [
+              "kemang_cipete-e0268"
+            ],
+            "south_edge_ids": [
+              "cilandak-e0317"
+            ]
+          },
+          {
+            "osm_way_id": 735408829,
+            "road_name": "Jalan Pangeran Antasari",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.283369,
+            "lon": 106.807227,
+            "shared_node_ids": [
+              "n-356147529",
+              "n-6702082243"
+            ],
+            "north_edge_ids": [
+              "kemang_cipete-e0138"
+            ],
+            "south_edge_ids": [
+              "cilandak-e0174",
+              "cilandak-e0175",
+              "cilandak-e0176",
+              "cilandak-e0177"
+            ]
+          },
+          {
+            "osm_way_id": 18568262,
+            "road_name": "Jalan Sekolah Duta Raya",
+            "highway": "tertiary",
+            "oneway": true,
+            "lat": -6.284284,
+            "lon": 106.787058,
+            "shared_node_ids": [
+              "n-3171606027",
+              "n-360083759"
+            ],
+            "north_edge_ids": [
+              "kemang_cipete-e0001"
+            ],
+            "south_edge_ids": [
+              "cilandak-e0001"
+            ]
+          },
+          {
+            "osm_way_id": 32080503,
+            "road_name": "Jalan Terogong Raya",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.28471,
+            "lon": 106.787887,
+            "shared_node_ids": [
+              "n-2282149039",
+              "n-360163126",
+              "n-361323536"
+            ],
+            "north_edge_ids": [
+              "kemang_cipete-e0046",
+              "kemang_cipete-e0047",
+              "kemang_cipete-e0048",
+              "kemang_cipete-e0049"
+            ],
+            "south_edge_ids": [
+              "cilandak-e0006",
+              "cilandak-e0007",
+              "cilandak-e0008",
+              "cilandak-e0009"
+            ]
+          },
+          {
+            "osm_way_id": 511977053,
+            "road_name": "Jalan Haji Batong Raya",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.283366,
+            "lon": 106.79043,
+            "shared_node_ids": [
+              "n-361323536",
+              "n-361323946"
+            ],
+            "north_edge_ids": [
+              "kemang_cipete-e0096",
+              "kemang_cipete-e0097"
+            ],
+            "south_edge_ids": [
+              "cilandak-e0048",
+              "cilandak-e0049"
+            ]
+          },
+          {
+            "osm_way_id": 32201261,
+            "road_name": "Jalan BDN II",
+            "highway": "tertiary",
+            "oneway": false,
+            "lat": -6.279239,
+            "lon": 106.799515,
+            "shared_node_ids": [
+              "n-361119161",
+              "n-361121928"
+            ],
+            "north_edge_ids": [
+              "kemang_cipete-e0061",
+              "kemang_cipete-e0062"
+            ],
+            "south_edge_ids": [
+              "cilandak-e0014",
+              "cilandak-e0015"
+            ]
+          },
+          {
+            "osm_way_id": 1230703597,
+            "road_name": "Jalan RS Fatmawati",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.283321,
+            "lon": 106.795959,
+            "shared_node_ids": [
+              "n-11413425532",
+              "n-361322342"
+            ],
+            "north_edge_ids": [
+              "kemang_cipete-e0251"
+            ],
+            "south_edge_ids": [
+              "cilandak-e0302"
+            ]
+          },
+          {
+            "osm_way_id": 898547119,
+            "road_name": "Jalan RS Fatmawati",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.282134,
+            "lon": 106.79614,
+            "shared_node_ids": [
+              "n-356229790",
+              "n-7010683139"
+            ],
+            "north_edge_ids": [
+              "kemang_cipete-e0223",
+              "kemang_cipete-e0224"
+            ],
+            "south_edge_ids": [
+              "cilandak-e0216"
+            ]
+          },
+          {
+            "osm_way_id": 703133276,
+            "road_name": "Jalan Pangeran Antasari",
+            "highway": "primary",
+            "oneway": true,
+            "lat": -6.283369,
+            "lon": 106.807326,
+            "shared_node_ids": [
+              "n-356147522",
+              "n-3658055243"
+            ],
+            "north_edge_ids": [
+              "kemang_cipete-e0136"
+            ],
+            "south_edge_ids": [
+              "cilandak-e0163",
+              "cilandak-e0164",
+              "cilandak-e0165"
+            ]
+          },
+          {
+            "osm_way_id": 28415937,
+            "road_name": "Jalan Sekolah Duta Raya",
+            "highway": "tertiary",
+            "oneway": true,
+            "lat": -6.284193,
+            "lon": 106.787111,
+            "shared_node_ids": [
+              "n-312149663",
+              "n-312149811"
+            ],
+            "north_edge_ids": [
+              "kemang_cipete-e0006"
+            ],
+            "south_edge_ids": [
+              "cilandak-e0002"
+            ]
+          }
+        ]
+      },
+      "south": null
+    }
+  }
+}

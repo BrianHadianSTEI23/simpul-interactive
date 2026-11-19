@@ -17,6 +17,7 @@ from .connected_network import build_connected_region, build_signage_nodes
 ROOT = Path(__file__).resolve().parent.parent
 REGIONS_DIR = ROOT / 'data' / 'regions'
 MANIFEST_PATH = ROOT / 'data' / 'provenance_manifest.json'
+CORRIDOR_CONNECTIONS_PATH = ROOT / 'data' / 'corridor_connections.json'
 
 METERS_PER_DEG_LAT = 110574.0
 METERS_PER_DEG_LON_JAKARTA = 110680.0  # cos(-6.2 deg) * 111320
@@ -96,13 +97,24 @@ def load_manifest() -> dict[str, Any]:
     return json.loads(MANIFEST_PATH.read_text(encoding='utf-8'))
 
 
+@lru_cache(maxsize=1)
+def load_corridor_connections() -> dict[str, Any]:
+    if not CORRIDOR_CONNECTIONS_PATH.is_file():
+        return {'corridor': 'Pluit to Cilandak (North-South Jakarta)', 'region_order': [], 'pairs': [], 'by_region': {}}
+    return json.loads(CORRIDOR_CONNECTIONS_PATH.read_text(encoding='utf-8'))
+
+
 def list_region_ids() -> list[str]:
     if not REGIONS_DIR.is_dir():
         return []
-    return sorted(p.stem for p in REGIONS_DIR.glob('*.json'))
+    available = {p.stem for p in REGIONS_DIR.glob('*.json')}
+    order = load_corridor_connections().get('region_order') or []
+    ordered = [rid for rid in order if rid in available]
+    remaining = sorted(available - set(ordered))
+    return ordered + remaining
 
 
-@lru_cache(maxsize=8)
+@lru_cache(maxsize=16)
 def load_region(region_id: str) -> dict[str, Any]:
     if region_id == 'all':
         return build_connected_region({
@@ -117,7 +129,7 @@ def load_region(region_id: str) -> dict[str, Any]:
     return data
 
 
-@lru_cache(maxsize=8)
+@lru_cache(maxsize=16)
 def load_region_geojson(region_id: str) -> dict[str, Any]:
     if region_id == 'all':
         features = []

@@ -107,6 +107,8 @@ button,input{font-family:inherit}
 .atn-compare-sub{display:flex;justify-content:space-between;font-size:10px;color:var(--slate)}
 .atn-kv-box{display:grid;gap:5px;font-size:11px}
 .atn-kv-box>div{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-bottom:1px solid var(--line)}
+.atn-kv-box>div.atn-conn-item{display:grid;gap:3px}
+.atn-conn-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .atn-kv-box>div span{color:var(--slate)}
 .atn-kv-box>div b{color:var(--slate);text-align:right;font-weight:600}
 .atn-muted{color:var(--slate);font-size:11px;line-height:1.4;margin:2px 0 0}

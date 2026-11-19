@@ -147,6 +147,7 @@ export function createAdaptiveMapRenderer(container, callbacks = {}) {
   let dpr = Math.min(window.devicePixelRatio || 1, 2);
 
   let region = null;
+  let regionConnections = null;
   let geomCache = [];
   let simResult = null;
   let frameIndex = 0;
@@ -157,6 +158,7 @@ export function createAdaptiveMapRenderer(container, callbacks = {}) {
     gaussian: true,
     coverage: true,
     labels: true,
+    connections: true,
   };
   let disruptionMode = null; // null | 'flood' | 'demonstration'
   let pendingSnap = null;
@@ -550,6 +552,47 @@ export function createAdaptiveMapRenderer(container, callbacks = {}) {
       ctx.restore();
     }
 
+    // 8b. Real-world OSM Street Connections to Adjacent Corridor Areas
+    if (layers.connections && regionConnections) {
+      ctx.save();
+      ctx.font = '600 10px "Plus Jakarta Sans", "DM Sans", sans-serif';
+      const drawConnectors = (entry, arrow) => {
+        if (!entry?.connectors?.length) return;
+        let labeled = 0;
+        const labeledNames = new Set();
+        for (const conn of entry.connectors) {
+          const p = latLonToScreen(conn.lat, conn.lon);
+          if (p.x < 8 || p.y < 8 || p.x > width - 8 || p.y > height - 8) continue;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 4.2, 0, Math.PI * 2);
+          ctx.fillStyle = '#10b981';
+          ctx.fill();
+          ctx.strokeStyle = '#070d18';
+          ctx.lineWidth = 1.4;
+          ctx.stroke();
+
+          if (labeled < 3 && !conn.road_name.includes('#') && !labeledNames.has(conn.road_name)) {
+            labeledNames.add(conn.road_name);
+            const label = `${arrow} ${conn.road_name}`;
+            const tw = ctx.measureText(label).width;
+            const lx = Math.min(width - tw - 16, Math.max(8, p.x - tw * 0.5));
+            const ly = arrow === '↑' ? Math.max(18, p.y - 12) : Math.min(height - 10, p.y + 18);
+            ctx.fillStyle = 'rgba(6, 78, 59, 0.88)';
+            ctx.fillRect(lx - 4, ly - 10, tw + 8, 14);
+            ctx.strokeStyle = 'rgba(16, 185, 129, 0.55)';
+            ctx.lineWidth = 0.8;
+            ctx.strokeRect(lx - 4, ly - 10, tw + 8, 14);
+            ctx.fillStyle = '#a7f3d0';
+            ctx.fillText(label, lx, ly);
+            labeled++;
+          }
+        }
+      };
+      drawConnectors(regionConnections.north, '↑');
+      drawConnectors(regionConnections.south, '↓');
+      ctx.restore();
+    }
+
     // 9. Active Disruption Markers + Pending Snap Marker
     const activeMarkers = [];
     if (simResult?.disruptions?.flood?.enabled) {
@@ -829,8 +872,9 @@ export function createAdaptiveMapRenderer(container, callbacks = {}) {
   rafId = requestAnimationFrame(renderFlowFrame);
 
   return {
-    setRegion(nextRegion) {
+    setRegion(nextRegion, nextConnections = null) {
       region = nextRegion;
+      regionConnections = nextConnections;
       geomCache = buildEdgeGeometryCache(region);
       pendingSnap = null;
       rejectedPing = null;

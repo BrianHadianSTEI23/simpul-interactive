@@ -5,8 +5,8 @@
  * snapping, backend FastAPI simulation API (with explicit client fallback when offline),
  * replay timeline, and 3-controller benchmark comparison.
  */
-import { ADAPTIVE_REGIONS_DATA } from './adaptive-regions-data.js';
-import { buildConnectedRegion } from './connected-network.js';
+import { ADAPTIVE_REGIONS_DATA, ADAPTIVE_CORRIDOR_CONNECTIONS } from './adaptive-regions-data.js';
+import { buildConnectedRegion, buildSignageNodes } from './connected-network.js';
 import {
   TIME_PERIODS,
   CONTROLLERS,
@@ -71,7 +71,12 @@ let simState = defaultState();
 
 function getRegion(regionId) {
   if (regionId === 'all') return getConnectedNetwork();
-  return ADAPTIVE_REGIONS_DATA[regionId] || getConnectedNetwork();
+  const region = ADAPTIVE_REGIONS_DATA[regionId];
+  if (!region) return getConnectedNetwork();
+  if (!region.signage_nodes) {
+    region.signage_nodes = buildSignageNodes(region);
+  }
+  return region;
 }
 
 function syncDisruptionAnchorsForRegion(region) {
@@ -560,9 +565,53 @@ export function activateAdaptiveMapView() {
     }
   }
 
+  function renderConnectionsBox() {
+    const box = document.getElementById('atn-connections-box');
+    if (!box) return;
+    if (simState.regionId === 'all') {
+      const pairs = ADAPTIVE_CORRIDOR_CONNECTIONS?.pairs || [];
+      box.innerHTML = pairs.map(p => `
+        <div class="atn-conn-item">
+          <div class="atn-conn-head">
+            <span><b>${safe(p.north_region_name)}</b> ↔ <b>${safe(p.south_region_name)}</b></span>
+            <button type="button" class="atn-btn ghost sm" data-atn-jump="${safe(p.south_region_id)}">Focus</button>
+          </div>
+          <small class="atn-muted">${p.shared_osm_way_count} shared OSM ways · ${p.shared_osm_node_count} nodes</small>
+        </div>
+      `).join('');
+      box.querySelectorAll('[data-atn-jump]').forEach(btn => {
+        btn.addEventListener('click', () => switchRegion(btn.dataset.atnJump));
+      });
+      return;
+    }
+    const conn = ADAPTIVE_CORRIDOR_CONNECTIONS?.by_region?.[simState.regionId];
+    if (!conn) {
+      box.innerHTML = '<div class="atn-muted">No corridor connection metadata.</div>';
+      return;
+    }
+    const formatSide = (dirLabel, entry) => {
+      if (!entry) return `<div><span>${safe(dirLabel)}</span><b>Corridor endpoint</b></div>`;
+      const named = [...new Set((entry.streets || []).filter(s => !s.includes('#')))].slice(0, 4);
+      const listStr = named.length ? named.join(', ') : `${entry.shared_osm_way_count} OSM ways`;
+      return `
+        <div class="atn-conn-item">
+          <div class="atn-conn-head">
+            <span>${safe(dirLabel)}: <b>${safe(entry.neighbor_name)}</b></span>
+            <button type="button" class="atn-btn ghost sm" data-atn-jump="${safe(entry.neighbor_id)}">Go</button>
+          </div>
+          <small class="atn-muted">${entry.shared_osm_way_count} shared OSM ways · ${entry.shared_osm_node_count} nodes · ${safe(listStr)}</small>
+        </div>
+      `;
+    };
+    box.innerHTML = formatSide('North link', conn.north) + formatSide('South link', conn.south);
+    box.querySelectorAll('[data-atn-jump]').forEach(btn => {
+      btn.addEventListener('click', () => switchRegion(btn.dataset.atnJump));
+    });
+  }
+
   function switchRegion(targetId) {
     if (targetId !== 'all' && !ADAPTIVE_REGIONS_DATA[targetId]) return;
-    simState.regionId = 'all';
+    simState.regionId = targetId;
     simState.focusRegionId = targetId;
     simState.frameIndex = 0;
 
@@ -578,11 +627,12 @@ export function activateAdaptiveMapView() {
         kind: 'info',
         text: `Showing full connected network (${getConnectedNetwork().stats.directed_edges} directed edges across Pluit ↔ Tanah Abang ↔ Cilandak).`,
       };
+      renderer.setRegion(getRegion('all'));
       renderer.focusRegionBbox?.(null, 'overview');
     } else {
-      const targetRegion = ADAPTIVE_REGIONS_DATA[targetId];
+      const targetRegion = getRegion(targetId);
       syncDisruptionAnchorsForRegion(targetRegion);
-      if (targetId === 'pluit') {
+      if (targetRegion.primary_disruption === 'flood') {
         simState.disruptionMode = 'flood';
         simState.flood.enabled = true;
         simState.demonstration.enabled = false;
@@ -593,9 +643,9 @@ export function activateAdaptiveMapView() {
       }
       simState.statusNotice = {
         kind: 'info',
-        text: `Focused on ${targetRegion.name} inside connected 3-region system (${targetRegion.stats.directed_edges} local + inter-region corridor links).`,
+        text: `Loaded ${targetRegion.name} (${targetRegion.stats.directed_edges} directed OSM road edges).`,
       };
-      renderer.focusRegionBbox?.(targetRegion.bbox, '2d');
+      renderer.setRegion(targetRegion, targetRegion.bbox);
     }
 
     simState.pendingSnap = null;
@@ -605,6 +655,7 @@ export function activateAdaptiveMapView() {
     showSelection('');
     renderPendingConfirm();
     renderStatusBanner();
+    renderConnectionsBox();
     renderControls();
     runSimulation();
   }
@@ -787,6 +838,7 @@ export function activateAdaptiveMapView() {
   };
   renderer.setRegion(getRegion('all'));
   updateCameraButtons(renderer.getCamera?.());
+  renderConnectionsBox();
   renderControls();
   renderStatusBanner();
   runSimulation();

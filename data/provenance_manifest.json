@@ -1,22 +1,28 @@
 {
   "schemaVersion": 1,
   "project": "SIMPUL Jakarta Adaptive Traffic Network",
-  "generatedAt": "2026-11-18T16:56:43Z",
+  "generatedAt": "2026-11-19T03:30:47Z",
   "crs": "EPSG:4326 (WGS84)",
   "datasets": {
     "osm_road_network": {
       "source": "OpenStreetMap Overpass API",
       "license": "ODbL 1.0 (© OpenStreetMap contributors)",
-      "download_date": "2026-11-18T16:56:43Z",
+      "download_date": "2026-11-19T03:30:47Z",
       "coverage": [
+        "Pluit",
+        "Tambora – Kota Tua",
+        "Tomang – Harmoni",
         "Tanah Abang",
-        "Cilandak",
-        "Pluit"
+        "Sudirman – Senayan",
+        "Kebayoran Baru",
+        "Kemang – Cipete",
+        "Cilandak"
       ],
       "transformations": [
         "Filtered to highway classes: motorway, motorway_link, trunk, trunk_link, primary, primary_link, secondary, secondary_link, tertiary, tertiary_link",
         "Excluded alleys, residential access roads, footpaths, and building labels",
-        "Split ways at topological intersections preserving original node coordinates and oneway tags"
+        "Split ways at topological intersections preserving original node coordinates and oneway tags",
+        "Verified inter-area street continuity across adjacent bounding boxes using shared OSM way & node IDs"
       ],
       "classification": "observed_geometry_derived_topology"
     },
@@ -40,6 +46,66 @@
     }
   },
   "regions": {
+    "pluit": {
+      "name": "Pluit",
+      "bbox": {
+        "south": -6.129,
+        "west": 106.7805,
+        "north": -6.106,
+        "east": 106.811
+      },
+      "stats": {
+        "directed_edges": 348,
+        "intersections": 101,
+        "signalized_intersections": 62,
+        "movements": 387,
+        "transit_stops": 57,
+        "flood_eligible_edges": 322,
+        "demonstration_eligible_edges": 271
+      },
+      "geojson_file": "data/regions/pluit.geojson",
+      "graph_file": "data/regions/pluit.json"
+    },
+    "tambora": {
+      "name": "Tambora – Kota Tua",
+      "bbox": {
+        "south": -6.154,
+        "west": 106.783,
+        "north": -6.1285,
+        "east": 106.825
+      },
+      "stats": {
+        "directed_edges": 936,
+        "intersections": 266,
+        "signalized_intersections": 130,
+        "movements": 876,
+        "transit_stops": 80,
+        "flood_eligible_edges": 265,
+        "demonstration_eligible_edges": 265
+      },
+      "geojson_file": "data/regions/tambora.geojson",
+      "graph_file": "data/regions/tambora.json"
+    },
+    "tomang_harmoni": {
+      "name": "Tomang – Harmoni",
+      "bbox": {
+        "south": -6.1785,
+        "west": 106.788,
+        "north": -6.1535,
+        "east": 106.826
+      },
+      "stats": {
+        "directed_edges": 803,
+        "intersections": 261,
+        "signalized_intersections": 147,
+        "movements": 805,
+        "transit_stops": 80,
+        "flood_eligible_edges": 272,
+        "demonstration_eligible_edges": 272
+      },
+      "geojson_file": "data/regions/tomang_harmoni.geojson",
+      "graph_file": "data/regions/tomang_harmoni.json"
+    },
     "tanah_abang": {
       "name": "Tanah Abang",
       "bbox": {
@@ -60,6 +126,66 @@
       "geojson_file": "data/regions/tanah_abang.geojson",
       "graph_file": "data/regions/tanah_abang.json"
     },
+    "sudirman_senayan": {
+      "name": "Sudirman – Senayan",
+      "bbox": {
+        "south": -6.2265,
+        "west": 106.79,
+        "north": -6.197,
+        "east": 106.826
+      },
+      "stats": {
+        "directed_edges": 933,
+        "intersections": 275,
+        "signalized_intersections": 92,
+        "movements": 729,
+        "transit_stops": 80,
+        "flood_eligible_edges": 456,
+        "demonstration_eligible_edges": 456
+      },
+      "geojson_file": "data/regions/sudirman_senayan.geojson",
+      "graph_file": "data/regions/sudirman_senayan.json"
+    },
+    "kebayoran_baru": {
+      "name": "Kebayoran Baru",
+      "bbox": {
+        "south": -6.2555,
+        "west": 106.784,
+        "north": -6.226,
+        "east": 106.822
+      },
+      "stats": {
+        "directed_edges": 1006,
+        "intersections": 388,
+        "signalized_intersections": 171,
+        "movements": 1144,
+        "transit_stops": 80,
+        "flood_eligible_edges": 223,
+        "demonstration_eligible_edges": 242
+      },
+      "geojson_file": "data/regions/kebayoran_baru.geojson",
+      "graph_file": "data/regions/kebayoran_baru.json"
+    },
+    "kemang_cipete": {
+      "name": "Kemang – Cipete",
+      "bbox": {
+        "south": -6.284,
+        "west": 106.784,
+        "north": -6.255,
+        "east": 106.818
+      },
+      "stats": {
+        "directed_edges": 278,
+        "intersections": 97,
+        "signalized_intersections": 73,
+        "movements": 408,
+        "transit_stops": 80,
+        "flood_eligible_edges": 149,
+        "demonstration_eligible_edges": 149
+      },
+      "geojson_file": "data/regions/kemang_cipete.geojson",
+      "graph_file": "data/regions/kemang_cipete.json"
+    },
     "cilandak": {
       "name": "Cilandak",
       "bbox": {
@@ -79,26 +205,7 @@
       },
       "geojson_file": "data/regions/cilandak.geojson",
       "graph_file": "data/regions/cilandak.json"
-    },
-    "pluit": {
-      "name": "Pluit",
-      "bbox": {
-        "south": -6.129,
-        "west": 106.7805,
-        "north": -6.106,
-        "east": 106.811
-      },
-      "stats": {
-        "directed_edges": 348,
-        "intersections": 101,
-        "signalized_intersections": 62,
-        "movements": 387,
-        "transit_stops": 57,
-        "flood_eligible_edges": 322,
-        "demonstration_eligible_edges": 271
-      },
-      "geojson_file": "data/regions/pluit.geojson",
-      "graph_file": "data/regions/pluit.json"
     }
-  }
+  },
+  "corridor_connections_file": "data/corridor_connections.json"
 }

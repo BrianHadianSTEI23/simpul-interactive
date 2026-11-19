@@ -97,7 +97,133 @@ DEFAULT_LANES_BY_CLASS = {
     'tertiary_link': 1,
 }
 
+REGION_ORDER = (
+    'pluit',
+    'tambora',
+    'tomang_harmoni',
+    'tanah_abang',
+    'sudirman_senayan',
+    'kebayoran_baru',
+    'kemang_cipete',
+    'cilandak',
+)
+
+ADJACENT_CORRIDOR_PAIRS = (
+    ('pluit', 'tambora'),
+    ('tambora', 'tomang_harmoni'),
+    ('tomang_harmoni', 'tanah_abang'),
+    ('tanah_abang', 'sudirman_senayan'),
+    ('sudirman_senayan', 'kebayoran_baru'),
+    ('kebayoran_baru', 'kemang_cipete'),
+    ('kemang_cipete', 'cilandak'),
+)
+
 REGION_SPECS: dict[str, dict[str, Any]] = {
+    'pluit': {
+        'id': 'pluit',
+        'name': 'Pluit',
+        'district': 'Jakarta Utara',
+        'subtitle': 'Jl. Muara Baru · Pluit Sea View · Waduk Pluit · Penjaringan',
+        'bbox': (-6.1290, 106.7805, -6.1060, 106.8110),
+        'center': {'lat': -6.1172, 'lon': 106.7968},
+        'default_zoom': 14.7,
+        'focus_streets': ['muara baru', 'pluit', 'penjaringan', 'gedong panjang', 'pakın', 'pakin', 'jembatan tiga', 'bandengan'],
+        'primary_disruption': 'flood',
+        'scenario_eligibility': {
+            'flood': {
+                'supported': True,
+                'role': 'primary_scenario',
+                'note': 'Primary coastal/tidal flood scenario covering Jl. Muara Baru, Pluit Sea View, Waduk Pluit, and Penjaringan.',
+                'keywords': ['muara baru', 'pluit', 'penjaringan', 'waduk', 'gedong panjang'],
+                'default_anchor_keywords': ['muara baru'],
+                'default_radius_m': 460.0,
+            },
+            'demonstration': {
+                'supported': True,
+                'role': 'secondary_synthetic_zone',
+                'note': 'Designated synthetic port-gate / arterial demonstration zone near Muara Baru & Penjaringan.',
+                'keywords': ['muara baru', 'penjaringan', 'pluit', 'gedong panjang'],
+                'default_anchor_keywords': ['penjaringan', 'muara baru'],
+                'default_radius_m': 380.0,
+            },
+        },
+        'landmarks': [
+            {'id': 'lm-muara-baru', 'name': 'Koridor Jl. Muara Baru', 'kind': 'corridor', 'lat': -6.1128, 'lon': 106.8035, 'source': 'OSM reference'},
+            {'id': 'lm-pluit-seaview', 'name': 'Pluit Sea View', 'kind': 'traffic_generator', 'lat': -6.1095, 'lon': 106.7988, 'source': 'OSM reference'},
+            {'id': 'lm-waduk-pluit', 'name': 'Waduk Pluit', 'kind': 'water_feature', 'lat': -6.1178, 'lon': 106.7955, 'source': 'OSM reference'},
+            {'id': 'lm-penjaringan', 'name': 'Simpul Penjaringan', 'kind': 'corridor', 'lat': -6.1243, 'lon': 106.8012, 'source': 'OSM reference'},
+        ],
+    },
+    'tambora': {
+        'id': 'tambora',
+        'name': 'Tambora – Kota Tua',
+        'district': 'Jakarta Barat',
+        'subtitle': 'Jl. Jembatan Tiga · Jl. Latumeten · Jl. Bandengan · Kota Tua · Glodok',
+        'bbox': (-6.1540, 106.7830, -6.1285, 106.8250),
+        'center': {'lat': -6.1412, 'lon': 106.8040},
+        'default_zoom': 14.5,
+        'focus_streets': ['jembatan tiga', 'latumeten', 'bandengan', 'mansyur', 'tubagus angke', 'gajah mada', 'hayam wuruk', 'gedong panjang', 'pintu besar', 'mangga dua'],
+        'primary_disruption': 'flood',
+        'scenario_eligibility': {
+            'flood': {
+                'supported': True,
+                'role': 'primary_scenario',
+                'note': 'Designated synthetic flood corridor along Kali Krukut, Bandengan, Jembatan Tiga, and Kota Tua drainage.',
+                'keywords': ['jembatan tiga', 'bandengan', 'latumeten', 'tubagus angke', 'gedong panjang', 'mansyur'],
+                'default_anchor_keywords': ['bandengan', 'jembatan tiga'],
+                'default_radius_m': 430.0,
+            },
+            'demonstration': {
+                'supported': True,
+                'role': 'secondary_synthetic_zone',
+                'note': 'Designated synthetic market/arterial demonstration corridor around Glodok, Kota Tua, and Jembatan Lima.',
+                'keywords': ['gajah mada', 'hayam wuruk', 'pintu besar', 'mansyur', 'mangga dua'],
+                'default_anchor_keywords': ['gajah mada', 'hayam wuruk'],
+                'default_radius_m': 390.0,
+            },
+        },
+        'landmarks': [
+            {'id': 'lm-jakarta-kota', 'name': 'Stasiun Jakarta Kota', 'kind': 'rail_station', 'lat': -6.1376, 'lon': 106.8147, 'source': 'OSM reference'},
+            {'id': 'lm-jembatan-tiga', 'name': 'Koridor Jembatan Tiga – Latumeten', 'kind': 'corridor', 'lat': -6.1352, 'lon': 106.7918, 'source': 'OSM reference'},
+            {'id': 'lm-bandengan', 'name': 'Koridor Jl. Bandengan Selatan', 'kind': 'corridor', 'lat': -6.1347, 'lon': 106.8025, 'source': 'OSM reference'},
+            {'id': 'lm-glodok', 'name': 'Koridor Glodok / Jl. Gajah Mada', 'kind': 'traffic_generator', 'lat': -6.1445, 'lon': 106.8152, 'source': 'OSM reference'},
+        ],
+    },
+    'tomang_harmoni': {
+        'id': 'tomang_harmoni',
+        'name': 'Tomang – Harmoni',
+        'district': 'Jakarta Barat / Pusat',
+        'subtitle': 'Simpang Tomang · Jl. Kyai Tapa · Jl. KH Hasyim Ashari · Harmoni · Cideng',
+        'bbox': (-6.1785, 106.7880, -6.1535, 106.8260),
+        'center': {'lat': -6.1660, 'lon': 106.8070},
+        'default_zoom': 14.5,
+        'focus_streets': ['tomang', 'kyai tapa', 'parman', 'hasyim ashari', 'suryopranoto', 'cideng', 'gajah mada', 'hayam wuruk', 'abdul muis', 'biak'],
+        'primary_disruption': 'demonstration',
+        'scenario_eligibility': {
+            'flood': {
+                'supported': True,
+                'role': 'secondary_synthetic_zone',
+                'note': 'Designated synthetic canal/underpass flood zone along Cideng, Grogol, and Banjir Kanal Barat.',
+                'keywords': ['cideng', 'kyai tapa', 'hasyim ashari', 'tomang', 'parman'],
+                'default_anchor_keywords': ['cideng', 'kyai tapa'],
+                'default_radius_m': 400.0,
+            },
+            'demonstration': {
+                'supported': True,
+                'role': 'primary_scenario',
+                'note': 'Designated synthetic arterial bottleneck around Harmoni, Roxy, Kyai Tapa, and Simpang Tomang.',
+                'keywords': ['hasyim ashari', 'suryopranoto', 'tomang', 'kyai tapa', 'gajah mada', 'hayam wuruk', 'cideng'],
+                'default_anchor_keywords': ['hasyim ashari', 'suryopranoto'],
+                'default_radius_m': 420.0,
+            },
+        },
+        'landmarks': [
+            {'id': 'lm-simpang-tomang', 'name': 'Simpang Tomang / S. Parman', 'kind': 'corridor', 'lat': -6.1748, 'lon': 106.7927, 'source': 'OSM reference'},
+            {'id': 'lm-kyai-tapa', 'name': 'Koridor Jl. Kyai Tapa', 'kind': 'corridor', 'lat': -6.1676, 'lon': 106.7925, 'source': 'OSM reference'},
+            {'id': 'lm-roxy', 'name': 'Simpul Roxy / Hasyim Ashari', 'kind': 'traffic_generator', 'lat': -6.1656, 'lon': 106.8056, 'source': 'OSM reference'},
+            {'id': 'lm-harmoni', 'name': 'Simpang Harmoni', 'kind': 'corridor', 'lat': -6.1656, 'lon': 106.8204, 'source': 'OSM reference'},
+        ],
+    },
     'tanah_abang': {
         'id': 'tanah_abang',
         'name': 'Tanah Abang',
@@ -134,6 +260,111 @@ REGION_SPECS: dict[str, dict[str, Any]] = {
             {'id': 'lm-kh-mas-mansyur', 'name': 'Koridor Jl. KH Mas Mansyur', 'kind': 'corridor', 'lat': -6.1925, 'lon': 106.8147, 'source': 'OSM reference'},
         ],
     },
+    'sudirman_senayan': {
+        'id': 'sudirman_senayan',
+        'name': 'Sudirman – Senayan',
+        'district': 'Jakarta Pusat / Selatan',
+        'subtitle': 'Jl. Jend. Sudirman · Karet / Benhil · Semanggi · GBK Senayan · Jl. Gatot Subroto',
+        'bbox': (-6.2265, 106.7900, -6.1970, 106.8260),
+        'center': {'lat': -6.2118, 'lon': 106.8080},
+        'default_zoom': 14.4,
+        'focus_streets': ['sudirman', 'mas mansyur', 'satrio', 'gatot subroto', 'asia afrika', 'gerbang pemuda', 'penjernihan', 'tentara pelajar', 'palmerah'],
+        'primary_disruption': 'demonstration',
+        'scenario_eligibility': {
+            'flood': {
+                'supported': True,
+                'role': 'secondary_synthetic_zone',
+                'note': 'Designated synthetic stormwater/underpass runoff scenario near Karet, Benhil, and Dukuh Atas.',
+                'keywords': ['sudirman', 'mas mansyur', 'penjernihan', 'gatot subroto'],
+                'default_anchor_keywords': ['mas mansyur', 'sudirman'],
+                'default_radius_m': 390.0,
+            },
+            'demonstration': {
+                'supported': True,
+                'role': 'primary_scenario',
+                'note': 'Designated synthetic corridor demonstration along Jl. Jend. Sudirman, Semanggi, and Senayan.',
+                'keywords': ['sudirman', 'gatot subroto', 'asia afrika', 'gerbang pemuda', 'mas mansyur'],
+                'default_anchor_keywords': ['sudirman', 'gatot subroto'],
+                'default_radius_m': 430.0,
+            },
+        },
+        'landmarks': [
+            {'id': 'lm-mrt-benhil', 'name': 'MRT Bendungan Hilir / Sudirman', 'kind': 'mrt_station', 'lat': -6.2149, 'lon': 106.8179, 'source': 'OSM reference'},
+            {'id': 'lm-semanggi', 'name': 'Simpang Susun Semanggi', 'kind': 'corridor', 'lat': -6.2215, 'lon': 106.8147, 'source': 'OSM reference'},
+            {'id': 'lm-asia-afrika', 'name': 'Koridor Jl. Asia Afrika / Senayan', 'kind': 'traffic_generator', 'lat': -6.2237, 'lon': 106.8007, 'source': 'OSM reference'},
+            {'id': 'lm-gatot-subroto', 'name': 'Koridor Jl. Gatot Subroto', 'kind': 'corridor', 'lat': -6.2195, 'lon': 106.8110, 'source': 'OSM reference'},
+        ],
+    },
+    'kebayoran_baru': {
+        'id': 'kebayoran_baru',
+        'name': 'Kebayoran Baru',
+        'district': 'Jakarta Selatan',
+        'subtitle': 'Bundaran Senayan · Blok M · Jl. Sisingamangaraja · Jl. Panglima Polim · Jl. Antasari',
+        'bbox': (-6.2555, 106.7840, -6.2260, 106.8220),
+        'center': {'lat': -6.2408, 'lon': 106.8030},
+        'default_zoom': 14.5,
+        'focus_streets': ['sisingamangaraja', 'panglima polim', 'antasari', 'melawai', 'wolter monginsidi', 'senopati', 'wijaya', 'radio dalam', 'pakubuwono', 'iskandarsyah'],
+        'primary_disruption': 'demonstration',
+        'scenario_eligibility': {
+            'flood': {
+                'supported': True,
+                'role': 'secondary_synthetic_zone',
+                'note': 'Designated synthetic Kali Krukut / Antasari stormwater runoff scenario in Kebayoran Baru.',
+                'keywords': ['antasari', 'wijaya', 'wolter monginsidi', 'panglima polim'],
+                'default_anchor_keywords': ['antasari', 'wijaya'],
+                'default_radius_m': 380.0,
+            },
+            'demonstration': {
+                'supported': True,
+                'role': 'primary_scenario',
+                'note': 'Designated synthetic curb/transit bottleneck around CSW ASEAN, Blok M, and Jl. Sisingamangaraja.',
+                'keywords': ['sisingamangaraja', 'panglima polim', 'melawai', 'antasari', 'trunojoyo'],
+                'default_anchor_keywords': ['panglima polim', 'sisingamangaraja'],
+                'default_radius_m': 410.0,
+            },
+        },
+        'landmarks': [
+            {'id': 'lm-mrt-asean', 'name': 'MRT ASEAN / Simpul CSW', 'kind': 'mrt_station', 'lat': -6.2389, 'lon': 106.7985, 'source': 'OSM reference'},
+            {'id': 'lm-blok-m', 'name': 'Kawasan & Terminal Blok M', 'kind': 'traffic_generator', 'lat': -6.2442, 'lon': 106.8006, 'source': 'OSM reference'},
+            {'id': 'lm-antasari-utara', 'name': 'Koridor Jl. Pangeran Antasari', 'kind': 'corridor', 'lat': -6.2498, 'lon': 106.8063, 'source': 'OSM reference'},
+            {'id': 'lm-monginsidi', 'name': 'Koridor Jl. Wolter Monginsidi', 'kind': 'corridor', 'lat': -6.2387, 'lon': 106.8089, 'source': 'OSM reference'},
+        ],
+    },
+    'kemang_cipete': {
+        'id': 'kemang_cipete',
+        'name': 'Kemang – Cipete',
+        'district': 'Jakarta Selatan',
+        'subtitle': 'Jl. RS Fatmawati · Jl. Pangeran Antasari · Jl. Kemang Raya · Cipete · Dharmawangsa',
+        'bbox': (-6.2840, 106.7840, -6.2550, 106.8180),
+        'center': {'lat': -6.2695, 'lon': 106.8010},
+        'default_zoom': 14.5,
+        'focus_streets': ['fatmawati', 'antasari', 'kemang', 'cipete', 'dharmawangsa', 'ampera', 'haji nawi', 'bangka', 'prapanca'],
+        'primary_disruption': 'demonstration',
+        'scenario_eligibility': {
+            'flood': {
+                'supported': True,
+                'role': 'secondary_synthetic_zone',
+                'note': 'Designated synthetic Kali Krukut / Kemang Raya flood runoff zone.',
+                'keywords': ['kemang', 'antasari', 'cipete', 'fatmawati'],
+                'default_anchor_keywords': ['kemang', 'antasari'],
+                'default_radius_m': 400.0,
+            },
+            'demonstration': {
+                'supported': True,
+                'role': 'primary_scenario',
+                'note': 'Designated synthetic arterial bottleneck along Jl. RS Fatmawati, Jl. Pangeran Antasari, and Kemang.',
+                'keywords': ['fatmawati', 'antasari', 'kemang', 'cipete', 'ampera'],
+                'default_anchor_keywords': ['fatmawati', 'antasari'],
+                'default_radius_m': 400.0,
+            },
+        },
+        'landmarks': [
+            {'id': 'lm-mrt-cipete', 'name': 'MRT Cipete Raya / Fatmawati', 'kind': 'mrt_station', 'lat': -6.2784, 'lon': 106.7972, 'source': 'OSM reference'},
+            {'id': 'lm-antasari-selatan', 'name': 'Koridor Jl. Pangeran Antasari', 'kind': 'corridor', 'lat': -6.2685, 'lon': 106.8065, 'source': 'OSM reference'},
+            {'id': 'lm-kemang-raya', 'name': 'Koridor Jl. Kemang Raya', 'kind': 'traffic_generator', 'lat': -6.2643, 'lon': 106.8135, 'source': 'OSM reference'},
+            {'id': 'lm-dharmawangsa', 'name': 'Simpul Dharmawangsa / Prapanca', 'kind': 'corridor', 'lat': -6.2584, 'lon': 106.8035, 'source': 'OSM reference'},
+        ],
+    },
     'cilandak': {
         'id': 'cilandak',
         'name': 'Cilandak',
@@ -167,41 +398,6 @@ REGION_SPECS: dict[str, dict[str, Any]] = {
             {'id': 'lm-citos', 'name': 'Cilandak Town Square', 'kind': 'traffic_generator', 'lat': -6.2923, 'lon': 106.7995, 'source': 'OSM reference'},
             {'id': 'lm-tb-simatupang', 'name': 'Koridor Jl. TB Simatupang', 'kind': 'corridor', 'lat': -6.2920, 'lon': 106.7960, 'source': 'OSM reference'},
             {'id': 'lm-fatmawati', 'name': 'Koridor Jl. RS Fatmawati', 'kind': 'corridor', 'lat': -6.2886, 'lon': 106.7963, 'source': 'OSM reference'},
-        ],
-    },
-    'pluit': {
-        'id': 'pluit',
-        'name': 'Pluit',
-        'district': 'Jakarta Utara',
-        'subtitle': 'Jl. Muara Baru · Pluit Sea View · Waduk Pluit · Penjaringan',
-        'bbox': (-6.1290, 106.7805, -6.1060, 106.8110),
-        'center': {'lat': -6.1172, 'lon': 106.7968},
-        'default_zoom': 14.7,
-        'focus_streets': ['muara baru', 'pluit', 'penjaringan', 'gedong panjang', 'pakın', 'pakin', 'jembatan tiga', 'bandengan'],
-        'primary_disruption': 'flood',
-        'scenario_eligibility': {
-            'flood': {
-                'supported': True,
-                'role': 'primary_scenario',
-                'note': 'Primary coastal/tidal flood scenario covering Jl. Muara Baru, Pluit Sea View, Waduk Pluit, and Penjaringan.',
-                'keywords': ['muara baru', 'pluit', 'penjaringan', 'waduk', 'gedong panjang'],
-                'default_anchor_keywords': ['muara baru'],
-                'default_radius_m': 460.0,
-            },
-            'demonstration': {
-                'supported': True,
-                'role': 'secondary_synthetic_zone',
-                'note': 'Designated synthetic port-gate / arterial demonstration zone near Muara Baru & Penjaringan.',
-                'keywords': ['muara baru', 'penjaringan', 'pluit', 'gedong panjang'],
-                'default_anchor_keywords': ['penjaringan', 'muara baru'],
-                'default_radius_m': 380.0,
-            },
-        },
-        'landmarks': [
-            {'id': 'lm-muara-baru', 'name': 'Koridor Jl. Muara Baru', 'kind': 'corridor', 'lat': -6.1128, 'lon': 106.8035, 'source': 'OSM reference'},
-            {'id': 'lm-pluit-seaview', 'name': 'Pluit Sea View', 'kind': 'traffic_generator', 'lat': -6.1095, 'lon': 106.7988, 'source': 'OSM reference'},
-            {'id': 'lm-waduk-pluit', 'name': 'Waduk Pluit', 'kind': 'water_feature', 'lat': -6.1178, 'lon': 106.7955, 'source': 'OSM reference'},
-            {'id': 'lm-penjaringan', 'name': 'Simpul Penjaringan', 'kind': 'corridor', 'lat': -6.1243, 'lon': 106.8012, 'source': 'OSM reference'},
         ],
     },
 }
@@ -256,16 +452,14 @@ def fetch_overpass(bbox: tuple[float, float, float, float]) -> dict[str, Any]:
     s, w, n, e = bbox
     hw_regex = '|'.join(INCLUDED_HIGHWAY_CLASSES)
     query = f"""
-[out:json][timeout:45];
+[out:json][timeout:60];
 (
   way["highway"~"^({hw_regex})$"]({s},{w},{n},{e});
-  node(w);
   node["highway"="traffic_signals"]({s},{w},{n},{e});
   node["highway"="bus_stop"]({s},{w},{n},{e});
   node["public_transport"~"^(platform|stop_position|station)$"]({s},{w},{n},{e});
   node["railway"~"^(station|halt|subway_entrance)$"]({s},{w},{n},{e});
   way["natural"="water"]({s},{w},{n},{e});
-  relation["natural"="water"]({s},{w},{n},{e});
   way["waterway"~"^(river|canal)$"]({s},{w},{n},{e});
 );
 out body;
@@ -274,26 +468,28 @@ out skel qt;
 """.strip()
     body = urllib.parse.urlencode({'data': query}).encode('utf-8')
     last_err: Exception | None = None
-    for endpoint in OVERPASS_ENDPOINTS:
-        req = urllib.request.Request(
-            endpoint,
-            data=body,
-            headers={
-                'User-Agent': 'SIMPUL-JakartaAdaptiveTraffic/2.0 (academic research prototype)',
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Accept': 'application/json',
-            },
-            method='POST',
-        )
-        try:
-            with urllib.request.urlopen(req, timeout=50) as resp:
-                raw = resp.read()
-            data = json.loads(raw.decode('utf-8'))
-            if 'elements' in data:
-                return data
-        except (urllib.error.URLError, TimeoutError, ValueError) as exc:
-            last_err = exc
-            time.sleep(1.0)
+    for attempt in range(2):
+        for endpoint in OVERPASS_ENDPOINTS:
+            req = urllib.request.Request(
+                endpoint,
+                data=body,
+                headers={
+                    'User-Agent': 'SIMPUL-JakartaAdaptiveTraffic/2.0 (academic research prototype)',
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Accept': 'application/json',
+                },
+                method='POST',
+            )
+            try:
+                with urllib.request.urlopen(req, timeout=65) as resp:
+                    raw = resp.read()
+                data = json.loads(raw.decode('utf-8'))
+                if 'elements' in data:
+                    return data
+            except (urllib.error.URLError, TimeoutError, ValueError) as exc:
+                last_err = exc
+                print(f'  retry ({endpoint}): {exc}', flush=True)
+                time.sleep(2.0)
     raise RuntimeError(f'All Overpass endpoints failed: {last_err}')
 
 
@@ -743,13 +939,167 @@ def build_region_dataset(spec: dict[str, Any], osm_raw: dict[str, Any], gtfs_pat
     return region_payload, geojson_payload
 
 
-def write_outputs(regions: dict[str, dict[str, Any]], geojsons: dict[str, dict[str, Any]]) -> None:
+CORRIDOR_CONNECTIONS_PATH = ROOT / 'data' / 'corridor_connections.json'
+
+
+def _edge_node_coords(region: dict[str, Any]) -> dict[str, tuple[float, float]]:
+    coords_map: dict[str, tuple[float, float]] = {}
+    for e in region.get('edges', []):
+        pts = e.get('coordinates') or []
+        if len(pts) < 2:
+            continue
+        coords_map[e['from_node']] = (pts[0][1], pts[0][0])
+        coords_map[e['to_node']] = (pts[-1][1], pts[-1][0])
+    return coords_map
+
+
+def compute_inter_area_connections(regions: dict[str, dict[str, Any]]) -> dict[str, Any]:
+    """Verify and catalogue real-world OSM street connections between adjacent Pluit–Cilandak areas."""
+    pairs_out: list[dict[str, Any]] = []
+    by_region: dict[str, dict[str, Any]] = {
+        rid: {'north': None, 'south': None}
+        for rid in regions
+    }
+
+    for north_id, south_id in ADJACENT_CORRIDOR_PAIRS:
+        if north_id not in regions or south_id not in regions:
+            continue
+        north_r = regions[north_id]
+        south_r = regions[south_id]
+
+        north_ways: dict[int, list[dict[str, Any]]] = defaultdict(list)
+        south_ways: dict[int, list[dict[str, Any]]] = defaultdict(list)
+        for e in north_r.get('edges', []):
+            north_ways[int(e['osm_way_id'])].append(e)
+        for e in south_r.get('edges', []):
+            south_ways[int(e['osm_way_id'])].append(e)
+
+        north_nodes = _edge_node_coords(north_r)
+        south_nodes = _edge_node_coords(south_r)
+        shared_node_ids = sorted(set(north_nodes.keys()) & set(south_nodes.keys()))
+        shared_way_ids = sorted(set(north_ways.keys()) & set(south_ways.keys()))
+
+        boundary_lat = (north_r['bbox']['south'] + south_r['bbox']['north']) / 2.0
+        connectors: list[dict[str, Any]] = []
+        seen_names: set[tuple[str, int]] = set()
+
+        for wid in shared_way_ids:
+            n_edges = north_ways[wid]
+            s_edges = south_ways[wid]
+            rep = n_edges[0]
+            # Prefer a shared topological node on this way, else nearest vertex to boundary_lat.
+            n_way_nodes = {e['from_node'] for e in n_edges} | {e['to_node'] for e in n_edges}
+            s_way_nodes = {e['from_node'] for e in s_edges} | {e['to_node'] for e in s_edges}
+            way_shared_nodes = sorted(n_way_nodes & s_way_nodes)
+            if way_shared_nodes:
+                nid = way_shared_nodes[0]
+                lat, lon = north_nodes[nid]
+            else:
+                pts = [pt for e in n_edges for pt in e['coordinates']]
+                best_pt = min(pts, key=lambda p: abs(p[1] - boundary_lat))
+                lat, lon = best_pt[1], best_pt[0]
+
+            key = (rep['name'], wid)
+            if key in seen_names:
+                continue
+            seen_names.add(key)
+            connectors.append({
+                'osm_way_id': wid,
+                'road_name': rep['name'],
+                'highway': rep['highway'],
+                'oneway': bool(rep['oneway']),
+                'lat': round(lat, 6),
+                'lon': round(lon, 6),
+                'shared_node_ids': way_shared_nodes[:6],
+                'north_edge_ids': [e['edge_id'] for e in n_edges[:4]],
+                'south_edge_ids': [e['edge_id'] for e in s_edges[:4]],
+            })
+
+        # Sort connectors west-to-east with major highways first.
+        hw_rank = {'motorway': 0, 'trunk': 1, 'primary': 2, 'secondary': 3, 'tertiary': 4}
+        connectors.sort(key=lambda c: (hw_rank.get(c['highway'].replace('_link', ''), 5), c['lon']))
+
+        pair_record = {
+            'north_region_id': north_id,
+            'north_region_name': north_r['name'],
+            'south_region_id': south_id,
+            'south_region_name': south_r['name'],
+            'shared_osm_way_count': len(shared_way_ids),
+            'shared_osm_node_count': len(shared_node_ids),
+            'connected': len(shared_way_ids) > 0 and len(shared_node_ids) > 0,
+            'connectors': connectors,
+        }
+        pairs_out.append(pair_record)
+
+        unique_connectors: list[dict[str, Any]] = []
+        seen_road_names: set[str] = set()
+        for c in connectors:
+            if c['road_name'] not in seen_road_names:
+                seen_road_names.add(c['road_name'])
+                unique_connectors.append(c)
+        for c in connectors:
+            if len(unique_connectors) >= 18:
+                break
+            if c not in unique_connectors:
+                unique_connectors.append(c)
+
+        unique_streets = [c['road_name'] for c in unique_connectors if '#' not in c['road_name']][:12]
+
+        summary_for_north = {
+            'neighbor_id': south_id,
+            'neighbor_name': south_r['name'],
+            'shared_osm_way_count': len(shared_way_ids),
+            'shared_osm_node_count': len(shared_node_ids),
+            'streets': unique_streets,
+            'connectors': unique_connectors[:18],
+        }
+        summary_for_south = {
+            'neighbor_id': north_id,
+            'neighbor_name': north_r['name'],
+            'shared_osm_way_count': len(shared_way_ids),
+            'shared_osm_node_count': len(shared_node_ids),
+            'streets': unique_streets,
+            'connectors': unique_connectors[:18],
+        }
+        by_region[north_id]['south'] = summary_for_north
+        by_region[south_id]['north'] = summary_for_south
+
+    return {
+        'corridor': 'Pluit to Cilandak (North-South Jakarta)',
+        'region_order': [rid for rid in REGION_ORDER if rid in regions],
+        'pairs': pairs_out,
+        'by_region': by_region,
+    }
+
+
+def write_outputs(
+    regions: dict[str, dict[str, Any]],
+    geojsons: dict[str, dict[str, Any]],
+    write_only_regions: set[str] | None = None,
+) -> dict[str, Any]:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     now_iso = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
 
-    for rid, payload in regions.items():
+    ordered_regions = {
+        rid: regions[rid]
+        for rid in REGION_ORDER
+        if rid in regions
+    }
+    for rid, r in regions.items():
+        if rid not in ordered_regions:
+            ordered_regions[rid] = r
+
+    for rid, payload in ordered_regions.items():
+        if write_only_regions is not None and rid not in write_only_regions:
+            continue
         (DATA_DIR / f'{rid}.json').write_text(json.dumps(payload, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
         (DATA_DIR / f'{rid}.geojson').write_text(json.dumps(geojsons[rid], ensure_ascii=False, indent=2), encoding='utf-8')
+
+    corridor_connections = compute_inter_area_connections(ordered_regions)
+    CORRIDOR_CONNECTIONS_PATH.write_text(
+        json.dumps(corridor_connections, ensure_ascii=False, indent=2),
+        encoding='utf-8',
+    )
 
     manifest = {
         'schemaVersion': 1,
@@ -761,11 +1111,12 @@ def write_outputs(regions: dict[str, dict[str, Any]], geojsons: dict[str, dict[s
                 'source': 'OpenStreetMap Overpass API',
                 'license': 'ODbL 1.0 (© OpenStreetMap contributors)',
                 'download_date': now_iso,
-                'coverage': ['Tanah Abang', 'Cilandak', 'Pluit'],
+                'coverage': [r['name'] for r in ordered_regions.values()],
                 'transformations': [
                     'Filtered to highway classes: ' + ', '.join(INCLUDED_HIGHWAY_CLASSES),
                     'Excluded alleys, residential access roads, footpaths, and building labels',
                     'Split ways at topological intersections preserving original node coordinates and oneway tags',
+                    'Verified inter-area street continuity across adjacent bounding boxes using shared OSM way & node IDs',
                 ],
                 'classification': 'observed_geometry_derived_topology',
             },
@@ -773,7 +1124,7 @@ def write_outputs(regions: dict[str, dict[str, Any]], geojsons: dict[str, dict[s
                 'source': 'Official TransJakarta GTFS (optional local ingest via --gtfs-path)',
                 'license': 'TransJakarta Open Data terms (when supplied locally)',
                 'download_date': None,
-                'status': next(iter(regions.values()))['provenance']['gtfs_status']['status'],
+                'status': next(iter(ordered_regions.values()))['provenance']['gtfs_status']['status'],
                 'classification': 'missing_local_archive_fallback_to_osm_stops',
             },
             'grab_posisi_and_dkijakarta_sensors': {
@@ -796,8 +1147,9 @@ def write_outputs(regions: dict[str, dict[str, Any]], geojsons: dict[str, dict[s
                 'geojson_file': f'data/regions/{rid}.geojson',
                 'graph_file': f'data/regions/{rid}.json',
             }
-            for rid, r in regions.items()
+            for rid, r in ordered_regions.items()
         },
+        'corridor_connections_file': 'data/corridor_connections.json',
     }
     MANIFEST_PATH.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding='utf-8')
 
@@ -806,40 +1158,71 @@ def write_outputs(regions: dict[str, dict[str, Any]], geojsons: dict[str, dict[s
         '// Generated by tools/extract_osm_networks.py from real OpenStreetMap geometry.\n'
         '// Provenance: OpenStreetMap (ODbL) geometry + derived topology; disruptions & flows are synthetic.\n'
         'export const ADAPTIVE_REGIONS_DATA = '
-        + json.dumps(regions, ensure_ascii=False, separators=(',', ':'))
+        + json.dumps(ordered_regions, ensure_ascii=False, separators=(',', ':'))
         + ';\n'
         'export const ADAPTIVE_PROVENANCE_MANIFEST = '
         + json.dumps(manifest, ensure_ascii=False, separators=(',', ':'))
         + ';\n'
+        'export const ADAPTIVE_CORRIDOR_CONNECTIONS = '
+        + json.dumps(corridor_connections, ensure_ascii=False, separators=(',', ':'))
+        + ';\n'
     )
     JS_OUT_PATH.write_text(compact_js, encoding='utf-8')
+    return corridor_connections
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description='Extract filtered Jakarta OSM road networks for SIMPUL.')
-    parser.add_argument('--regions', nargs='*', default=list(REGION_SPECS.keys()), choices=list(REGION_SPECS.keys()))
+    parser.add_argument('--regions', nargs='*', default=list(REGION_ORDER), choices=list(REGION_SPECS.keys()))
+    parser.add_argument('--keep-existing', action='store_true', help='Load existing data/regions/*.json instead of re-fetching them')
     parser.add_argument('--gtfs-path', type=Path, default=None, help='Optional local TransJakarta GTFS zip or directory')
     args = parser.parse_args()
 
     regions: dict[str, dict[str, Any]] = {}
     geojsons: dict[str, dict[str, Any]] = {}
-    for rid in args.regions:
+    fetched_ids: set[str] = set()
+
+    for rid in REGION_ORDER:
+        json_path = DATA_DIR / f'{rid}.json'
+        geojson_path = DATA_DIR / f'{rid}.geojson'
+        if rid not in args.regions:
+            if json_path.is_file() and geojson_path.is_file():
+                regions[rid] = json.loads(json_path.read_text(encoding='utf-8'))
+                geojsons[rid] = json.loads(geojson_path.read_text(encoding='utf-8'))
+            continue
+
+        if args.keep_existing and json_path.is_file() and geojson_path.is_file():
+            print(f'Keeping existing OSM dataset for {rid}')
+            regions[rid] = json.loads(json_path.read_text(encoding='utf-8'))
+            geojsons[rid] = json.loads(geojson_path.read_text(encoding='utf-8'))
+            continue
+
         spec = REGION_SPECS[rid]
-        print(f'Fetching OSM network for {spec["name"]} {spec["bbox"]} ...')
+        print(f'Fetching OSM network for {spec["name"]} {spec["bbox"]} ...', flush=True)
         raw = fetch_overpass(spec['bbox'])
         region_data, geojson_data = build_region_dataset(spec, raw, gtfs_path=args.gtfs_path)
         regions[rid] = region_data
         geojsons[rid] = geojson_data
+        fetched_ids.add(rid)
+        DATA_DIR.mkdir(parents=True, exist_ok=True)
+        (DATA_DIR / f'{rid}.json').write_text(json.dumps(region_data, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
+        (DATA_DIR / f'{rid}.geojson').write_text(json.dumps(geojson_data, ensure_ascii=False, indent=2), encoding='utf-8')
         print(
             f'  -> {rid}: {region_data["stats"]["directed_edges"]} directed edges, '
             f'{region_data["stats"]["intersections"]} intersections, '
             f'{region_data["stats"]["transit_stops"]} transit stops, '
-            f'{len(region_data["waterbodies"])} water features'
+            f'{len(region_data["waterbodies"])} water features',
+            flush=True,
         )
-        time.sleep(1.2)
+        time.sleep(2.0)
 
-    write_outputs(regions, geojsons)
-    print(f'Wrote {DATA_DIR}, {MANIFEST_PATH}, and {JS_OUT_PATH}')
+    corridor_connections = write_outputs(regions, geojsons, write_only_regions=fetched_ids if args.keep_existing else None)
+    for p in corridor_connections['pairs']:
+        print(
+            f'  Connection {p["north_region_id"]} <-> {p["south_region_id"]}: '
+            f'{p["shared_osm_way_count"]} shared OSM ways, {p["shared_osm_node_count"]} shared OSM nodes'
+        )
+    print(f'Wrote {DATA_DIR}, {CORRIDOR_CONNECTIONS_PATH}, {MANIFEST_PATH}, and {JS_OUT_PATH}')
     return 0
 
 

@@ -32,7 +32,7 @@ export function renderAdaptiveView() {
             <b>All 3 Connected</b>
             <small>Pluit ↔ Tanah Abang ↔ Cilandak</small>
           </button>
-          <div class="atn-btn-grid three">
+          <div class="atn-btn-grid two">
             ${regions.map(r => `<button type="button" class="atn-chip" data-atn-region="${safe(r.id)}" aria-pressed="false">${safe(r.name)}</button>`).join('')}
           </div>
           <small id="atn-region-subtitle"></small>
@@ -115,6 +115,7 @@ export function renderAdaptiveView() {
             <label><input type="checkbox" data-atn-layer="labels" checked /> Landmarks</label>
           </div>
         </section>
+
       </details>
 
       <main class="atn-map-stage">
@@ -166,7 +167,8 @@ export function renderAdaptiveView() {
               <span><i class="sw turn"></i> Diverted turn</span>
               <span><i class="sw block"></i> Blocked turn</span>
             </div>
-          </details>
+
+      </details>
           <a class="atn-osm-credit" href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a>
         </div>
 
@@ -201,6 +203,11 @@ export function renderAdaptiveView() {
               <img src="./assets/partner-aiera.png" alt="AIERA Foundation" width="123" height="131" decoding="async" />
             </div>
           </div>
+        </section>
+
+        <section class="atn-section">
+          <div class="atn-section-head"><span>Street connections</span><small>OSM Continuity</small></div>
+          <div class="atn-kv-box" id="atn-connections-box"></div>
         </section>
 
       </details>

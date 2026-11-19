@@ -59,7 +59,17 @@ class DisruptionSpec(BaseModel):
 
 
 class AdaptiveScenarioRequest(BaseModel):
-    region_id: Literal['tanah_abang', 'cilandak', 'pluit', 'all'] = 'pluit'
+    region_id: Literal[
+        'all',
+        'pluit',
+        'tambora',
+        'tomang_harmoni',
+        'tanah_abang',
+        'sudirman_senayan',
+        'kebayoran_baru',
+        'kemang_cipete',
+        'cilandak',
+    ] = 'pluit'
     time_period: Literal['pagi', 'siang', 'sore'] = 'pagi'
     controller: ControllerId = 'gnn_mappo'
     flood: DisruptionSpec = Field(default_factory=DisruptionSpec)

@@ -20,11 +20,27 @@ def test_regions_network_and_coverage():
     resp = client.get('/api/regions')
     assert resp.status_code == 200
     ids = {r['id'] for r in resp.json()['regions']}
-    assert ids == {'cilandak', 'pluit', 'tanah_abang'}
+    expected = {
+        'pluit',
+        'tambora',
+        'tomang_harmoni',
+        'tanah_abang',
+        'sudirman_senayan',
+        'kebayoran_baru',
+        'kemang_cipete',
+        'cilandak',
+    }
+    assert ids == expected
     for rid in ids:
         assert client.get(f'/api/regions/{rid}/network').status_code == 200
         assert client.get(f'/api/regions/{rid}/coverage').status_code == 200
     assert client.get('/api/regions/unknown_zone/network').status_code == 404
+
+    conn_resp = client.get('/api/corridor/connections')
+    assert conn_resp.status_code == 200
+    pairs = conn_resp.json()['pairs']
+    assert len(pairs) == len(expected) - 1
+    assert all(p['connected'] and p['shared_osm_way_count'] >= 3 and p['shared_osm_node_count'] >= 3 for p in pairs)
 
 
 def test_disruption_validation_and_rejection():

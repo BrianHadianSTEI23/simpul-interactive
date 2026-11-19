@@ -9,6 +9,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from .adaptive_network import (
+    load_corridor_connections,
     load_manifest,
     load_region,
     load_region_geojson,
@@ -39,7 +40,13 @@ def get_regions() -> dict[str, Any]:
     return {
         'regions': region_summaries(),
         'manifest': load_manifest(),
+        'corridor_connections': load_corridor_connections(),
     }
+
+
+@router.get('/corridor/connections')
+def get_corridor_connections() -> dict[str, Any]:
+    return load_corridor_connections()
 
 
 @router.get('/regions/{region_id}/network')

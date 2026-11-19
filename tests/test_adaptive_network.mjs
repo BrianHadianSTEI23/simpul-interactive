@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { ADAPTIVE_REGIONS_DATA, ADAPTIVE_PROVENANCE_MANIFEST } from '../public/js/adaptive-regions-data.js';
+import {
+  ADAPTIVE_REGIONS_DATA,
+  ADAPTIVE_PROVENANCE_MANIFEST,
+  ADAPTIVE_CORRIDOR_CONNECTIONS,
+} from '../public/js/adaptive-regions-data.js';
 import { buildConnectedRegion } from '../public/js/connected-network.js';
 import {
   TIME_PERIODS,
@@ -12,7 +16,18 @@ import {
 } from '../public/js/adaptive-model.js';
 import { renderAdaptiveView } from '../public/js/adaptive-view.js';
 
-for (const rid of ['tanah_abang', 'cilandak', 'pluit']) {
+const ALL_REGION_IDS = [
+  'pluit',
+  'tambora',
+  'tomang_harmoni',
+  'tanah_abang',
+  'sudirman_senayan',
+  'kebayoran_baru',
+  'kemang_cipete',
+  'cilandak',
+];
+
+for (const rid of ALL_REGION_IDS) {
   const region = ADAPTIVE_REGIONS_DATA[rid];
   assert.ok(region, `Missing region ${rid}`);
   assert.ok(region.edges.length >= 100);
@@ -20,6 +35,43 @@ for (const rid of ['tanah_abang', 'cilandak', 'pluit']) {
   assert.ok(region.coverage_mask.length >= 4);
   assert.ok(region.study_boundary.length >= 4);
   assert.ok(region.transit_stops.length >= 5);
+
+  const primaryKind = region.primary_disruption || 'demonstration';
+  const anchor = region.disruption_anchors[primaryKind];
+  const snap = snapDisruptionLocation(region, anchor.lat, anchor.lon, primaryKind, 200);
+  assert.equal(snap.accepted, true, `Snap failed for ${rid}`);
+
+  const simRegion = runClientFallbackSimulation(region, {
+    region_id: rid,
+    time_period: 'pagi',
+    controller: 'gnn_mappo',
+    flood: primaryKind === 'flood'
+      ? { enabled: true, lat: snap.snapped_lat, lon: snap.snapped_lon, intensity: 0.8, sigma_m: 420 }
+      : { enabled: false },
+    demonstration: primaryKind === 'demonstration'
+      ? { enabled: true, lat: snap.snapped_lat, lon: snap.snapped_lon, intensity: 0.8, sigma_m: 400 }
+      : { enabled: false },
+    duration_s: 360,
+    seed: 42,
+  });
+  assert.ok(simRegion.frames.length >= 10, `Missing frames for ${rid}`);
+  assert.ok(
+    simRegion.comparison.gnn_mappo.metrics.avg_delay_s < simRegion.comparison.fixed_time.metrics.avg_delay_s,
+    `Expected GNN-MAPPO to beat Fixed-Time in ${rid}`
+  );
+}
+
+// Verify real-world OSM street connections between every adjacent pair from Pluit to Cilandak
+assert.equal(ADAPTIVE_CORRIDOR_CONNECTIONS.pairs.length, ALL_REGION_IDS.length - 1);
+for (const pair of ADAPTIVE_CORRIDOR_CONNECTIONS.pairs) {
+  assert.equal(pair.connected, true, `Disconnected pair: ${pair.north_region_id} <-> ${pair.south_region_id}`);
+  assert.ok(pair.shared_osm_way_count >= 3, `Too few shared OSM ways for ${pair.north_region_id} <-> ${pair.south_region_id}`);
+  assert.ok(pair.shared_osm_node_count >= 3, `Too few shared OSM nodes for ${pair.north_region_id} <-> ${pair.south_region_id}`);
+  const northWays = new Set(ADAPTIVE_REGIONS_DATA[pair.north_region_id].edges.map(e => e.osm_way_id));
+  const southWays = new Set(ADAPTIVE_REGIONS_DATA[pair.south_region_id].edges.map(e => e.osm_way_id));
+  for (const conn of pair.connectors) {
+    assert.ok(northWays.has(conn.osm_way_id) && southWays.has(conn.osm_way_id), `Connector ${conn.road_name} missing in adjacent region`);
+  }
 }
 
 assert.ok(ADAPTIVE_REGIONS_DATA.tanah_abang.edges.some(e => e.name.toLowerCase().includes('jatibaru')));
@@ -72,6 +124,7 @@ assert.ok(TIME_PERIODS.length === 3 && CONTROLLERS.length === 3);
 
 const html = renderAdaptiveView();
 assert.ok(html.includes('Tanah Abang') && html.includes('Cilandak') && html.includes('Pluit'));
+assert.ok(html.includes('Tambora') && html.includes('Tomang') && html.includes('Sudirman') && html.includes('Kebayoran Baru') && html.includes('Kemang'));
 assert.ok(html.includes('<details class="atn-legend" id="atn-legend"'));
 assert.ok(html.includes('<summary class="atn-legend-title">Traffic &amp; disruptions</summary>'));
 assert.ok(html.includes('id="atn-toggle-selection"') && html.includes('id="atn-clear-selection"'));

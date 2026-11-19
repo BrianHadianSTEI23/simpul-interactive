@@ -29,8 +29,8 @@ export function renderAdaptiveView() {
         <section class="atn-section">
           <div class="atn-section-head"><span>Study area</span><small>Coupled Network</small></div>
           <button type="button" class="atn-chip atn-chip-wide" data-atn-region="all" aria-pressed="true">
-            <b>All 3 Connected</b>
-            <small>Pluit ↔ Tanah Abang ↔ Cilandak</small>
+            <b>All Areas Connected</b>
+            <small>Pluit ↔ … ↔ Cilandak (8 Areas)</small>
           </button>
           <div class="atn-btn-grid two">
             ${regions.map(r => `<button type="button" class="atn-chip" data-atn-region="${safe(r.id)}" aria-pressed="false">${safe(r.name)}</button>`).join('')}

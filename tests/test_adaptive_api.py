@@ -192,27 +192,29 @@ def test_trained_meshgraphnet_integration_pluit_flood():
     assert b3['throughput_vph'] > b2['throughput_vph']
 
 
-def test_connected_three_region_network_scoping_and_signage():
-    """Verify Pluit-Tanah Abang-Cilandak connected network, scoped disruptions, and dynamic signage."""
+def test_connected_all_areas_network_scoping_and_signage():
+    """Verify 8-area Pluit-to-Cilandak connected network, boundary continuity, and dynamic signage."""
     net = client.get('/api/regions/all/network')
     assert net.status_code == 200
     net_json = net.json()
+    assert len(net_json['region']['component_regions']) == 8
     connector_edges = [e for e in net_json['edges'] if e.get('is_inter_region_connector')]
     assert len(connector_edges) >= 16
-    assert all(not e.get('flood_eligible') and not e.get('demonstration_eligible') for e in connector_edges)
+    gateway_nodes = [i for i in net_json['intersections'] if i.get('is_gateway')]
+    assert len(gateway_nodes) >= 20
     assert len(net_json['signage_nodes']) >= 100
 
-    # Disruption midpoint between Pluit and Tanah Abang (outside the 3 study areas) must be rejected
+    # Coordinate outside all 8 study areas must be rejected
     outside = client.post('/api/regions/all/disruption/validate', json={
         'lat': -6.1520,
-        'lon': 106.8178,
+        'lon': 106.8550,
         'disruption_kind': 'flood',
     })
     assert outside.status_code == 422
 
-    # Anchor inside Tanah Abang must be accepted cleanly in 'all' mode
-    ta_anchor = client.get('/api/regions').json()['regions']
-    ta = next(r for r in ta_anchor if r['id'] == 'tanah_abang')['disruption_anchors']['demonstration']
+    # Anchor inside an intermediate area (e.g., Sudirman-Senayan) and Tanah Abang must be accepted in 'all' mode
+    regions_list = client.get('/api/regions').json()['regions']
+    ta = next(r for r in regions_list if r['id'] == 'tanah_abang')['disruption_anchors']['demonstration']
     inside = client.post('/api/regions/all/disruption/validate', json={
         'lat': ta['lat'],
         'lon': ta['lon'],
@@ -221,7 +223,7 @@ def test_connected_three_region_network_scoping_and_signage():
     assert inside.status_code == 200
     assert inside.json()['accepted'] is True
 
-    # Connected 3-region simulation check
+    # Connected 8-area simulation check
     run = client.post('/api/simulation/run', json={
         'region_id': 'all',
         'time_period': 'sore',
@@ -242,7 +244,7 @@ def test_connected_three_region_network_scoping_and_signage():
     assert b3['throughput_vph'] > b1['throughput_vph']
     assert b3['avg_delay_s'] <= b1['avg_delay_s']
 
-    # Blue -> Orange -> Blue lifecycle over 600s run
+    # Blue -> Orange -> Blue lifecycle over 360s run
     def cong_count(frame):
         return sum(
             1 for st in frame['edge_states'].values()
@@ -255,6 +257,6 @@ def test_connected_three_region_network_scoping_and_signage():
     assert c_peak >= 40
     assert c_end <= c_peak * 0.30
     assert any(
-        any(k.startswith('conn-') and v['mode'] in ('diverted', 'blocked') for k, v in f['signage_states'].items())
+        any(v['mode'] in ('diverted', 'blocked') for v in f['signage_states'].values())
         for f in data['frames']
     )

@@ -152,10 +152,16 @@ assert.ok(Object.keys(trainedSim.frames[0].signage_states).length > 0);
 
 const connected = buildConnectedRegion(ADAPTIVE_REGIONS_DATA);
 assert.equal(connected.id, 'all');
+assert.equal(connected.component_regions.length, 8);
 assert.ok(connected.edges.some(e => e.is_inter_region_connector));
+assert.ok(connected.intersections.some(i => i.is_gateway));
 assert.ok(connected.signage_nodes.length >= 100);
-assert.equal(snapDisruptionLocation(connected, -6.1520, 106.8178, 'flood', 200).accepted, false);
+assert.equal(snapDisruptionLocation(connected, -6.1520, 106.8550, 'flood', 200).accepted, false);
 assert.equal(snapDisruptionLocation(connected, muaraBaruAnchor.lat, muaraBaruAnchor.lon, 'flood', 200).accepted, true);
+assert.equal(
+  snapDisruptionLocation(connected, ADAPTIVE_REGIONS_DATA.sudirman_senayan.disruption_anchors.demonstration.lat, ADAPTIVE_REGIONS_DATA.sudirman_senayan.disruption_anchors.demonstration.lon, 'demonstration', 200).accepted,
+  true,
+);
 
 const connectedSim = runClientFallbackSimulation(connected, {
   region_id: 'all',
@@ -169,6 +175,6 @@ const connectedSim = runClientFallbackSimulation(connected, {
 assert.equal(connectedSim.frames[0].movement_policy, 'meshgraphnet');
 assert.ok(Object.keys(connectedSim.frames[2].signage_states).length >= 100);
 assert.ok(connectedSim.comparison.gnn_mappo.metrics.avg_delay_s < connectedSim.comparison.fixed_time.metrics.avg_delay_s);
-assert.ok(html.includes('All 3 Connected'));
+assert.ok(html.includes('All Areas Connected'));
 
 console.log('PASS simpul-interactive JS suite');

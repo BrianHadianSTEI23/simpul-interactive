@@ -148,7 +148,7 @@ export function snapDisruptionLocation(region, lat, lon, kind, maxSnapM = 200) {
       eligible_for_disruption: false,
       nearest_distance_m: Number(bestAny.toFixed(1)),
       reason: region.is_connected_network
-        ? 'Flooding & demonstration placement remain strictly scoped to Tanah Abang, Cilandak, and Pluit (outside corridor masks).'
+        ? 'Clicked location is outside the connected Pluit–Cilandak corridor road masks.'
         : `Clicked location is outside the covered road-network mask (nearest covered road: ${Math.round(bestAny)} m).`,
     };
   }

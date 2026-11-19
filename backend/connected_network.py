@@ -110,154 +110,162 @@ def build_signage_nodes(region: dict[str, Any]) -> list[dict[str, Any]]:
     return signage_nodes
 
 
+CORRIDOR_ORDER = (
+    'pluit',
+    'tambora',
+    'tomang_harmoni',
+    'tanah_abang',
+    'sudirman_senayan',
+    'kebayoran_baru',
+    'kemang_cipete',
+    'cilandak',
+)
+
+
 def build_connected_region(regions_by_id: dict[str, dict[str, Any]]) -> dict[str, Any]:
-    """Assemble Pluit + Tanah Abang + Cilandak + inter-regional connector corridors."""
+    """Assemble all areas from Pluit to Cilandak via their real-world shared OSM streets."""
     spec = load_corridors_spec()
-    ordered_ids = ['pluit', 'tanah_abang', 'cilandak']
+    ordered_ids = [rid for rid in CORRIDOR_ORDER if rid in regions_by_id]
+    for rid in regions_by_id:
+        if rid not in ordered_ids:
+            ordered_ids.append(rid)
 
     all_edges: list[dict[str, Any]] = []
-    all_inters: list[dict[str, Any]] = []
-    all_movements: list[dict[str, Any]] = []
+    edge_by_id: dict[str, dict[str, Any]] = {}
+    edge_key_to_id: dict[tuple[Any, str, str, str], str] = {}
+    edge_alias: dict[str, str] = {}
+    edge_regions: dict[str, set[str]] = {}
+
+    inter_map: dict[str, dict[str, Any]] = {}
+    inter_regions: dict[str, set[str]] = {}
+
+    raw_movements: list[dict[str, Any]] = []
     all_stops: list[dict[str, Any]] = []
+    seen_stops: set[str] = set()
     all_landmarks: list[dict[str, Any]] = []
+    seen_landmarks: set[str] = set()
     all_waterbodies: list[dict[str, Any]] = []
+    seen_waterbodies: set[Any] = set()
     study_boundaries: list[dict[str, Any]] = []
     coverage_masks: list[dict[str, Any]] = []
 
     for rid in ordered_ids:
         reg = copy.deepcopy(regions_by_id[rid])
         for e in reg['edges']:
-            e['home_region'] = rid
-            all_edges.append(e)
+            orig_eid = e['edge_id']
+            key = (e.get('osm_way_id'), e['from_node'], e['to_node'], e.get('direction', 'fwd'))
+            if key in edge_key_to_id:
+                canon_id = edge_key_to_id[key]
+                edge_alias[orig_eid] = canon_id
+                edge_regions[canon_id].add(rid)
+                edge_by_id[canon_id]['is_inter_region_connector'] = True
+                edge_by_id[canon_id]['corridor_pair'] = f"{edge_by_id[canon_id]['home_region']}_{rid}"
+            else:
+                edge_key_to_id[key] = orig_eid
+                edge_alias[orig_eid] = orig_eid
+                edge_regions[orig_eid] = {rid}
+                e['home_region'] = rid
+                e.setdefault('is_inter_region_connector', False)
+                all_edges.append(e)
+                edge_by_id[orig_eid] = e
+
         for inter in reg['intersections']:
-            inter['home_region'] = rid
-            all_inters.append(inter)
-        all_movements.extend(reg['movements'])
+            nid = inter['node_id']
+            inc = [edge_alias.get(eid, eid) for eid in inter.get('incoming_edges', [])]
+            out = [edge_alias.get(eid, eid) for eid in inter.get('outgoing_edges', [])]
+            if nid in inter_map:
+                existing = inter_map[nid]
+                inter_regions[nid].add(rid)
+                existing['is_gateway'] = True
+                existing['signalized'] = True
+                existing['incoming_edges'] = list(dict.fromkeys(existing['incoming_edges'] + inc))
+                existing['outgoing_edges'] = list(dict.fromkeys(existing['outgoing_edges'] + out))
+            else:
+                inter['home_region'] = rid
+                inter['incoming_edges'] = list(dict.fromkeys(inc))
+                inter['outgoing_edges'] = list(dict.fromkeys(out))
+                inter_map[nid] = inter
+                inter_regions[nid] = {rid}
+
+        raw_movements.extend(reg.get('movements', []))
+
         for s in reg.get('transit_stops', []):
+            sid = s.get('stop_id') or f"{s.get('name')}_{s.get('lat')}_{s.get('lon')}"
+            if sid in seen_stops:
+                continue
+            seen_stops.add(sid)
             s['home_region'] = rid
             all_stops.append(s)
+
         for lm in reg.get('landmarks', []):
+            lid = lm.get('id') or lm.get('name')
+            if lid in seen_landmarks:
+                continue
+            seen_landmarks.add(lid)
             lm['home_region'] = rid
             all_landmarks.append(lm)
-        all_waterbodies.extend(reg.get('waterbodies', []))
+
+        for wb in reg.get('waterbodies', []):
+            wid = wb.get('osm_way_id') or wb.get('name')
+            if wid in seen_waterbodies:
+                continue
+            seen_waterbodies.add(wid)
+            all_waterbodies.append(wb)
+
         study_boundaries.append({'region_id': rid, 'name': reg['name'], 'ring': reg['study_boundary']})
         coverage_masks.append({'region_id': rid, 'name': reg['name'], 'ring': reg['coverage_mask']})
 
-    inter_map = {i['node_id']: i for i in all_inters}
-    existing_mov_pairs = {(m['intersection_id'], m['from_edge'], m['to_edge']) for m in all_movements}
+    all_inters = list(inter_map.values())
+    gateway_nodes = {nid for nid, rset in inter_regions.items() if len(rset) >= 2}
 
-    # Add intermediate hubs on inter-regional corridors
-    for hub in spec['hubs']:
-        nid = hub['node_id']
-        hub_inter = {
-            'node_id': nid,
-            'osm_node_id': nid,
-            'name': hub['name'],
-            'lat': hub['lat'],
-            'lon': hub['lon'],
-            'degree': 0,
-            'signalized': bool(hub.get('signalized', True)),
-            'control_type': hub.get('control_type', 'signalized'),
-            'incoming_edges': [],
-            'outgoing_edges': [],
-            'movement_count': 0,
-            'is_connector_hub': True,
-            'home_region': 'corridor',
-        }
-        all_inters.append(hub_inter)
-        inter_map[nid] = hub_inter
-        all_landmarks.append({
-            'id': f'lm-{nid}',
-            'name': hub['name'],
-            'kind': 'interchange',
-            'lat': hub['lat'],
-            'lon': hub['lon'],
-            'source': 'Jakarta Corridor Hub',
-            'home_region': 'corridor',
+    # Mark real OSM edges touching shared boundary gateways as inter-region connectors.
+    for e in all_edges:
+        if e['from_node'] in gateway_nodes or e['to_node'] in gateway_nodes or len(edge_regions.get(e['edge_id'], ())) >= 2:
+            e['is_inter_region_connector'] = True
+            e.setdefault('corridor_pair', 'inter_region')
+
+    # Remap and deduplicate movements using canonical edge IDs.
+    all_movements: list[dict[str, Any]] = []
+    existing_mov_pairs: set[tuple[str, str, str]] = set()
+    for m in raw_movements:
+        nid = m['intersection_id']
+        fe = edge_alias.get(m['from_edge'], m['from_edge'])
+        te = edge_alias.get(m['to_edge'], m['to_edge'])
+        if fe not in edge_by_id or te not in edge_by_id or nid not in inter_map:
+            continue
+        key = (nid, fe, te)
+        if key in existing_mov_pairs:
+            continue
+        existing_mov_pairs.add(key)
+        all_movements.append({
+            **m,
+            'from_edge': fe,
+            'to_edge': te,
         })
 
-    # Add bidirectional connector edges (two directed edges per corridor segment)
-    edge_counter = 1
+    # Wire cross-boundary turns at shared OSM gateway intersections.
     pair_reverse: dict[str, str] = {}
-    gateway_nodes: set[str] = set()
-    for link in spec['links']:
-        coords_fwd = link['coordinates']
-        coords_rev = list(reversed(coords_fwd))
-        fwd_id = f'conn-e{edge_counter:04d}'
-        edge_counter += 1
-        rev_id = f'conn-e{edge_counter:04d}'
-        edge_counter += 1
-        pair_reverse[fwd_id] = rev_id
-        pair_reverse[rev_id] = fwd_id
+    rev_lookup: dict[tuple[Any, str, str], str] = {}
+    for e in all_edges:
+        rev_lookup[(e.get('osm_way_id'), e['from_node'], e['to_node'])] = e['edge_id']
+    for e in all_edges:
+        opp = rev_lookup.get((e.get('osm_way_id'), e['to_node'], e['from_node']))
+        if opp and opp != e['edge_id']:
+            pair_reverse[e['edge_id']] = opp
 
-        length_m = _polyline_length_m(coords_fwd)
-        base_meta = {
-            'osm_way_id': link['id'],
-            'name': link['name'],
-            'highway': link.get('highway', 'primary'),
-            'oneway': False,
-            'lanes': int(link.get('lanes', 3)),
-            'speed_limit_kmh': float(link.get('speed_limit_kmh', 60.0)),
-            'capacity_vph': int(link.get('capacity_vph', 3600)),
-            'length_m': length_m,
-            'corridor_focus': True,
-            'eligible': False,
-            'flood_eligible': False,
-            'demonstration_eligible': False,
-            'is_inter_region_connector': True,
-            'corridor_pair': link.get('corridor_pair', 'inter_region'),
-            'home_region': 'corridor',
-        }
-
-        u, v = link['from_node'], link['to_node']
-        fwd_edge = {
-            **base_meta,
-            'edge_id': fwd_id,
-            'direction': 'fwd',
-            'from_node': u,
-            'to_node': v,
-            'bearing_deg': _bearing_deg(coords_fwd),
-            'coordinates': coords_fwd,
-        }
-        rev_edge = {
-            **base_meta,
-            'edge_id': rev_id,
-            'direction': 'rev',
-            'from_node': v,
-            'to_node': u,
-            'bearing_deg': _bearing_deg(coords_rev),
-            'coordinates': coords_rev,
-        }
-        all_edges.extend([fwd_edge, rev_edge])
-
-        for node_id in (u, v):
-            if not inter_map[node_id].get('is_connector_hub'):
-                inter_map[node_id]['is_gateway'] = True
-                inter_map[node_id]['signalized'] = True
-                gateway_nodes.add(node_id)
-
-        inter_map[u]['outgoing_edges'].append(fwd_id)
-        inter_map[v]['incoming_edges'].append(fwd_id)
-        inter_map[v]['outgoing_edges'].append(rev_id)
-        inter_map[u]['incoming_edges'].append(rev_id)
-
-    # Wire movements at hubs and gateway intersections (avoiding direct 180-deg self-reversal)
     mov_counter = 1
-    edges_by_id = {e['edge_id']: e for e in all_edges}
-    touched_nodes = {h['node_id'] for h in spec['hubs']} | gateway_nodes
-    for nid in sorted(touched_nodes):
+    for nid in sorted(gateway_nodes):
         inter = inter_map[nid]
         for fe_id in inter['incoming_edges']:
-            fe = edges_by_id.get(fe_id)
+            fe = edge_by_id.get(fe_id)
             if not fe:
                 continue
             for te_id in inter['outgoing_edges']:
                 if fe_id == te_id or pair_reverse.get(fe_id) == te_id:
                     continue
-                te = edges_by_id.get(te_id)
+                te = edge_by_id.get(te_id)
                 if not te:
                     continue
-                # Prevent degenerate U-turn on same OSM street when non-connector alternatives exist
                 if abs(((te['bearing_deg'] - fe['bearing_deg'] + 180.0) % 360.0) - 180.0) > 158.0:
                     continue
                 key = (nid, fe_id, te_id)
@@ -272,7 +280,7 @@ def build_connected_region(regions_by_id: dict[str, dict[str, Any]]) -> dict[str
                 })
                 mov_counter += 1
         inter['movement_count'] = len([m for m in all_movements if m['intersection_id'] == nid])
-        inter['degree'] = len(inter['incoming_edges']) + len(inter['outgoing_edges'])
+        inter['degree'] = len(set(inter['incoming_edges']) | set(inter['outgoing_edges']))
 
     south = min(regions_by_id[rid]['bbox']['south'] for rid in ordered_ids)
     north = max(regions_by_id[rid]['bbox']['north'] for rid in ordered_ids)
@@ -281,13 +289,13 @@ def build_connected_region(regions_by_id: dict[str, dict[str, Any]]) -> dict[str
 
     pluit_ref = regions_by_id['pluit']
     ta_ref = regions_by_id['tanah_abang']
-    cil_ref = regions_by_id['cilandak']
+    connector_count = sum(1 for e in all_edges if e.get('is_inter_region_connector'))
 
     connected = {
         'id': 'all',
-        'name': spec['name'],
-        'district': spec['district'],
-        'subtitle': spec['subtitle'],
+        'name': 'All Areas Connected (Pluit ↔ Cilandak)',
+        'district': 'Jakarta Utara · Jakarta Barat · Jakarta Pusat · Jakarta Selatan',
+        'subtitle': f'Unified {len(ordered_ids)}-area Jakarta corridor network · Pluit to Cilandak via real OSM streets',
         'is_connected_network': True,
         'component_regions': ordered_ids,
         'bbox': {'south': south, 'west': west, 'north': north, 'east': east},
@@ -297,23 +305,19 @@ def build_connected_region(regions_by_id: dict[str, dict[str, Any]]) -> dict[str
         'scenario_eligibility': {
             'flood': {
                 'supported': True,
-                'role': 'scoped_to_three_regions',
-                'note': 'Flood scenarios remain strictly scoped to Pluit, Tanah Abang, or Cilandak.',
+                'role': 'scoped_to_all_corridor_areas',
+                'note': f'Flood scenarios cover all {len(ordered_ids)} connected study areas between Pluit and Cilandak.',
             },
             'demonstration': {
                 'supported': True,
-                'role': 'scoped_to_three_regions',
-                'note': 'Demonstration scenarios remain strictly scoped to Tanah Abang, Cilandak, or Pluit.',
+                'role': 'scoped_to_all_corridor_areas',
+                'note': f'Demonstration scenarios cover all {len(ordered_ids)} connected study areas between Pluit and Cilandak.',
             },
         },
         'disruption_anchors': {
             'flood': {**pluit_ref['disruption_anchors']['flood'], 'region_id': 'pluit'},
             'demonstration': {**ta_ref['disruption_anchors']['demonstration'], 'region_id': 'tanah_abang'},
-            'by_region': {
-                'pluit': pluit_ref['disruption_anchors'],
-                'tanah_abang': ta_ref['disruption_anchors'],
-                'cilandak': cil_ref['disruption_anchors'],
-            },
+            'by_region': {rid: regions_by_id[rid]['disruption_anchors'] for rid in ordered_ids},
         },
         'study_boundary': pluit_ref['study_boundary'],
         'coverage_mask': pluit_ref['coverage_mask'],
@@ -328,7 +332,7 @@ def build_connected_region(regions_by_id: dict[str, dict[str, Any]]) -> dict[str
         'provenance': pluit_ref['provenance'],
         'stats': {
             'directed_edges': len(all_edges),
-            'connector_edges': len(spec['links']) * 2,
+            'connector_edges': connector_count,
             'intersections': len(all_inters),
             'signalized_intersections': sum(1 for i in all_inters if i.get('signalized')),
             'movements': len(all_movements),
@@ -451,7 +455,7 @@ def build_frame_signage(
             elif worst_blocked:
                 reason = f"SIMPUL blokir cabang padat ({worst_blocked['to_name']}) · Prioritaskan {top['dir_label'].lower()}"
             elif snode.get('is_connector_hub') or snode.get('is_gateway'):
-                reason = f"Koridor penghubung 3 wilayah ({period_label}) · Arahkan ke jalur tercepat ({top['speed_kmh']:.0f} km/j)"
+                reason = f"Koridor penghubung antarwilayah ({period_label}) · Arahkan ke jalur tercepat ({top['speed_kmh']:.0f} km/j)"
             elif has_flood or has_demo:
                 reason = f"Rute adaptif SIMPUL ({period_label}) menjaga kelancaran {top['dir_label'].lower()}"
             else:

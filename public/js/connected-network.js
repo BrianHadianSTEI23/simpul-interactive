@@ -123,128 +123,158 @@ export function buildSignageNodes(region) {
   return nodes;
 }
 
+const CORRIDOR_ORDER = [
+  'pluit',
+  'tambora',
+  'tomang_harmoni',
+  'tanah_abang',
+  'sudirman_senayan',
+  'kebayoran_baru',
+  'kemang_cipete',
+  'cilandak',
+];
+
 export function buildConnectedRegion(regionsById) {
-  const orderedIds = ['pluit', 'tanah_abang', 'cilandak'];
+  const orderedIds = CORRIDOR_ORDER.filter(rid => Boolean(regionsById[rid]));
+  for (const rid of Object.keys(regionsById || {})) {
+    if (!orderedIds.includes(rid)) orderedIds.push(rid);
+  }
+
   const allEdges = [];
-  const allInters = [];
-  const allMovements = [];
+  const edgeById = {};
+  const edgeKeyToId = new Map();
+  const edgeAlias = {};
+  const edgeRegions = {};
+
+  const interMap = {};
+  const interRegions = {};
+
+  const rawMovements = [];
   const allStops = [];
+  const seenStops = new Set();
   const allLandmarks = [];
+  const seenLandmarks = new Set();
   const allWaterbodies = [];
+  const seenWaterbodies = new Set();
   const studyBoundaries = [];
   const coverageMasks = [];
 
   for (const rid of orderedIds) {
     const reg = regionsById[rid];
     if (!reg) continue;
-    for (const e of reg.edges || []) allEdges.push({ ...e, home_region: rid });
-    for (const i of reg.intersections || []) {
-      allInters.push({
-        ...i,
-        incoming_edges: [...(i.incoming_edges || [])],
-        outgoing_edges: [...(i.outgoing_edges || [])],
-        home_region: rid,
-      });
+    for (const e of reg.edges || []) {
+      const key = `${e.osm_way_id}::${e.from_node}::${e.to_node}::${e.direction || 'fwd'}`;
+      if (edgeKeyToId.has(key)) {
+        const canonId = edgeKeyToId.get(key);
+        edgeAlias[e.edge_id] = canonId;
+        edgeRegions[canonId].add(rid);
+        edgeById[canonId].is_inter_region_connector = true;
+        edgeById[canonId].corridor_pair = `${edgeById[canonId].home_region}_${rid}`;
+      } else {
+        edgeKeyToId.set(key, e.edge_id);
+        edgeAlias[e.edge_id] = e.edge_id;
+        edgeRegions[e.edge_id] = new Set([rid]);
+        const copyEdge = {
+          ...e,
+          home_region: rid,
+          is_inter_region_connector: Boolean(e.is_inter_region_connector),
+        };
+        allEdges.push(copyEdge);
+        edgeById[e.edge_id] = copyEdge;
+      }
     }
-    for (const m of reg.movements || []) allMovements.push({ ...m });
-    for (const s of reg.transit_stops || []) allStops.push({ ...s, home_region: rid });
-    for (const lm of reg.landmarks || []) allLandmarks.push({ ...lm, home_region: rid });
-    for (const w of reg.waterbodies || []) allWaterbodies.push(w);
+
+    for (const i of reg.intersections || []) {
+      const inc = (i.incoming_edges || []).map(eid => edgeAlias[eid] || eid);
+      const out = (i.outgoing_edges || []).map(eid => edgeAlias[eid] || eid);
+      if (interMap[i.node_id]) {
+        const existing = interMap[i.node_id];
+        interRegions[i.node_id].add(rid);
+        existing.is_gateway = true;
+        existing.signalized = true;
+        existing.incoming_edges = [...new Set([...existing.incoming_edges, ...inc])];
+        existing.outgoing_edges = [...new Set([...existing.outgoing_edges, ...out])];
+      } else {
+        interMap[i.node_id] = {
+          ...i,
+          incoming_edges: [...new Set(inc)],
+          outgoing_edges: [...new Set(out)],
+          home_region: rid,
+        };
+        interRegions[i.node_id] = new Set([rid]);
+      }
+    }
+
+    for (const m of reg.movements || []) rawMovements.push(m);
+
+    for (const s of reg.transit_stops || []) {
+      const sid = s.stop_id || `${s.name}_${s.lat}_${s.lon}`;
+      if (seenStops.has(sid)) continue;
+      seenStops.add(sid);
+      allStops.push({ ...s, home_region: rid });
+    }
+
+    for (const lm of reg.landmarks || []) {
+      const lid = lm.id || lm.name;
+      if (seenLandmarks.has(lid)) continue;
+      seenLandmarks.add(lid);
+      allLandmarks.push({ ...lm, home_region: rid });
+    }
+
+    for (const w of reg.waterbodies || []) {
+      const wid = w.osm_way_id || w.name;
+      if (seenWaterbodies.has(wid)) continue;
+      seenWaterbodies.add(wid);
+      allWaterbodies.push(w);
+    }
+
     studyBoundaries.push({ region_id: rid, name: reg.name, ring: reg.study_boundary });
     coverageMasks.push({ region_id: rid, name: reg.name, ring: reg.coverage_mask });
   }
 
-  const interMap = Object.fromEntries(allInters.map(i => [i.node_id, i]));
-  const existingPairs = new Set(allMovements.map(m => `${m.intersection_id}::${m.from_edge}::${m.to_edge}`));
+  const allInters = Object.values(interMap);
+  const gatewayNodes = new Set(
+    Object.entries(interRegions).filter(([, rset]) => rset.size >= 2).map(([nid]) => nid)
+  );
 
-  for (const hub of CONNECTED_CORRIDORS_SPEC.hubs) {
-    const hubInter = {
-      node_id: hub.node_id,
-      osm_node_id: hub.node_id,
-      name: hub.name,
-      lat: hub.lat,
-      lon: hub.lon,
-      degree: 0,
-      signalized: true,
-      control_type: 'signalized',
-      incoming_edges: [],
-      outgoing_edges: [],
-      movement_count: 0,
-      is_connector_hub: true,
-      home_region: 'corridor',
-    };
-    allInters.push(hubInter);
-    interMap[hub.node_id] = hubInter;
-    allLandmarks.push({
-      id: `lm-${hub.node_id}`,
-      name: hub.name,
-      kind: 'interchange',
-      lat: hub.lat,
-      lon: hub.lon,
-      source: 'Jakarta Corridor Hub',
-      home_region: 'corridor',
-    });
+  for (const e of allEdges) {
+    if (gatewayNodes.has(e.from_node) || gatewayNodes.has(e.to_node) || edgeRegions[e.edge_id]?.size >= 2) {
+      e.is_inter_region_connector = true;
+      if (!e.corridor_pair) e.corridor_pair = 'inter_region';
+    }
   }
 
-  let edgeCounter = 1;
-  const pairReverse = {};
-  const gatewayNodes = new Set();
+  const allMovements = [];
+  const existingPairs = new Set();
+  for (const m of rawMovements) {
+    const fe = edgeAlias[m.from_edge] || m.from_edge;
+    const te = edgeAlias[m.to_edge] || m.to_edge;
+    if (!edgeById[fe] || !edgeById[te] || !interMap[m.intersection_id]) continue;
+    const key = `${m.intersection_id}::${fe}::${te}`;
+    if (existingPairs.has(key)) continue;
+    existingPairs.add(key);
+    allMovements.push({ ...m, from_edge: fe, to_edge: te });
+  }
 
-  for (const link of CONNECTED_CORRIDORS_SPEC.links) {
-    const coordsFwd = link.coordinates;
-    const coordsRev = [...coordsFwd].reverse();
-    const fwdId = `conn-e${String(edgeCounter++).padStart(4, '0')}`;
-    const revId = `conn-e${String(edgeCounter++).padStart(4, '0')}`;
-    pairReverse[fwdId] = revId;
-    pairReverse[revId] = fwdId;
-    const lenM = polylineLengthM(coordsFwd);
-    const meta = {
-      osm_way_id: link.id,
-      name: link.name,
-      highway: link.highway,
-      oneway: false,
-      lanes: link.lanes,
-      speed_limit_kmh: link.speed_limit_kmh,
-      capacity_vph: link.capacity_vph,
-      length_m: lenM,
-      corridor_focus: true,
-      eligible: false,
-      flood_eligible: false,
-      demonstration_eligible: false,
-      is_inter_region_connector: true,
-      corridor_pair: link.corridor_pair,
-      home_region: 'corridor',
-    };
-    const u = link.from_node;
-    const v = link.to_node;
-    allEdges.push(
-      { ...meta, edge_id: fwdId, direction: 'fwd', from_node: u, to_node: v, bearing_deg: bearingDeg(coordsFwd), coordinates: coordsFwd },
-      { ...meta, edge_id: revId, direction: 'rev', from_node: v, to_node: u, bearing_deg: bearingDeg(coordsRev), coordinates: coordsRev },
-    );
-    for (const nid of [u, v]) {
-      if (!interMap[nid].is_connector_hub) {
-        interMap[nid].is_gateway = true;
-        interMap[nid].signalized = true;
-        gatewayNodes.add(nid);
-      }
-    }
-    interMap[u].outgoing_edges.push(fwdId);
-    interMap[v].incoming_edges.push(fwdId);
-    interMap[v].outgoing_edges.push(revId);
-    interMap[u].incoming_edges.push(revId);
+  const revLookup = new Map();
+  for (const e of allEdges) {
+    revLookup.set(`${e.osm_way_id}::${e.from_node}::${e.to_node}`, e.edge_id);
+  }
+  const pairReverse = {};
+  for (const e of allEdges) {
+    const opp = revLookup.get(`${e.osm_way_id}::${e.to_node}::${e.from_node}`);
+    if (opp && opp !== e.edge_id) pairReverse[e.edge_id] = opp;
   }
 
   let movCounter = 1;
-  const edgesById = Object.fromEntries(allEdges.map(e => [e.edge_id, e]));
-  const touched = [...new Set([...CONNECTED_CORRIDORS_SPEC.hubs.map(h => h.node_id), ...gatewayNodes])];
-  for (const nid of touched) {
+  for (const nid of [...gatewayNodes].sort()) {
     const inter = interMap[nid];
     for (const feId of inter.incoming_edges) {
-      const fe = edgesById[feId];
+      const fe = edgeById[feId];
       if (!fe) continue;
       for (const teId of inter.outgoing_edges) {
         if (feId === teId || pairReverse[feId] === teId) continue;
-        const te = edgesById[teId];
+        const te = edgeById[teId];
         if (!te) continue;
         const ang = Math.abs(((te.bearing_deg - fe.bearing_deg + 180) % 360 + 360) % 360 - 180);
         if (ang > 158) continue;
@@ -259,6 +289,8 @@ export function buildConnectedRegion(regionsById) {
         });
       }
     }
+    inter.movement_count = allMovements.filter(m => m.intersection_id === nid).length;
+    inter.degree = new Set([...inter.incoming_edges, ...inter.outgoing_edges]).size;
   }
 
   const south = Math.min(...orderedIds.map(id => regionsById[id].bbox.south));
@@ -267,13 +299,13 @@ export function buildConnectedRegion(regionsById) {
   const east = Math.max(...orderedIds.map(id => regionsById[id].bbox.east));
   const pluitRef = regionsById.pluit;
   const taRef = regionsById.tanah_abang;
-  const cilRef = regionsById.cilandak;
+  const connectorCount = allEdges.filter(e => e.is_inter_region_connector).length;
 
   const connected = {
     id: 'all',
-    name: CONNECTED_CORRIDORS_SPEC.name,
-    district: CONNECTED_CORRIDORS_SPEC.district,
-    subtitle: CONNECTED_CORRIDORS_SPEC.subtitle,
+    name: 'All Areas Connected (Pluit ↔ Cilandak)',
+    district: 'Jakarta Utara · Jakarta Barat · Jakarta Pusat · Jakarta Selatan',
+    subtitle: `Unified ${orderedIds.length}-area Jakarta corridor network · Pluit to Cilandak via real OSM streets`,
     is_connected_network: true,
     component_regions: orderedIds,
     bbox: { south, west, north, east },
@@ -281,17 +313,13 @@ export function buildConnectedRegion(regionsById) {
     default_zoom: 11.75,
     primary_disruption: 'flood',
     scenario_eligibility: {
-      flood: { supported: true, role: 'scoped_to_three_regions' },
-      demonstration: { supported: true, role: 'scoped_to_three_regions' },
+      flood: { supported: true, role: 'scoped_to_all_corridor_areas' },
+      demonstration: { supported: true, role: 'scoped_to_all_corridor_areas' },
     },
     disruption_anchors: {
       flood: { ...pluitRef.disruption_anchors.flood, region_id: 'pluit' },
       demonstration: { ...taRef.disruption_anchors.demonstration, region_id: 'tanah_abang' },
-      by_region: {
-        pluit: pluitRef.disruption_anchors,
-        tanah_abang: taRef.disruption_anchors,
-        cilandak: cilRef.disruption_anchors,
-      },
+      by_region: Object.fromEntries(orderedIds.map(rid => [rid, regionsById[rid].disruption_anchors])),
     },
     study_boundary: pluitRef.study_boundary,
     coverage_mask: pluitRef.coverage_mask,
@@ -306,7 +334,7 @@ export function buildConnectedRegion(regionsById) {
     provenance: pluitRef.provenance,
     stats: {
       directed_edges: allEdges.length,
-      connector_edges: CONNECTED_CORRIDORS_SPEC.links.length * 2,
+      connector_edges: connectorCount,
       intersections: allInters.length,
       signalized_intersections: allInters.filter(i => i.signalized).length,
       movements: allMovements.length,
@@ -406,7 +434,7 @@ export function buildClientFrameSignage(signageNodes, routing, turnActions, fram
       } else if (worstBlocked) {
         reason = `SIMPUL blokir cabang padat (${worstBlocked.to_name}) · Prioritaskan ${top.dir_label.toLowerCase()}`;
       } else if (snode.is_connector_hub || snode.is_gateway) {
-        reason = `Koridor penghubung 3 wilayah (${periodLabel}) · Arahkan ke jalur tercepat (${Math.round(top.speed_kmh)} km/j)`;
+        reason = `Koridor penghubung antarwilayah (${periodLabel}) · Arahkan ke jalur tercepat (${Math.round(top.speed_kmh)} km/j)`;
       } else if (ctx.floodEnabled || ctx.demoEnabled) {
         reason = `Rute adaptif SIMPUL (${periodLabel}) menjaga kelancaran ${top.dir_label.toLowerCase()}`;
       } else {

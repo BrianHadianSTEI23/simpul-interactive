@@ -625,7 +625,7 @@ export function activateAdaptiveMapView() {
       simState.demonstration.enabled = true;
       simState.statusNotice = {
         kind: 'info',
-        text: `Showing full connected network (${getConnectedNetwork().stats.directed_edges} directed edges across Pluit ↔ Tanah Abang ↔ Cilandak).`,
+        text: `Showing all areas connected (${getConnectedNetwork().stats.directed_edges} directed OSM edges across 8 areas from Pluit to Cilandak).`,
       };
       renderer.setRegion(getRegion('all'));
       renderer.focusRegionBbox?.(null, 'overview');
@@ -831,10 +831,10 @@ export function activateAdaptiveMapView() {
     });
   });
 
-  // Initial load — connected 3-region Jakarta network
+  // Initial load — all 8 areas connected from Pluit to Cilandak
   simState.statusNotice = {
     kind: 'info',
-    text: 'Connected 3-region network active (Pluit ↔ Tanah Abang ↔ Cilandak). Flooding & demonstration stay scoped to the 3 places.',
+    text: 'All areas connected active (Pluit ↔ Cilandak across 8 Jakarta study areas via real OSM streets).',
   };
   renderer.setRegion(getRegion('all'));
   updateCameraButtons(renderer.getCamera?.());

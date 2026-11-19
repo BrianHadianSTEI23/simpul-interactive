@@ -118,7 +118,7 @@ def list_region_ids() -> list[str]:
 def load_region(region_id: str) -> dict[str, Any]:
     if region_id == 'all':
         return build_connected_region({
-            rid: load_region(rid) for rid in ('pluit', 'tanah_abang', 'cilandak')
+            rid: load_region(rid) for rid in list_region_ids()
         })
     path = REGIONS_DIR / f'{region_id}.json'
     if not path.is_file():
@@ -133,7 +133,7 @@ def load_region(region_id: str) -> dict[str, Any]:
 def load_region_geojson(region_id: str) -> dict[str, Any]:
     if region_id == 'all':
         features = []
-        for rid in ('pluit', 'tanah_abang', 'cilandak'):
+        for rid in list_region_ids():
             features.extend(load_region_geojson(rid).get('features', []))
         conn = load_region('all')
         for e in conn['edges']:
@@ -220,7 +220,8 @@ def validate_and_snap_disruption(
 ) -> dict[str, Any]:
     """Verify clicked coordinate against study-area coverage & disruption mask, then snap."""
     if region_id == 'all':
-        for sub_rid in ('pluit', 'tanah_abang', 'cilandak'):
+        all_rids = list_region_ids()
+        for sub_rid in all_rids:
             sub = load_region(sub_rid)
             b = sub['bbox']
             pad_deg = max_snap_distance_m / METERS_PER_DEG_LAT
@@ -235,8 +236,7 @@ def validate_and_snap_disruption(
             'inside_coverage': False,
             'eligible_for_disruption': False,
             'reason': (
-                f'Selected coordinate ({lat:.5f}, {lon:.5f}) lies outside Tanah Abang, Cilandak, and Pluit. '
-                'Flooding and demonstration disruptions remain strictly scoped to those three study areas.'
+                f'Selected coordinate ({lat:.5f}, {lon:.5f}) lies outside all connected Pluit–Cilandak study areas.'
             ),
         }
     region = load_region(region_id)

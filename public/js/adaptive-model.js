@@ -412,27 +412,56 @@ function runTrainedJSStep(region, cache, weightsPayload, frameEdges, interPhase)
     (movByFrom[fe] ||= []).push({ m: mm.m, idx: m, mm });
   }
 
+  // 4-hop downstream stress diffusion for network-wide VMS coordination (mirrors movement_policy.py)
+  const edgeStress = {};
+  for (const e of edges) {
+    const st = frameEdges[e.edge_id] || {};
+    edgeStress[e.edge_id] = st.closed ? 1 : Math.max(st.occupancy ?? 0, st.disruption_intensity ?? 0);
+  }
+  const outStress = { ...edgeStress };
+  for (let hop = 0; hop < 4; hop++) {
+    const nextStress = {};
+    for (const [feId, list] of Object.entries(movByFrom)) {
+      if (!list.length) continue;
+      const vals = list.map(x => outStress[x.m.to_edge] ?? edgeStress[x.m.to_edge] ?? 0);
+      const bestNext = Math.min(...vals);
+      const worstNext = Math.max(...vals);
+      const avgNext = vals.reduce((a, b) => a + b, 0) / vals.length;
+      const prop = 0.50 * avgNext + 0.35 * worstNext + 0.15 * bestNext;
+      nextStress[feId] = Math.max(edgeStress[feId] ?? 0, 0.86 * prop);
+    }
+    Object.assign(outStress, nextStress);
+  }
+
   const turnActions = {};
   const routing = {};
   for (const [feId, list] of Object.entries(movByFrom)) {
     const legal = list.filter(x => !(frameEdges[x.m.to_edge]?.closed));
     const scored = legal.map(x => {
       const toSt = frameEdges[x.m.to_edge] || {};
-      const risk = Math.max(toSt.occupancy ?? 0, toSt.disruption_intensity ?? 0);
+      const lookahead = outStress[x.m.to_edge] ?? 0;
+      const risk = Math.max(toSt.occupancy ?? 0, toSt.disruption_intensity ?? 0, 0.85 * lookahead);
       const rawS = out.movScores ? Number(out.movScores[x.idx] || 0.01) : Math.max(0.01, 1 - risk);
-      const relief = Math.max(0.18, 1 - 0.62 * Math.max(0, risk - 0.25));
+      const relief = Math.max(0.10, 1 - 0.85 * Math.max(0, risk - 0.08));
       return { ...x, score: Math.max(0.01, Math.min(1, rawS * relief)) };
     });
     const best = scored.reduce((a, b) => (!a || b.score > a.score ? b : a), null);
-    const allowed = scored.filter(x => x.score >= 0.20 || (best && x.idx === best.idx));
-    const total = allowed.reduce((s, x) => s + Math.pow(x.score, 3.2), 0);
-    routing[feId] = allowed.map(x => [x.m.to_edge, total > 0 ? Math.pow(x.score, 3.2) / total : 1 / allowed.length]);
+    const allowed = scored.filter(x => x.score >= 0.16 || (best && x.idx === best.idx));
+    const total = allowed.reduce((s, x) => s + Math.pow(x.score, 4.0), 0);
+    const splits = allowed.map(x => [x.m.to_edge, total > 0 ? Math.pow(x.score, 4.0) / total : 1 / allowed.length]);
+    routing[feId] = splits;
+    const splitMap = Object.fromEntries(splits);
+    const bestShare = best ? (splitMap[best.m.to_edge] ?? 0) : 0;
+    const worstRisk = Math.max(...list.map(x => Math.max(frameEdges[x.m.to_edge]?.occupancy ?? 0, frameEdges[x.m.to_edge]?.disruption_intensity ?? 0, outStress[x.m.to_edge] ?? 0)), 0);
     for (const x of scored) {
       const inAllowed = allowed.some(a => a.idx === x.idx);
-      if (!inAllowed || (legal.length > 1 && (allowed.length < legal.length || x.score >= 0.6) && best && x.idx === best.idx)) {
+      if (!inAllowed) {
         turnActions[x.m.movement_id] = {
-          intersection_id: x.m.intersection_id, from_edge: feId, to_edge: x.m.to_edge,
-          action: inAllowed ? 'redirected' : 'blocked',
+          intersection_id: x.m.intersection_id, from_edge: feId, to_edge: x.m.to_edge, action: 'blocked',
+        };
+      } else if (legal.length > 1 && best && x.idx === best.idx && (allowed.length < legal.length || bestShare >= 0.45 || worstRisk >= 0.22)) {
+        turnActions[x.m.movement_id] = {
+          intersection_id: x.m.intersection_id, from_edge: feId, to_edge: x.m.to_edge, action: 'redirected',
         };
       }
     }
@@ -466,14 +495,16 @@ function simulateSingleClientController(region, config, controllerId, floodCfg, 
 
   const edgeQueue = {};
   const edgeBaseDemand = {};
+  const edgeStorage = {};
   for (const e of edges) {
     const hw = e.highway || 'secondary';
-    let hwLoad = (hw.includes('primary') || hw.includes('trunk') || hw.includes('motorway')) ? 0.66 : hw.includes('secondary') ? 0.50 : 0.36;
-    if (e.corridor_focus) hwLoad += 0.10;
+    let hwLoad = (hw.includes('primary') || hw.includes('trunk') || hw.includes('motorway')) ? 0.50 : hw.includes('secondary') ? 0.38 : 0.28;
+    if (e.corridor_focus) hwLoad += 0.06;
     const noise = 0.92 + 0.16 * rng();
     const demand = e.capacity_vph * hwLoad * periodMeta.demandFactor * noise;
     edgeBaseDemand[e.edge_id] = demand;
-    edgeQueue[e.edge_id] = Math.max(0.5, (demand / 3600) * 14);
+    edgeStorage[e.edge_id] = Math.max(4, (e.length_m / 6.5) * e.lanes);
+    edgeQueue[e.edge_id] = Math.min(edgeStorage[e.edge_id] * 0.22, Math.max(0.3, (demand / 3600) * 4));
   }
 
   const interPhase = {};
@@ -493,10 +524,31 @@ function simulateSingleClientController(region, config, controllerId, floodCfg, 
 
   for (let step = 0; step <= steps; step++) {
     const tSec = step * dtS;
-    let pulse = 1;
+    let pulse = 0;
+    let demandWave = 1;
+    const frac = tSec / Math.max(1, durationS);
     if (hasDisruption) {
-      if (tSec < 60) pulse = 0.35 + 0.65 * (tSec / 60);
-      else if (tSec > durationS * 0.72) pulse = Math.max(0.35, 1 - 0.55 * ((tSec - durationS * 0.72) / (durationS * 0.28)));
+      if (frac <= 0.03) {
+        pulse = 0;
+        demandWave = 0.62;
+      } else if (frac < 0.16) {
+        const ramp = (frac - 0.03) / 0.13;
+        pulse = ramp;
+        demandWave = 0.86 + 0.62 * ramp;
+      } else if (frac <= 0.44) {
+        pulse = 1;
+        demandWave = 1.48;
+      } else if (frac <= 0.68) {
+        const ease = (frac - 0.44) / 0.24;
+        pulse = Math.max(0.10, 1 - 0.90 * ease);
+        demandWave = 1.10 - 0.64 * ease;
+      } else {
+        const tail = (frac - 0.68) / 0.32;
+        pulse = tail >= 0.45 ? 0 : Math.max(0, 0.10 * (1 - tail / 0.45));
+        demandWave = 0.44 - 0.08 * tail;
+      }
+    } else {
+      demandWave = frac < 0.68 ? 0.62 + 0.66 * Math.sin(Math.PI * Math.min(1, frac / 0.68)) : 0.44;
     }
 
     const frameEdges = {};
@@ -510,9 +562,9 @@ function simulateSingleClientController(region, config, controllerId, floodCfg, 
       const spdFactor = closed ? 0 : Math.max(0.08, 1 - (1 - imp.speed_factor) * pulse);
       const inflowFactor = (effDis > 0.15 && !closed) ? Math.max(0.45, 1 - rerouteRelief * effDis) : 1;
 
-      const demandRate = (edgeBaseDemand[eid] * inflowFactor) / 3600;
+      const demandRate = (edgeBaseDemand[eid] * demandWave * inflowFactor) / 3600;
       const effCap = closed ? 0 : ((e.capacity_vph * capFactor * serviceEff) / 3600);
-      const maxStorage = Math.max(4, (e.length_m / 6.5) * e.lanes);
+      const maxStorage = edgeStorage[eid];
       let q = edgeQueue[eid];
       if (step > 0) {
         const arrivals = demandRate * dtS;
@@ -528,7 +580,7 @@ function simulateSingleClientController(region, config, controllerId, floodCfg, 
       if (occ >= 0.82 && step > 0) spillbackEvents++;
       const freeSpd = Number(e.speed_limit_kmh) || 40;
       const speedKmh = closed ? 0 : Number(Math.max(3.5, freeSpd * spdFactor * Math.max(0.12, 1 - 0.82 * Math.pow(occ, 1.35))).toFixed(1));
-      const flowVph = closed ? 0 : Math.round(Math.min(e.capacity_vph * capFactor, edgeBaseDemand[eid] * inflowFactor * (1 - 0.45 * occ)));
+      const flowVph = closed ? 0 : Math.round(Math.min(e.capacity_vph * capFactor, edgeBaseDemand[eid] * demandWave * inflowFactor * (1 - 0.45 * occ)));
       const queueM = Number(Math.min(e.length_m, (q * 6.2) / Math.max(1, e.lanes)).toFixed(1));
       const congIdx = Number(Math.min(1, Math.max(0, 1 - speedKmh / Math.max(1, freeSpd))).toFixed(3));
       const delayS = Math.max(0, e.length_m / Math.max(1, speedKmh / 3.6) - e.length_m / Math.max(1, freeSpd / 3.6));
@@ -592,7 +644,7 @@ function simulateSingleClientController(region, config, controllerId, floodCfg, 
       if (stepQSum > peakQ) {
         peakQ = stepQSum;
         recoveryArmed = true;
-      } else if (recoveryArmed && recoveryTimeS === null && tSec > durationS * 0.55 && stepQSum <= peakQ * 0.72) {
+      } else if (recoveryArmed && recoveryTimeS === null && tSec > durationS * 0.42 && stepQSum <= peakQ * 0.68) {
         recoveryTimeS = Number((tSec - 60).toFixed(1));
       }
     }

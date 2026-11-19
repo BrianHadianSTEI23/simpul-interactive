@@ -225,3 +225,20 @@ def test_connected_three_region_network_scoping_and_signage():
     assert b3['avg_congested_edges'] < b1['avg_congested_edges']
     assert b3['throughput_vph'] > b1['throughput_vph']
     assert b3['avg_delay_s'] <= b1['avg_delay_s']
+
+    # Blue -> Orange -> Blue lifecycle over 600s run
+    def cong_count(frame):
+        return sum(
+            1 for st in frame['edge_states'].values()
+            if not st['closed'] and (st['congestion_index'] >= 0.65 or st['occupancy'] >= 0.65)
+        )
+    c_start = cong_count(data['frames'][0])
+    c_peak = max(cong_count(f) for f in data['frames'])
+    c_end = cong_count(data['frames'][-1])
+    assert c_start <= 5
+    assert c_peak >= 40
+    assert c_end <= c_peak * 0.30
+    assert any(
+        any(k.startswith('conn-') and v['mode'] in ('diverted', 'blocked') for k, v in f['signage_states'].items())
+        for f in data['frames']
+    )

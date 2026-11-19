@@ -294,6 +294,30 @@
       "speed_limit_kmh": 60.0,
       "capacity_vph": 3600,
       "coordinates": [[106.7848, -6.2525], [106.7942, -6.2545], [106.8035, -6.2565]]
+    },
+    {
+      "id": "conn-x-4",
+      "name": "Koridor Tomang – Hasyim Ashari (Roxy–Harmoni Link)",
+      "highway": "primary",
+      "corridor_pair": "pluit_tanah_abang",
+      "from_node": "conn-n0004",
+      "to_node": "conn-n0002",
+      "lanes": 3,
+      "speed_limit_kmh": 60.0,
+      "capacity_vph": 3600,
+      "coordinates": [[106.8015, -6.1650], [106.8105, -6.1634], [106.8194, -6.1618]]
+    },
+    {
+      "id": "conn-x-5",
+      "name": "Koridor K.H. Mas Mansyur – Karet (Tanah Abang Selatan)",
+      "highway": "primary",
+      "corridor_pair": "tanah_abang_cilandak",
+      "from_node": "n-317417741",
+      "to_node": "n-8487621941",
+      "lanes": 3,
+      "speed_limit_kmh": 58.0,
+      "capacity_vph": 3600,
+      "coordinates": [[106.805055, -6.195684], [106.8142, -6.1966], [106.823227, -6.197518]]
     }
   ]
 }

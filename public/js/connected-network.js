@@ -40,6 +40,8 @@ export const CONNECTED_CORRIDORS_SPEC = {
     { id: 'conn-pi-3', name: 'Koridor Arteri Pondok Indah – Fatmawati / BDN II (Cilandak)', highway: 'primary', corridor_pair: 'tanah_abang_cilandak', from_node: 'conn-n0008', to_node: 'n-361121928', lanes: 3, speed_limit_kmh: 60, capacity_vph: 3700, coordinates: [[106.7848, -6.2525], [106.7918, -6.2695], [106.79944, -6.28451]] },
     { id: 'conn-x-2', name: 'Koridor Gatot Subroto (Slipi – Semanggi Link)', highway: 'trunk', corridor_pair: 'tanah_abang_cilandak', from_node: 'conn-n0007', to_node: 'conn-n0005', lanes: 3, speed_limit_kmh: 65, capacity_vph: 3800, coordinates: [[106.7955, -6.2155], [106.8052, -6.2182], [106.8145, -6.2205]] },
     { id: 'conn-x-3', name: 'Koridor Simatupang – Blok M Bypass Link', highway: 'primary', corridor_pair: 'tanah_abang_cilandak', from_node: 'conn-n0008', to_node: 'conn-n0006', lanes: 3, speed_limit_kmh: 60, capacity_vph: 3600, coordinates: [[106.7848, -6.2525], [106.7942, -6.2545], [106.8035, -6.2565]] },
+    { id: 'conn-x-4', name: 'Koridor Tomang – Hasyim Ashari (Roxy–Harmoni Link)', highway: 'primary', corridor_pair: 'pluit_tanah_abang', from_node: 'conn-n0004', to_node: 'conn-n0002', lanes: 3, speed_limit_kmh: 60, capacity_vph: 3600, coordinates: [[106.8015, -6.1650], [106.8105, -6.1634], [106.8194, -6.1618]] },
+    { id: 'conn-x-5', name: 'Koridor K.H. Mas Mansyur – Karet (Tanah Abang Selatan)', highway: 'primary', corridor_pair: 'tanah_abang_cilandak', from_node: 'n-317417741', to_node: 'n-8487621941', lanes: 3, speed_limit_kmh: 58, capacity_vph: 3600, coordinates: [[106.805055, -6.195684], [106.8142, -6.1966], [106.823227, -6.197518]] },
   ],
 };
 
@@ -382,9 +384,10 @@ export function buildClientFrameSignage(signageNodes, routing, turnActions, fram
       mode = 'blocked';
       headline = '✕ Koridor Depan Ditutup';
     } else if (controller === 'gnn_mappo') {
-      if (turns.length > 1 && (blockedAny || (top.dir_code !== 'lurus' && top.pct >= 55) || redirectedAny)) {
-        mode = blockedAny || (top.dir_code !== 'lurus' && top.pct >= 55) ? 'diverted' : 'optimal';
-        headline = blockedAny ? `${top.arrow} ${top.dir_label} (${top.pct}%) · Dialihkan` : `${top.arrow} ${top.dir_label} (${top.pct}%)`;
+      if (turns.length > 1 && (blockedAny || (top.dir_code !== 'lurus' && top.pct >= 50) || redirectedAny || top.pct >= 56)) {
+        const isDivert = blockedAny || (top.dir_code !== 'lurus' && top.pct >= 50) || (redirectedAny && top.pct >= 58);
+        mode = isDivert ? 'diverted' : 'optimal';
+        headline = (blockedAny || isDivert) ? `${top.arrow} ${top.dir_label} (${top.pct}%) · Dialihkan` : `${top.arrow} ${top.dir_label} (${top.pct}%)`;
       } else {
         mode = 'optimal';
         headline = `${top.arrow} ${top.dir_label} (${top.pct}%)`;

@@ -49,42 +49,75 @@ def choose_turns(region, movements, states, use_model, endpoint=None, precompute
             except KeyError:
                 pass
 
+    # Propagate 4-hop downstream corridor stress so all connected corridor hubs coordinate across regions
+    edge_stress: dict[str, float] = {
+        eid: (1.0 if st.get('closed') else max(float(st.get('occupancy', 0.0)), float(st.get('disruption_intensity', 0.0))))
+        for eid, st in states.items()
+    }
+    out_stress: dict[str, float] = dict(edge_stress)
+    for _ in range(4):
+        next_stress: dict[str, float] = {}
+        for fe_id, turns in movements.items():
+            if not turns:
+                continue
+            vals = [out_stress.get(m['to_edge'], edge_stress.get(m['to_edge'], 0.0)) for m in turns]
+            best_next = min(vals)
+            worst_next = max(vals)
+            avg_next = sum(vals) / len(vals)
+            prop = 0.50 * avg_next + 0.35 * worst_next + 0.15 * best_next
+            next_stress[fe_id] = max(edge_stress.get(fe_id, 0.0), 0.86 * prop)
+        out_stress.update(next_stress)
+
     weights = {}
     decisions = {}
     for incoming, turns in movements.items():
         legal = [m for m in turns if not states[m['to_edge']]['closed']]
         ranked = {}
         for m in legal:
-            downstream = states[m['to_edge']]
-            risk = max(downstream.get('occupancy', 0.0), downstream.get('disruption_intensity', 0.0))
+            te_id = m['to_edge']
+            downstream = states[te_id]
+            occ = float(downstream.get('occupancy', 0.0))
+            dis = float(downstream.get('disruption_intensity', 0.0))
+            lookahead = out_stress.get(te_id, 0.0)
+            risk = max(occ, dis, 0.85 * lookahead)
             default_score = max(0.01, 1.0 - risk)
             if use_model and m['movement_id'] in scores:
                 raw_s = float(scores[m['movement_id']])
-                # Couple learned GNN movement score with live downstream congestion/disruption relief
-                relief = max(0.18, 1.0 - 0.62 * max(0.0, risk - 0.25))
+                # Couple learned GNN movement score with live downstream + corridor-lookahead relief
+                relief = max(0.10, 1.0 - 0.85 * max(0.0, risk - 0.08))
                 ranked[m['movement_id']] = max(0.01, min(1.0, raw_s * relief))
             else:
                 ranked[m['movement_id']] = default_score if use_model else 1.0
         best = max(ranked, key=ranked.get, default=None)
-        allowed = {mid: score for mid, score in ranked.items() if not use_model or score >= 0.20 or mid == best}
+        allowed = {mid: score for mid, score in ranked.items() if not use_model or score >= 0.16 or mid == best}
         if use_model:
-            # Sharpen traffic-current redistribution toward high-scoring uncongested bypass routes
-            weighted = {mid: (score ** 3.2) for mid, score in allowed.items()}
+            # Sharpen traffic-current redistribution across all branching & connector hubs
+            weighted = {mid: (score ** 4.0) for mid, score in allowed.items()}
         else:
             weighted = allowed
         total = sum(weighted.values())
-        weights[incoming] = [
+        split_list = [
             (m['to_edge'], (weighted[m['movement_id']] / total if total else 1.0 / len(allowed)))
             for m in legal if m['movement_id'] in allowed
         ]
+        weights[incoming] = split_list
         if use_model:
+            split_by_edge = dict(split_list)
+            best_to = next((m['to_edge'] for m in legal if m['movement_id'] == best), '')
+            best_share = split_by_edge.get(best_to, 0.0)
+            worst_risk = max((max(float(states[m['to_edge']].get('occupancy', 0.0)), float(states[m['to_edge']].get('disruption_intensity', 0.0)), out_stress.get(m['to_edge'], 0.0)) for m in turns), default=0.0)
             for m in turns:
                 mid = m['movement_id']
                 if mid not in ranked:
                     continue
-                if mid not in allowed or (len(legal) > 1 and (len(allowed) < len(legal) or ranked[mid] >= 0.6) and mid == best):
+                if mid not in allowed:
                     decisions[mid] = {
                         'intersection_id': m['intersection_id'], 'from_edge': incoming, 'to_edge': m['to_edge'],
-                        'action': 'redirected' if mid in allowed else 'blocked',
+                        'action': 'blocked',
+                    }
+                elif len(legal) > 1 and mid == best and (len(allowed) < len(legal) or best_share >= 0.45 or worst_risk >= 0.22):
+                    decisions[mid] = {
+                        'intersection_id': m['intersection_id'], 'from_edge': incoming, 'to_edge': m['to_edge'],
+                        'action': 'redirected',
                     }
     return weights, decisions, source

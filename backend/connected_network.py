@@ -424,10 +424,10 @@ def build_frame_signage(
             mode = 'blocked'
             headline = '✕ Koridor Depan Ditutup'
         elif controller == 'gnn_mappo':
-            if len(turns_payload) > 1 and (redirected_any or blocked_any or top['pct'] >= 58):
-                is_divert = blocked_any or top['dir_code'] != 'lurus' or redirected_any
-                mode = 'diverted' if (blocked_any or (top['dir_code'] != 'lurus' and top['pct'] >= 55)) else 'optimal'
-                if blocked_any and len(turns_payload) > 1:
+            if len(turns_payload) > 1 and (redirected_any or blocked_any or top['pct'] >= 56):
+                is_divert = blocked_any or (top['dir_code'] != 'lurus' and top['pct'] >= 50) or (redirected_any and top['pct'] >= 58)
+                mode = 'diverted' if is_divert else 'optimal'
+                if blocked_any or is_divert:
                     headline = f"{top['arrow']} {top['dir_label']} ({top['pct']}%) · Dialihkan"
                 else:
                     headline = f"{top['arrow']} {top['dir_label']} ({top['pct']}%)"

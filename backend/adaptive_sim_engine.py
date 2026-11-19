@@ -129,18 +129,23 @@ def _simulate_single_controller(
     steps = max(4, int(round(req.duration_s / dt_s)))
     has_disruption = bool(flood_cfg.get('enabled') or demo_cfg.get('enabled'))
 
-    # Per-edge state initialization.
+    # Per-edge state initialization: clean blue free-flow baseline at t = 0s.
+    edge_storage = {
+        e['edge_id']: max(4.0, (e['length_m'] / 6.5) * e['lanes'])
+        for e in edges
+    }
     edge_queue: dict[str, float] = {}
     edge_base_demand: dict[str, float] = {}
     for e in edges:
+        eid = e['edge_id']
         hw = e['highway']
-        hw_load = 0.66 if 'primary' in hw or 'trunk' in hw or 'motorway' in hw else 0.50 if 'secondary' in hw else 0.36
+        hw_load = 0.50 if 'primary' in hw or 'trunk' in hw or 'motorway' in hw else 0.38 if 'secondary' in hw else 0.28
         if e.get('corridor_focus'):
-            hw_load += 0.10
+            hw_load += 0.06
         noise = 0.92 + 0.16 * rng.random()
         demand_vph = e['capacity_vph'] * hw_load * period_cfg['demand_factor'] * noise
-        edge_base_demand[e['edge_id']] = demand_vph
-        edge_queue[e['edge_id']] = max(0.5, (demand_vph / 3600.0) * 14.0)
+        edge_base_demand[eid] = demand_vph
+        edge_queue[eid] = min(edge_storage[eid] * 0.22, max(0.3, (demand_vph / 3600.0) * 4.0))
 
     inter_phase: dict[str, int] = {inter['node_id']: 0 for inter in intersections}
     inter_elapsed: dict[str, float] = {inter['node_id']: 15.0 for inter in intersections}
@@ -182,13 +187,9 @@ def _simulate_single_controller(
     previous_greens = {}
     routed_arrivals = {}
     is_connector = {e['edge_id']: bool(e.get('is_inter_region_connector')) for e in edges}
-    base_cont_share = 0.56 if req.region_id == 'all' else 0.44
+    base_cont_share = 0.66 if req.region_id == 'all' else 0.54
     model_endpoint = os.environ.get('SIMPUL_MESHGRAPHNET_URL')
     incoming_routes = {m['to_edge'] for m in movements}
-    edge_storage = {
-        e['edge_id']: max(4.0, (e['length_m'] / 6.5) * e['lanes'])
-        for e in edges
-    }
     edge_occ_prev = {
         eid: min(1.0, edge_queue[eid] / edge_storage[eid])
         for eid in edge_queue
@@ -197,14 +198,32 @@ def _simulate_single_controller(
 
     for step_idx in range(steps + 1):
         t_s = step_idx * dt_s
-        # Temporal wave peaking mid-horizon if disruption ramps up/clears slightly.
-        disruption_pulse = 1.0
+        # Lifecycle wave: clean free-flow at t=0s (blue) -> peak disruption & surge (orange/red) -> coordinated recovery (blue)
+        disruption_pulse = 0.0
+        demand_wave = 1.0
         if has_disruption:
-            # Incident builds quickly at t=60s and eases moderately after 70% horizon.
-            if t_s < 60.0:
-                disruption_pulse = 0.35 + 0.65 * (t_s / 60.0)
-            elif t_s > req.duration_s * 0.72:
-                disruption_pulse = max(0.35, 1.0 - 0.55 * ((t_s - req.duration_s * 0.72) / (req.duration_s * 0.28)))
+            frac = t_s / max(1.0, req.duration_s)
+            if frac <= 0.03:
+                disruption_pulse = 0.0
+                demand_wave = 0.62
+            elif frac < 0.16:
+                ramp = (frac - 0.03) / 0.13
+                disruption_pulse = ramp
+                demand_wave = 0.86 + 0.62 * ramp
+            elif frac <= 0.44:
+                disruption_pulse = 1.0
+                demand_wave = 1.48
+            elif frac <= 0.68:
+                ease = (frac - 0.44) / 0.24
+                disruption_pulse = max(0.10, 1.0 - 0.90 * ease)
+                demand_wave = 1.10 - 0.64 * ease
+            else:
+                tail = (frac - 0.68) / 0.32
+                disruption_pulse = 0.0 if tail >= 0.45 else max(0.0, 0.10 * (1.0 - tail / 0.45))
+                demand_wave = 0.44 - 0.08 * tail
+        else:
+            frac = t_s / max(1.0, req.duration_s)
+            demand_wave = 0.62 + 0.66 * math.sin(math.pi * min(1.0, frac / 0.68)) if frac < 0.68 else 0.44
 
         road_features: list[RoadFeature] = []
         frame_edges: dict[str, dict[str, Any]] = {}
@@ -226,7 +245,7 @@ def _simulate_single_controller(
             if destination_links == []:
                 eff_cap_vps = 0.0
             in_cont = 0.86 if is_connector.get(eid) else base_cont_share
-            demand_rate_vps = edge_base_demand[eid] * (1.0 - in_cont if eid in incoming_routes else 1.0) / 3600.0
+            demand_rate_vps = edge_base_demand[eid] * demand_wave * (1.0 - in_cont if eid in incoming_routes else 1.0) / 3600.0
 
             q = edge_queue[eid]
             q_prev = q
@@ -421,7 +440,7 @@ def _simulate_single_controller(
             if total_step_q > peak_network_queue:
                 peak_network_queue = total_step_q
                 recovered_started = True
-            elif recovered_started and recovery_time_s is None and t_s > req.duration_s * 0.55 and total_step_q <= peak_network_queue * 0.72:
+            elif recovered_started and recovery_time_s is None and t_s > req.duration_s * 0.42 and total_step_q <= peak_network_queue * 0.68:
                 recovery_time_s = round(t_s - 60.0, 1)
 
         signage_states = build_frame_signage(
